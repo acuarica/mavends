@@ -7,6 +7,8 @@
 /target/
 /project/target/
 
-# MavenDS
+# MavenDS / Ant
 /cache/
+/build/
+/out/
 

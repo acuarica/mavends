@@ -1,20 +1,21 @@
 <project name="MavenDS" basedir=".">
 	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository</description>
-	<property name="src" location="src" />
-	<property name="resources" location="src" />
+	<property name="src" location="src/main/java" />
+	<property name="resources" location="src/main/resources" />
 	<property name="lib" location="lib" />
 	<property name="build" location="build" />
 	<property name="cache" location="cache" />
-	<property name="out" location="out" />
 	<property name="repo" location="${cache}/repo" />
+	<property name="out" location="out" />
 	<property name="mirror.1" value="http://mirrors.ibiblio.org/maven2" />
 	<property name="mirror.2" value="http://maven.antelink.com/content/repositories/central" />
 	<property name="mirror.3" value="http://artifactory.theomega.org/artifactory/repo" />
 	<property name="mirror.4" value="http://scalasbt.artifactoryonline.com/scalasbt/repo" />
 	<property name="mirror.5" value="http://repo.jfrog.org/artifactory/simple/libs-release-bintray" />
-	<property name="gzindexurl" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
-	<property name="gzindexpath" location="${cache}/nexus-maven-repository-index.gz" />
-	<property name="indexpath" location="${cache}/nexus-maven-repository-index" />
+	<property name="nexusindexgz.url" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
+	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
+	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
+	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
 	<property name="urilist" location="${out}/uri.list" />
 	<property name="sessionlist" location="${out}/session.list" />
 	<property name="noartifacts.debug" value="5000" />
@@ -27,43 +28,42 @@
 			<include name="*.jar" />
 		</fileset>
 	</path>
-	<target name="-mkbuilddir" description="Creates the build directory, used for output of compilation.">
+	<target name="-mkbuilddir" description="Creates the *build* directory, used for output of compilation.">
 		<mkdir dir="${build}" />
 	</target>
-	<target name="-mkcachedir" description="Creates the cache directory, used to cache downloaded files.">
+	<target name="-mkcachedir" description="Creates the *cache* directory, used to cache downloaded files.">
 		<mkdir dir="${cache}" />
 	</target>
-	<target name="-mkoutdir" description="Creates the output directory, used for output files.">
+	<target name="-mkoutdir" description="Creates the *out* directory, used for output files.">
 		<mkdir dir="${out}" />
-	</target>
-	<target name="fetchindex" depends="-mkcachedir" description="Fetches the Maven Index (compressed) from a mirror using aria2.">
-		<exec executable="aria2c">
-			<arg value="--dir=/" />
-			<arg value="--max-concurrent-downloads=16" />
-			<arg value="--auto-file-renaming=false" />
-			<arg value="--conditional-get=true" />
-			<arg value="--file-allocation=falloc" />
-			<arg value="--out=${gzindexpath}" />
-			<arg value="${gzindexurl}" />
-		</exec>
-	</target>
-	<target name="unzipindex" depends="fetchindex" description="Fetches and uncompress the Maven Index from a mirror using aria2.">
-		<gunzip src="${gzindexpath}" dest="${indexpath}" />
 	</target>
 	<target name="compile" depends="-mkbuilddir" description="Compiles all Java files.">
 		<javac includeantruntime="false" srcdir="${src}" destdir="${build}">
 			<classpath refid="lib" />
 		</javac>
 	</target>
-	<target name="builddb" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
-		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildDb" classpath="${build}:${resources}">
+	<target name="-fetchnexusindex" depends="-mkcachedir" description="Fetches the Nexus Maven Repository Index (GZipped) from the ibiblio mirror using *aria2*.">
+		<exec executable="aria2c">
+			<arg value="--dir=/" />
+			<arg value="--max-concurrent-downloads=16" />
+			<arg value="--auto-file-renaming=false" />
+			<arg value="--conditional-get=true" />
+			<arg value="--file-allocation=falloc" />
+			<arg value="--out=${nexusindexgz.path}" />
+			<arg value="${nexusindexgz.url}" />
+		</exec>
+	</target>
+	<target name="nexusindex" depends="-fetchnexusindex" description="Fetches and uncompresses the Nexus Maven Repository Index from a mirror using *aria2*.">
+		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
+	</target>
+	<target name="mavenindex" depends="compile,-mkoutdir" description="Builds the Maven Index (SQLite DB) from the Nexus Index.">
+		<java classname="ch.usi.inf.mavends.BuildMavenIndex" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--index=${indexpath}" />
-			<arg value="--repo=${repo}" />
-			<arg value="--db=out/db.sqlite" />
+			<arg value="--nexusindex=${nexusindex.path}" />
+			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
 	</target>
-	<target name="buildurilist-debug" depends="compile,unzipindex,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
+	<target name="buildurilist-debug" depends="compile,nexusindex,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
 		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--index=${indexpath}" />
@@ -72,7 +72,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3},${mirror.4},${mirror.5}" />
 		</java>
 	</target>
-	<target name="buildurilist-release" depends="compile,unzipindex,-mkoutdir" description="Builds the list of artifacts to download in Release mode.">
+	<target name="buildurilist-release" depends="compile,nexusindex,-mkoutdir" description="Builds the list of artifacts to download in Release mode.">
 		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--index=${indexpath}" />
@@ -154,10 +154,7 @@
 			<test name="ch.usi.inf.sape.unsafeanalysis.tests.DepsManagerTests" />
 		</junit>
 	</target>
-	<target name="dist" depends="compile" description="Makes jar file.">
-		<jar destfile="${out}/java-unsafe-analysis.jar" basedir="${build}"/>
-	</target>
-	<target name="clean" description="Removes the build and out directories.">
+	<target name="clean" description="Removes the *build* and *out* directories.">
 		<delete dir="${build}" />
 		<delete dir="${out}" />
 	</target>
