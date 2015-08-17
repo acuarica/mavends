@@ -1,0 +1,164 @@
+<project name="MavenDS" basedir=".">
+	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository</description>
+	<property name="src" location="src" />
+	<property name="resources" location="src" />
+	<property name="lib" location="lib" />
+	<property name="build" location="build" />
+	<property name="cache" location="cache" />
+	<property name="out" location="out" />
+	<property name="repo" location="${cache}/repo" />
+	<property name="mirror.1" value="http://mirrors.ibiblio.org/maven2" />
+	<property name="mirror.2" value="http://maven.antelink.com/content/repositories/central" />
+	<property name="mirror.3" value="http://artifactory.theomega.org/artifactory/repo" />
+	<property name="mirror.4" value="http://scalasbt.artifactoryonline.com/scalasbt/repo" />
+	<property name="mirror.5" value="http://repo.jfrog.org/artifactory/simple/libs-release-bintray" />
+	<property name="gzindexurl" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
+	<property name="gzindexpath" location="${cache}/nexus-maven-repository-index.gz" />
+	<property name="indexpath" location="${cache}/nexus-maven-repository-index" />
+	<property name="urilist" location="${out}/uri.list" />
+	<property name="sessionlist" location="${out}/session.list" />
+	<property name="noartifacts.debug" value="5000" />
+	<property name="noartifacts.release" value="100000" />
+	<property name="mavenstats" location="${out}/stats-maven.csv" />
+	<property name="mavenunsafe" location="${out}/unsafe-maven.csv" />
+	<property name="mavendepgraph" location="${out}/maven-depgraph.csv" />
+	<path id="lib">
+		<fileset dir="${lib}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<target name="-mkbuilddir" description="Creates the build directory, used for output of compilation.">
+		<mkdir dir="${build}" />
+	</target>
+	<target name="-mkcachedir" description="Creates the cache directory, used to cache downloaded files.">
+		<mkdir dir="${cache}" />
+	</target>
+	<target name="-mkoutdir" description="Creates the output directory, used for output files.">
+		<mkdir dir="${out}" />
+	</target>
+	<target name="fetchindex" depends="-mkcachedir" description="Fetches the Maven Index (compressed) from a mirror using aria2.">
+		<exec executable="aria2c">
+			<arg value="--dir=/" />
+			<arg value="--max-concurrent-downloads=16" />
+			<arg value="--auto-file-renaming=false" />
+			<arg value="--conditional-get=true" />
+			<arg value="--file-allocation=falloc" />
+			<arg value="--out=${gzindexpath}" />
+			<arg value="${gzindexurl}" />
+		</exec>
+	</target>
+	<target name="unzipindex" depends="fetchindex" description="Fetches and uncompress the Maven Index from a mirror using aria2.">
+		<gunzip src="${gzindexpath}" dest="${indexpath}" />
+	</target>
+	<target name="compile" depends="-mkbuilddir" description="Compiles all Java files.">
+		<javac includeantruntime="false" srcdir="${src}" destdir="${build}">
+			<classpath refid="lib" />
+		</javac>
+	</target>
+	<target name="builddb" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildDb" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--db=out/db.sqlite" />
+		</java>
+	</target>
+	<target name="buildurilist-debug" depends="compile,unzipindex,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildUriList" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--urilist=${urilist}" />
+			<arg value="--artscount=${noartifacts.debug}" />
+			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3},${mirror.4},${mirror.5}" />
+		</java>
+	</target>
+	<target name="buildurilist-release" depends="compile,unzipindex,-mkoutdir" description="Builds the list of artifacts to download in Release mode.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildUriList" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--urilist=${urilist}" />
+			<arg value="--artscount=${noartifacts.release}" />
+			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3},${mirror.4},${mirror.5}" />
+		</java>
+	</target>
+	<target name="fetchartifacts" description="Fetches all artifacts specified by the URI list using aria2.">
+		<exec executable="aria2c">
+			<arg value="--dir=${repo}" />
+			<arg value="--max-concurrent-downloads=16" />
+			<arg value="--auto-file-renaming=false" />
+			<arg value="--input-file=${urilist}" />
+			<arg value="--save-session=${sessionlist}" />
+			<arg value="--conditional-get=true" />
+		</exec>
+	</target>
+	<target name="stats" depends="compile,-mkoutdir" description="Stats for the Maven repository.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.Stats" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--output=${mavenstats}" />
+		</java>
+	</target>
+	<target name="analyze-debug" depends="compile,-mkoutdir" description="Analyze the Maven repository and JDK8 runtime in Debug mode.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.Analyze" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--artscount=${noartifacts.debug}" />
+			<arg value="--output=${mavenunsafe}" />
+		</java>
+	</target>
+	<target name="analyze-release" depends="compile,-mkoutdir" description="Analyze the Maven repository and JDK8 runtime in Release mode.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.Analyze" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--artscount=${noartifacts.release}" />
+			<arg value="--output=${mavenunsafe}" />
+		</java>
+	</target>
+	<target name="extractdeps" depends="compile" description="Extract the dependency information from POM files.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.ExtractDeps" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--index=${indexpath}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--output=${mavendepgraph}" />
+		</java>
+	</target>
+	<target name="computedeps" depends="compile" description="Computes the inverse transitive dependencies.">
+		<java classname="ch.usi.inf.sape.unsafeanalysis.ComputeDeps" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+		</java>
+	</target>
+	<target name="analyze-tests" depends="compile" description="Run tests for Unsafe analysis.">
+		<junit>
+			<classpath>
+				<pathelement location="lib/asm-all-5.0.3.jar" />
+				<pathelement location="lib/junit-4.12.jar" />
+				<pathelement location="lib/hamcrest-core-1.3.jar" />
+				<pathelement path="${build}" />
+			</classpath>
+			<formatter type="plain" usefile="false" />
+			<test name="ch.usi.inf.sape.unsafeanalysis.tests.UnsafeAnalysisTests" />
+		</junit>
+	</target>
+	<target name="extractdeps-tests" depends="compile" description="Run tests for the dependency extraction.">
+		<junit>
+			<classpath>
+				<pathelement location="lib/asm-all-5.0.3.jar" />
+				<pathelement location="lib/junit-4.12.jar" />
+				<pathelement location="lib/hamcrest-core-1.3.jar" />
+				<pathelement path="${build}" />
+			</classpath>
+			<formatter type="plain" usefile="false" />
+			<test name="ch.usi.inf.sape.unsafeanalysis.tests.DepsManagerTests" />
+		</junit>
+	</target>
+	<target name="dist" depends="compile" description="Makes jar file.">
+		<jar destfile="${out}/java-unsafe-analysis.jar" basedir="${build}"/>
+	</target>
+	<target name="clean" description="Removes the build and out directories.">
+		<delete dir="${build}" />
+		<delete dir="${out}" />
+	</target>
+</project>
