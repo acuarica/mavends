@@ -1,5 +1,12 @@
+
+# Eclipse
 /bin/
 /.cache-main
+
+# SBT
 /target/
 /project/target/
+
+# MavenDS
+/cache/
 
