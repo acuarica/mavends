@@ -2,13 +2,13 @@
 drop table if exists allgroups;
 
 create table allgroups (
-    value varchar(64) not null
+    value varchar(64) not null primary key
 );
 
 drop table if exists rootgroups;
 
 create table rootgroups (
-    value varchar(64) not null
+    value varchar(64) not null primary key
 );
 
 drop table if exists properties;

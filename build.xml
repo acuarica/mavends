@@ -63,12 +63,12 @@
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
 	</target>
-	<target name="buildurilist-debug" depends="compile,nexusindex,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
-		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildUriList" classpath="${build}:${resources}">
+	<target name="urilist-debug" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
+		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--index=${indexpath}" />
+			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--urilist=${urilist}" />
-			<arg value="--artscount=${noartifacts.debug}" />
+			<arg value="--query=select * from artifact limit 100" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3},${mirror.4},${mirror.5}" />
 		</java>
 	</target>
