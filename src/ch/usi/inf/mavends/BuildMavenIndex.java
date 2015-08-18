@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
@@ -33,16 +34,21 @@ public class BuildMavenIndex {
 
 		MavenIndex mi = new MavenIndex(ar.mavenIndexPath);
 
-		String sql = getResourceContent("mavenindexdb.sql");
-		log.info("Maven Index SQL Schema: %s ", sql);
-		mi.execute(sql);
+		sendSql(mi, "mavends-pragmas.sql", "MavenDS SQL Pragmas");
+		sendSql(mi, "mavenindexdb.sql", "Maven Index SQL Schema");
 
 		mi.conn.setAutoCommit(false);
 		MavenIndexBuilder.build(ar.nexusIndexPath, mi.conn);
 		mi.conn.commit();
+		mi.conn.setAutoCommit(true);
+		
+		sendSql(mi, "mavenindexdb-views.sql", "Maven Index SQL Views");
+	}
 
-		sql = getResourceContent("mavenindexdb-views.sql");
-		log.info("Maven Index SQL Views: %s ", sql);
+	private static void sendSql(MavenIndex mi, String path, String message)
+			throws IOException, SQLException {
+		String sql = getResourceContent(path);
+		log.info(message + ": " + sql);
 		mi.execute(sql);
 	}
 

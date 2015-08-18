@@ -1,16 +1,10 @@
 
-drop table if exists allgroups;
-
-create table allgroups (
-    value varchar(64) not null primary key
-);
-
-drop table if exists rootgroups;
-
-create table rootgroups (
-    value varchar(64) not null primary key
-);
-
+/*
+ * properties table
+ * 
+ * Several misc index properties. This table should contain only 1 row.
+ *  
+ */
 drop table if exists properties;
 
 create table properties (
@@ -20,6 +14,31 @@ create table properties (
 	creationdate date         not null
 );
 
+/*
+ * allgroups table
+ * 
+ * Contains all maven groups.
+ */
+drop table if exists allgroups;
+
+create table allgroups (
+    value varchar(64) not null primary key
+);
+
+/*
+ * rootgroups table
+ * 
+ * Contains only the root groups of the Maven Repository.
+ */
+drop table if exists rootgroups;
+
+create table rootgroups (
+    value varchar(64) not null primary key
+);
+
+/*
+ * artifact table
+ */
 drop table if exists artifact;
 
 create table artifact (
@@ -37,7 +56,8 @@ create table artifact (
 	mdate	date			not null,	/* m */
 	sha		varchar(64),				/* 1 */	
 	gdesc	text,						/* n */
-	adesc	text--,						/* d */
---	path	varchar(512)	not null,
---	inrepo	boolean			not null
+	adesc	text,						/* d */
+	--path	varchar(512)	not null,
+	--inrepo	boolean			not null,
+	primary key (gid, aid, ver, sat, is0)
 );

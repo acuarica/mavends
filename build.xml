@@ -63,7 +63,7 @@
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
 	</target>
-	<target name="urilist-debug" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in Debug mode.">
+	<target name="urilist-devel" depends="compile,-mkoutdir" description="Builds the list of artifacts to download for Development.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
@@ -72,7 +72,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3},${mirror.4},${mirror.5}" />
 		</java>
 	</target>
-	<target name="buildurilist-release" depends="compile,nexusindex,-mkoutdir" description="Builds the list of artifacts to download in Release mode.">
+	<target name="urilist-prod" depends="compile,nexusindex,-mkoutdir" description="Builds the list of artifacts to download for Production.">
 		<java classname="ch.usi.inf.sape.unsafeanalysis.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--index=${indexpath}" />
@@ -153,6 +153,13 @@
 			<formatter type="plain" usefile="false" />
 			<test name="ch.usi.inf.sape.unsafeanalysis.tests.DepsManagerTests" />
 		</junit>
+	</target>
+	<target name="dist" depends="compile" description="Makes jar file of the project including its resources and sources.">
+		<jar destfile="${out}/mavends.jar">
+			<fileset dir="${build}" />
+			<fileset dir="${resources}" />
+			<fileset dir="${src}" />
+		</jar>
 	</target>
 	<target name="clean" description="Removes the *build* and *out* directories.">
 		<delete dir="${build}" />
