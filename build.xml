@@ -161,6 +161,22 @@
 			<fileset dir="${src}" />
 		</jar>
 	</target>
+	<target name="extract" depends="compile" description="Extract the dependency information from POM files.">
+		<!--delete file="${out}/mavends.jar.sqlite3" /-->
+		<java classname="ch.usi.inf.mavends.Extract" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--jar=${out}/mavends.jar" />
+			<arg value="--db=${out}/mavends.jar.sqlite3" />
+		</java>
+	</target>
+	<target name="extract-guava" depends="compile" description="Extract the dependency information from POM files.">
+		<delete file="${out}/guava-18.0.mds.sqlite3" />
+		<java classname="ch.usi.inf.mavends.Extract" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--jar=${lib}/guava-18.0.jar" />
+			<arg value="--db=${out}/guava-18.0.mds.sqlite3" />
+		</java>
+	</target>
 	<target name="clean" description="Removes the *build* and *out* directories.">
 		<delete dir="${build}" />
 		<delete dir="${out}" />

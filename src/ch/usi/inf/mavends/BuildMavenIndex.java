@@ -52,7 +52,7 @@ public class BuildMavenIndex {
 		mi.execute(sql);
 	}
 
-	private static String getResourceContent(String path) throws IOException {
+	public static String getResourceContent(String path) throws IOException {
 		ClassLoader cl = BuildMavenIndex.class.getClassLoader();
 		InputStream in = cl.getResourceAsStream(path);
 
