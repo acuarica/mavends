@@ -7,7 +7,7 @@ create table art (
   gid         varchar(128)   not null,  -- Group ID ( u[0] )
   aid         varchar(128)   not null,  -- Artifact ID ( u[1] )
   ver         varchar(64)    not null,  -- Version ( u[2] )
-  classifier  varchar(32),              -- Used for secondary artifacts (e.g., 'sources' or 'javadoc'). Null for main artifact. ( u[3] )
+  classifier  varchar(32)    not null,  -- Used for secondary artifacts (e.g., 'sources' or 'javadoc'). 'NA' for main artifact. ( u[3] )
   packaging   varchar(32)    not null,  -- i[0] == u[4] if not null
   idate       date           not null,  -- ( i[1] )
   size        integer        not null,  -- ( i[2] )

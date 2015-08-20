@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
 
 public class BuildUriList {
@@ -28,7 +29,7 @@ public class BuildUriList {
 
 	}
 
-	private static void outFetchFile(String path, String[] mirrors,
+	private static void emitFetchFile(String path, String[] mirrors,
 			PrintStream out) {
 		for (String mirror : mirrors) {
 			out.format("%s/%s\t", mirror, path);
@@ -55,17 +56,15 @@ public class BuildUriList {
 				String ver = rs.getString("ver");
 
 				n++;
-				outFetchFile(
-						BuildMavenIndexDb.getPath(gid, aid, ver, null, "jar"),
+				emitFetchFile(MavenRecord.getPath(gid, aid, ver, null, "jar"),
 						ar.mirrors, out);
 
 				n++;
-				outFetchFile(
-						BuildMavenIndexDb.getPath(gid, aid, ver, null, "pom"),
+				emitFetchFile(MavenRecord.getPath(gid, aid, ver, null, "pom"),
 						ar.mirrors, out);
 			}
 
-			log.info("No. emitted download files: %d", n);
+			log.info("No. emitted fetch files: %,d", n);
 		}
 	}
 }

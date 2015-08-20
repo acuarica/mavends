@@ -6,6 +6,7 @@ import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.extract.ClassAnalysis;
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
 
 public class BuildMavenBytecodeDb {
@@ -44,7 +45,7 @@ public class BuildMavenBytecodeDb {
 			String gid = rs.getString("gid");
 			String aid = rs.getString("aid");
 			String ver = rs.getString("ver");
-			String path = BuildMavenIndexDb.getPath(gid, aid, ver, null, "jar");
+			String path = MavenRecord.getPath(gid, aid, ver, null, "jar");
 
 			ClassAnalysis.searchJarFile(ar.repoDir + "/" + path, db, gid, aid,
 					ver);

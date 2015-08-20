@@ -96,9 +96,10 @@ public class MavenRecord {
 			gid = us[0];
 			aid = us[1];
 			ver = us[2];
-			classifier = getClassifier(us[3]);
+			classifier = us[3];
 
-			check(us.length != 4 || classifier == null, "Expected NA");
+			check(us.length != 4 || isMain(classifier),
+					"Expected NA/Main classifier");
 
 			String[] is = i.split("\\|");
 			check(is.length == 7, "Invalid i: %s", doc);
@@ -136,8 +137,33 @@ public class MavenRecord {
 		}
 	}
 
-	private static String getClassifier(String classifier) {
-		return "NA".equals(classifier) ? null : classifier;
+	/**
+	 * Gets the path of a given artifact.
+	 * 
+	 * @param gid
+	 *            The group id
+	 * @param aid
+	 *            The artifact id
+	 * @param ver
+	 *            The version of the artifact
+	 * @param classifier
+	 *            The classifier, if any. Null, empty string or "NA" to request
+	 *            the main artifact.
+	 * @param ext
+	 *            The extension to be requested.
+	 * @return The relative path of this artifact
+	 */
+	public static String getPath(String gid, String aid, String ver,
+			String classifier, String ext) {
+		classifier = isMain(classifier) ? "" : "-" + classifier;
+
+		return gid.replace('.', '/') + "/" + aid + "/" + ver + "/" + aid + "-"
+				+ ver + classifier + "." + ext;
+	}
+
+	private static boolean isMain(String classifier) {
+		return classifier == null || "".equals(classifier)
+				|| "NA".equals(classifier);
 	}
 
 	private static int checkDigit(String s) {
