@@ -36,7 +36,14 @@ public class BuildMavenPomDb {
 
 	}
 
-	private static void deps(Args ar, Db db) throws Exception {
+	public static void main(String[] args) throws Exception {
+		Args ar = ArgsParser.parse(args, Args.class);
+
+		Db db = new Db(ar.mavenPomDbPath);
+
+		db.send("mavenpomdb.sql", "SQL");
+
+		db.conn.setAutoCommit(false);
 
 		Inserter ins = db
 				.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?, ?, ?, ?, ?, ?, ?)");
@@ -48,7 +55,7 @@ public class BuildMavenPomDb {
 			String gid = rs.getString("gid");
 			String aid = rs.getString("aid");
 			String ver = rs.getString("ver");
-			String path = BuildMavenIndexDb.getPath(gid, aid, ver, "", "pom");
+			String path = BuildMavenIndexDb.getPath(gid, aid, ver, null, "pom");
 
 			List<PomDependency> deps;
 			try {
@@ -72,17 +79,7 @@ public class BuildMavenPomDb {
 		}
 
 		log.info("No. pom files: %d", n);
-	}
 
-	public static void main(String[] args) throws Exception {
-		Args ar = ArgsParser.parse(args, Args.class);
-
-		Db db = new Db(ar.mavenPomDbPath);
-
-		db.send("mavenpomdb.sql", "SQL");
-
-		db.conn.setAutoCommit(false);
-		deps(ar, db);
 		db.conn.commit();
 	}
 }

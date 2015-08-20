@@ -44,7 +44,7 @@ public class BuildMavenBytecodeDb {
 			String gid = rs.getString("gid");
 			String aid = rs.getString("aid");
 			String ver = rs.getString("ver");
-			String path = BuildMavenIndexDb.getPath(gid, aid, ver, "", "jar");
+			String path = BuildMavenIndexDb.getPath(gid, aid, ver, null, "jar");
 
 			ClassAnalysis.searchJarFile(ar.repoDir + "/" + path, db, gid, aid,
 					ver);
