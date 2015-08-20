@@ -13,7 +13,6 @@ import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.extract.DepsManager;
-import ch.usi.inf.mavends.extract.MavenIndexBuilder;
 import ch.usi.inf.mavends.index.PomDependency;
 import ch.usi.inf.mavends.util.Log;
 
@@ -49,7 +48,7 @@ public class BuildMavenPomDb {
 			String gid = rs.getString("gid");
 			String aid = rs.getString("aid");
 			String ver = rs.getString("ver");
-			String path = MavenIndexBuilder.getPath(gid, aid, ver, "", "pom");
+			String path = BuildMavenIndexDb.getPath(gid, aid, ver, "", "pom");
 
 			List<PomDependency> deps;
 			try {

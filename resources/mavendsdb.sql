@@ -38,6 +38,7 @@ create table stats as
     (select count(*) as gav from mi.artifact where sat is null),
     (select count(*) as ga from (select distinct gid, aid from mi.artifact where sat is null));
 
+----select count(gid) from art  group by gid
 
 /*
 drop view if exists bytecode; 

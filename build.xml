@@ -34,7 +34,7 @@
 	<target name="-mkoutdir" description="Creates the *out* directory, used for output files.">
 		<mkdir dir="${out}" />
 	</target>
-	<target name="compile" depends="-mkbuilddir" description="Compiles all Java files.">
+	<target name="-compile" depends="-mkbuilddir" description="Compiles all Java files.">
 		<javac includeantruntime="false" srcdir="${src}" destdir="${build}">
 			<classpath refid="lib" />
 		</javac>
@@ -53,7 +53,7 @@
 	<target name="nexusindex" depends="-fetchnexusindex" description="Fetches and uncompresses the Nexus Maven Repository Index from a mirror using *aria2*.">
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
-	<target name="mavenindexdb" depends="compile,-mkoutdir" description="Builds the Maven Index (SQLite DB) from the Nexus Index.">
+	<target name="mavenindexdb" depends="-compile,-mkoutdir,nexusindex" description="Builds the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindexdb.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenIndexDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
@@ -61,7 +61,7 @@
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 		</java>
 	</target>
-	<target name="urilist-dev" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in development configuration.">
+	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download in development configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
@@ -70,7 +70,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="urilist-test" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in test configuration.">
+	<target name="urilist-test" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download in test configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
@@ -99,7 +99,7 @@
 			<arg value="--save-session=${sessionlist.path}" />
 		</exec>
 	</target>
-	<target name="mavenbytecodedb-dev" depends="compile" description="Extract the dependency information from POM files.">
+	<target name="mavenbytecodedb-dev" depends="-compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecodedb-dev.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecodeDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
@@ -109,7 +109,7 @@
 			<arg value="--mavenbytecodedb=${mavenbytecodedb-dev.path}" />
 		</java>
 	</target>
-	<target name="mavenbytecodedb-test" depends="compile" description="Extract the dependency information from POM files.">
+	<target name="mavenbytecodedb-test" depends="-compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecodedb-test.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecodeDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
@@ -119,7 +119,7 @@
 			<arg value="--mavenbytecodedb=${mavenbytecodedb-test.path}" />
 		</java>
 	</target>
-	<target name="mavenpomdb-dev" depends="compile" description="Extract the information from POM files.">
+	<target name="mavenpomdb-dev" depends="-compile" description="Extract the information from POM files.">
 		<delete file="${mavenpomdb-dev.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenPomDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
@@ -129,7 +129,7 @@
 			<arg value="--mavenpom=${mavenpomdb-dev.path}" />
 		</java>
 	</target>
-	<target name="mavenpomdb-test" depends="compile" description="Extract the information from POM files.">
+	<target name="mavenpomdb-test" depends="-compile" description="Extract the information from POM files.">
 		<delete file="${mavenpomdb-test.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenPomDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />

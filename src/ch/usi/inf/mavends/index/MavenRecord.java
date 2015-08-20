@@ -3,6 +3,7 @@ package ch.usi.inf.mavends.index;
 import java.util.Date;
 
 /**
+ * Represents a Maven Record.
  * 
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
@@ -25,7 +26,7 @@ public class MavenRecord {
 	public final String gid;
 	public final String aid;
 	public final String ver;
-	public final String plugin;
+	public final String classifier;
 	public final String packaging;
 	public final Date idate;
 	public final long size;
@@ -34,6 +35,10 @@ public class MavenRecord {
 	public final int is5;
 	public final String ext;
 
+	/**
+	 * 
+	 * @param doc
+	 */
 	public MavenRecord(NexusRecord doc) {
 		allGroups = doc.get("allGroups");
 		allGroupsList = doc.get("allGroupsList");
@@ -91,9 +96,9 @@ public class MavenRecord {
 			gid = us[0];
 			aid = us[1];
 			ver = us[2];
-			plugin = getSat(us[3]);
+			classifier = getSat(us[3]);
 
-			check(us.length != 4 || plugin == null, "Expected NA");
+			check(us.length != 4 || classifier == null, "Expected NA");
 
 			String[] is = i.split("\\|");
 			check(is.length == 7, "Invalid i: %s", doc);
@@ -120,7 +125,7 @@ public class MavenRecord {
 			gid = null;
 			aid = null;
 			ver = null;
-			plugin = null;
+			classifier = null;
 			packaging = null;
 			idate = null;
 			size = 0;
@@ -152,7 +157,7 @@ public class MavenRecord {
 
 	private static void check(boolean cond, String message, Object... args) {
 		if (!cond) {
-			throw new AssertionError(String.format(message, args));
+			throw new RuntimeException(String.format(message, args));
 		}
 	}
 }
