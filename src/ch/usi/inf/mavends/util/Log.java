@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.log;
+package ch.usi.inf.mavends.util;
 
 import java.io.PrintStream;
 

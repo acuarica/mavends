@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.index;
+package ch.usi.inf.mavends.util;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,9 +11,11 @@ import java.sql.SQLException;
  */
 public class Inserter {
 
+	private String sql;
 	private PreparedStatement stmt;
 
-	public Inserter(Connection conn, String sql) throws SQLException {
+	Inserter(Connection conn, String sql) throws SQLException {
+		this.sql = sql;
 		stmt = conn.prepareStatement(sql);
 	}
 
@@ -26,6 +28,11 @@ public class Inserter {
 
 			stmt.executeUpdate();
 		} catch (SQLException e) {
+			System.err.println(sql);
+			for (int i = 0; i < values.length; i++) {
+				System.err.println(values[i]);
+			}
+
 			throw new RuntimeException(e);
 		}
 	}

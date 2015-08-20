@@ -5,8 +5,8 @@ import java.sql.ResultSet;
 
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
-import ch.usi.inf.mavends.index.MavenIndex;
-import ch.usi.inf.mavends.log.Log;
+import ch.usi.inf.mavends.util.Db;
+import ch.usi.inf.mavends.util.Log;
 
 public class BuildUriList {
 
@@ -14,16 +14,16 @@ public class BuildUriList {
 
 	public static class Args {
 
-		@Arg(shortkey = "i", longkey = "mavenindex", desc = "Specifies the path of the Maven Index (SQLite DB).")
+		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index (SQLite DB).")
 		public String mavenIndexPath;
 
-		@Arg(shortkey = "u", longkey = "urilist", desc = "Specifies the output uri list file(aria2 format).")
+		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file(aria2 format).")
 		public String uriListPath;
 
-		@Arg(shortkey = "q", longkey = "query", desc = "Specifies the SQL query of artifacts to download.")
+		@Arg(key = "query", name = "Query filter to download", desc = "Specifies the SQL query of artifacts to download.")
 		public String query;
 
-		@Arg(shortkey = "m", longkey = "mirrors", desc = "Comma separated list of mirrors.")
+		@Arg(key = "mirrors", name = "mirrors", desc = "Comma separated list of mirrors.")
 		public String[] mirrors;
 
 	}
@@ -41,21 +41,12 @@ public class BuildUriList {
 	public static void main(String[] args) throws Exception {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		log.info("Maven Index: %s", ar.mavenIndexPath);
-		log.info("URI List: %s", ar.uriListPath);
-		log.info("SQL Query to download: %s", ar.query);
-
-		log.info("Using %d mirrors:", ar.mirrors.length);
-		for (String mirror : ar.mirrors) {
-			log.info("  * %s", mirror);
-		}
-
-		MavenIndex mi = new MavenIndex(ar.mavenIndexPath);
+		Db db = new Db(ar.mavenIndexPath);
 
 		try (PrintStream out = new PrintStream(ar.uriListPath)) {
 			log.info("Using artifacts from: %s", ar.query);
 
-			ResultSet rs = mi.select(ar.query);
+			ResultSet rs = db.select(ar.query);
 
 			int n = 0;
 			while (rs.next()) {

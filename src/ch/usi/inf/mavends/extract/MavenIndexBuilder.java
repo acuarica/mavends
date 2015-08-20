@@ -1,29 +1,31 @@
-package ch.usi.inf.mavends.index;
+package ch.usi.inf.mavends.extract;
 
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Date;
 
-import ch.usi.inf.mavends.log.Log;
+import ch.usi.inf.mavends.index.MavenRecord;
+import ch.usi.inf.mavends.index.NexusIndexParser;
+import ch.usi.inf.mavends.index.NexusRecord;
+import ch.usi.inf.mavends.util.Db;
+import ch.usi.inf.mavends.util.Inserter;
+import ch.usi.inf.mavends.util.Log;
 
 public class MavenIndexBuilder {
 
 	private static final Log log = new Log(System.out);
 
-	public static void build(String indexPath, Connection c) throws Exception {
-		Inserter artins = new Inserter(
-				c,
-				"insert into artifact (mdate, sha, gid, aid, ver, sat, is0, idate, size, is3, is4, is5, ext, gdesc, adesc, path, inrepo) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	public static void build(String indexPath, Db db) throws Exception {
+		Inserter artins = db
+				.createInserter("insert into artifact (mdate, sha, gid, aid, ver, sat, is0, idate, size, is3, is4, is5, ext, gdesc, adesc, path, inrepo) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-		Inserter allins = new Inserter(c,
-				"insert into allgroups (value) values (?)");
+		Inserter allins = db
+				.createInserter("insert into allgroups (value) values (?)");
 
-		Inserter rootins = new Inserter(c,
-				"insert into rootgroups (value) values (?)");
+		Inserter rootins = db
+				.createInserter("insert into rootgroups (value) values (?)");
 
-		Inserter propins = new Inserter(
-				c,
-				"insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, ?)");
+		Inserter propins = db
+				.createInserter("insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, ?)");
 
 		long ndoc = 0;
 		long nallgroups = 0;
@@ -102,7 +104,22 @@ public class MavenIndexBuilder {
 		System.out.println();
 	}
 
-	private static String getPath(String gid, String aid, String ver,
+	/**
+	 * Gets the path of a given artifact.
+	 * 
+	 * @param gid
+	 *            The group id
+	 * @param aid
+	 *            The artifact id
+	 * @param ver
+	 *            The version of the artifact
+	 * @param plugin
+	 *            The plugin, if any.
+	 * @param ext
+	 *            The extension to be requested.
+	 * @return The relative path of this artifact
+	 */
+	public static String getPath(String gid, String aid, String ver,
 			String plugin, String ext) {
 		plugin = plugin == null || "".equals(plugin) ? "" : "-" + plugin;
 

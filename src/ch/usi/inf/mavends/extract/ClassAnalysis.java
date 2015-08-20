@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -16,12 +15,16 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.Printer;
 
-import ch.usi.inf.mavends.index.Inserter;
+import ch.usi.inf.mavends.util.Db;
+import ch.usi.inf.mavends.util.Inserter;
 
 public class ClassAnalysis {
 
 	private static class ExtractVisitor extends ClassVisitor {
 
+		private String gid;
+		private String aid;
+		private String ver;
 		private String className;
 		private Inserter cls;
 		private Inserter method;
@@ -31,40 +34,33 @@ public class ClassAnalysis {
 		private Inserter literal;
 		private Inserter zero;
 
-		public ExtractVisitor(Connection c) throws SQLException {
+		public ExtractVisitor(Db db, String gid, String aid, String ver)
+				throws SQLException {
 			super(Opcodes.ASM5);
 
-			cls = new Inserter(
-					c,
-					"insert into class (name, supername, version, access, signature) values (?, ?, ?, ?, ?)");
+			this.gid = gid;
+			this.aid = aid;
+			this.ver = ver;
 
-//			method = new Inserter(c,
-//					"insert into method (clsname, methodname, methoddesc) values (?, ?, ?)");
-//
-//			callsite = new Inserter(
-//					c,
-//					"insert into callsite (clsname,methodname, methoddesc, offset, targetclass,targetmethod,targetdesc) values (?, ?, ?, ?,  ?, ?, ?)");
-//
-//			allocsite = new Inserter(
-//					c,
-//					"insert into allocsite (clsname,methodname, methoddesc, offset, opcode, type) values (?, ?, ?, ?, ?,  ?)");
-//
-//			fieldaccess = new Inserter(
-//					c,
-//					"insert into fieldaccess (clsname,methodname, methoddesc, offset, targetclass,targetfield,targetdesc) values (?, ?, ?, ?,  ?, ?, ?)");
-//
-//			literal = new Inserter(
-//					c,
-//					"insert into literal (clsname,methodname, methoddesc, offset, literal) values (?, ?, ?, ?,  ?)");
-//
-//			zero = new Inserter(
-//					c,
-//					"insert into zero (clsname,methodname, methoddesc, offset, opcode) values (?, ?, ?, ?,  ?)");
+			cls = db.createInserter("insert into class (gid, aid, ver, classname, supername, version, access, signature) values (?,?,?,  ?, ?, ?, ?, ?)");
 
-			// a == null ? ""
-			// : a.groupId, a == null ? ""
-			// : a.artifactId, a == null ? ""
-			// : a.version
+			method = db
+					.createInserter("insert into method (gid, aid, ver, classname, methodname, methoddesc) values (?,?,?,  ?, ?, ?)");
+
+			callsite = db
+					.createInserter("insert into callsite (gid, aid, ver, classname,methodname, methoddesc, offset, targetclass,targetmethod,targetdesc) values (?,?,?,  ?, ?, ?, ?,  ?, ?, ?)");
+
+			allocsite = db
+					.createInserter("insert into allocsite (gid, aid, ver, classname,methodname, methoddesc, offset, opcode, type) values (?,?,?,  ?, ?, ?, ?, ?,  ?)");
+
+			fieldaccess = db
+					.createInserter("insert into fieldaccess (gid, aid, ver, classname,methodname, methoddesc, offset, targetclass,targetfield,targetdesc) values (?,?,?,  ?, ?, ?, ?,  ?, ?, ?)");
+
+			literal = db
+					.createInserter("insert into literal (gid, aid, ver, classname,methodname, methoddesc, offset, literal) values (?,?,?,  ?, ?, ?, ?,  ?)");
+
+			zero = db
+					.createInserter("insert into zero (gid, aid, ver, classname,methodname, methoddesc, offset, opcode) values (?,?,?,  ?, ?, ?, ?,  ?)");
 		}
 
 		@Override
@@ -73,14 +69,15 @@ public class ClassAnalysis {
 			className = name;
 			super.visit(version, access, name, signature, superName, interfaces);
 
-			cls.insert(name, superName, version, access, signature);
+			cls.insert(gid, aid, ver, name, superName, version, access,
+					signature);
 		}
 
 		@Override
 		public MethodVisitor visitMethod(int access, final String methodName,
 				final String methodDesc, String signature, String[] exceptions) {
 
-//			method.insert(className, methodName, methodDesc);
+			method.insert(gid, aid, ver, className, methodName, methodDesc);
 
 			MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
 
@@ -89,40 +86,38 @@ public class ClassAnalysis {
 				@Override
 				public void visitInsn(int opcode) {
 					String opcodeName = Printer.OPCODES[opcode];
-			//		zero.insert(className, methodName, methodDesc, offset++,
-				//			opcodeName);
+					zero.insert(gid, aid, ver, className, methodName,
+							methodDesc, offset++, opcodeName);
 				}
 
 				@Override
 				public void visitMethodInsn(int opcode, String owner,
 						String name, String desc, boolean itf) {
-				//	callsite.insert(className, methodName, methodDesc,
-					//		offset++, owner, name, desc);
+					callsite.insert(gid, aid, ver, className, methodName,
+							methodDesc, offset++, owner, name, desc);
 				}
 
 				@Override
 				public void visitFieldInsn(int opcode, String owner,
 						String name, String desc) {
-					//fieldaccess.insert(className, methodName, methodDesc,
-						//	offset++, owner, name, desc);
+					fieldaccess.insert(gid, aid, ver, className, methodName,
+							methodDesc, offset++, owner, name, desc);
 				};
 
 				@Override
 				public void visitLdcInsn(Object cst) {
 					if (cst instanceof String) {
 						String value = (String) cst;
-						//literal.insert(className, methodName, methodDesc,
-							//	offset++, value);
+						literal.insert(gid, aid, ver, className, methodName,
+								methodDesc, offset++, value);
 					}
 				}
 
 				@Override
 				public void visitTypeInsn(int opcode, String type) {
-					// if (opcode == Opcodes.NEW) {
 					String opcodeName = Printer.OPCODES[opcode];
-				//	allocsite.insert(className, methodName, methodDesc,
-					//		offset++, opcodeName, type);
-					// }
+					allocsite.insert(gid, aid, ver, className, methodName,
+							methodDesc, offset++, opcodeName, type);
 				}
 
 			};
@@ -131,26 +126,19 @@ public class ClassAnalysis {
 		}
 	}
 
-	private static void searchClassFile(byte[] classFile, Connection c)
-			throws SQLException {
-		ClassReader cr = new ClassReader(classFile);
-		ExtractVisitor uv = new ExtractVisitor(c);
-		cr.accept(uv, 0);
-	}
-
-	private static void searchJarFile(byte[] jarFileBuffer, Connection c)
-			throws IOException, SQLException {
+	private static void searchJarFile(byte[] jarFileBuffer, Db db, String gid,
+			String aid, String ver) throws IOException, SQLException {
 		ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(
 				jarFileBuffer));
 
 		ZipEntry entry;
 
-//		Inserter ei = new Inserter(c,
-	//			"insert into jarentry (name, size, compressedsize) values (?, ?, ?)");
+		Inserter ei = db
+				.createInserter("insert into jarentry (gid, aid, ver, filename, originalsize, compressedsize) values (?,?,?, ?, ?, ?)");
 
 		while ((entry = zip.getNextEntry()) != null) {
-			//ei.insert(entry.getName(), entry.getSize(),
-				//	entry.getCompressedSize());
+			ei.insert(gid, aid, ver, entry.getName(), entry.getSize(),
+					entry.getCompressedSize());
 
 			if (!entry.getName().endsWith(".class")) {
 				continue;
@@ -164,14 +152,16 @@ public class ClassAnalysis {
 				classfile.write(buffer, 0, len);
 			}
 
-			searchClassFile(classfile.toByteArray(), c);
+			ClassReader cr = new ClassReader(classfile.toByteArray());
+			ExtractVisitor uv = new ExtractVisitor(db, gid, aid, ver);
+			cr.accept(uv, 0);
 		}
 	}
 
-	public static void searchJarFile(String jarFileName, Connection c)
-			throws IOException, SQLException {
+	public static void searchJarFile(String jarFileName, Db db, String gid,
+			String aid, String ver) throws IOException, SQLException {
 		byte[] jarFileBuffer = Files.readAllBytes(Paths.get(jarFileName));
 
-		searchJarFile(jarFileBuffer, c);
+		searchJarFile(jarFileBuffer, db, gid, aid, ver);
 	}
 }

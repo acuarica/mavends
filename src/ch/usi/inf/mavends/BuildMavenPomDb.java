@@ -1,12 +1,21 @@
 package ch.usi.inf.mavends;
 
-import java.sql.Connection;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
-import ch.usi.inf.mavends.index.Inserter;
-import ch.usi.inf.mavends.log.Log;
-
+import ch.usi.inf.mavends.extract.DepsManager;
+import ch.usi.inf.mavends.extract.MavenIndexBuilder;
+import ch.usi.inf.mavends.index.PomDependency;
+import ch.usi.inf.mavends.util.Db;
+import ch.usi.inf.mavends.util.Inserter;
+import ch.usi.inf.mavends.util.Log;
 
 public class BuildMavenPomDb {
 
@@ -14,74 +23,67 @@ public class BuildMavenPomDb {
 
 	public static class Args {
 
-		@Arg(shortkey = "i", longkey = "index", desc = "Specifies the path of the Nexus Index.")
-		public String indexPath;
+		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index.")
+		public String mavenIndexDbPath;
 
-		@Arg(shortkey = "r", longkey = "repo", desc = "Specifies the path of the Maven repository.")
-		public String repoPath;
+		@Arg(key = "repo", name = "Maven Repo", desc = "Specifies the path of the Maven repository.")
+		public String repoDir;
 
-		@Arg(shortkey = "d", longkey = "db", desc = "Specifies the path of the output db file.")
-		public String dbPath;
+		@Arg(key = "query", name = "Filter query", desc = "Specifies the path of the Maven repository.")
+		public String query;
+
+		@Arg(key = "mavenpom", name = "Maven Pom path", desc = "Specifies the path of the output db file.")
+		public String mavenPomDbPath;
 
 	}
 
-	private static void deps(Args ar, Connection c) throws Exception {
+	private static void deps(Args ar, Db db) throws Exception {
 
-		log.info("Using Index: %s", ar.indexPath);
+		Inserter ins = db
+				.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?, ?, ?, ?, ?, ?, ?)");
 
-		log.info("Parsing Index...");
+		ResultSet rs = new Db(ar.mavenIndexDbPath).select(ar.query);
 
-		NexusIndexParser nip = new NexusIndexParser(ar.indexPath);
-		MavenIndex index = MavenIndexBuilder.build(nip);
-
-		Inserter ins = new Inserter(
-				c,
-				"insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?, ?, ?, ?, ?, ?, ?)");
-
-		int i = 0;
-		for (final MavenArtifact a : index) {
-			i++;
-
-			String path = a.getPomPath();
+		int n = 0;
+		while (rs.next()) {
+			String gid = rs.getString("gid");
+			String aid = rs.getString("aid");
+			String ver = rs.getString("ver");
+			String path = MavenIndexBuilder.getPath(gid, aid, ver, "", "pom");
 
 			List<PomDependency> deps;
 			try {
-				deps = DepsManager.extractDeps(ar.repoPath + "/" + path);
+				deps = DepsManager.extractDeps(ar.repoDir + "/" + path);
 				try {
 
 					for (PomDependency dep : deps) {
-						ins.insert(a.groupId, a.artifactId, a.version,
-								dep.groupId, dep.artifactId, dep.version,
-								dep.scope);
+						ins.insert(gid, aid, ver, dep.groupId, dep.artifactId,
+								dep.version, dep.scope);
 					}
 				} catch (RuntimeException e) {
-					System.out.println(a);
 					System.out.println(deps);
-					// log.info("SQL Exception in %s (# %d): %s", path, i, e);
+					log.info("SQL Exception in %s (# %d): %s", path, n, e);
 					throw e;
 				}
 			} catch (SAXException | IOException | ParserConfigurationException e) {
-				log.info("Exception in %s (# %d): %s", path, i, e);
+				log.info("Exception in %s (# %d): %s", path, n, e);
 			}
+
+			n++;
 		}
+
+		log.info("No. pom files: %d", n);
 	}
 
 	public static void main(String[] args) throws Exception {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		log.info("Index: %s", ar.indexPath);
-		log.info("Repo path: %s ", ar.repoPath);
-		log.info("DB path: %s ", ar.dbPath);
+		Db db = new Db(ar.mavenPomDbPath);
 
-		String sql = getResourceContent("db.sql");
-		log.info("SQL: %s ", sql);
+		db.send("mavenpomdb.sql", "SQL");
 
-		Class.forName("org.sqlite.JDBC");
-
-		Connection c = DriverManager.getConnection("jdbc:sqlite:" + ar.dbPath);
-
-		c.setAutoCommit(false);
-		deps(ar, c);
-		c.commit();
+		db.conn.setAutoCommit(false);
+		deps(ar, db);
+		db.conn.commit();
 	}
 }

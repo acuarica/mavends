@@ -1,106 +1,45 @@
 
 
 /*
- * jarentry_str table
+ * https://www.sqlite.org/pragma.html#pragma_page_size
  * 
+ * Better performance by using the same page size as the OS?
  */
-create table jarentry_str (
-  filename        varchar(255)  not null, 
-  originalsize    int           not null,
-  compressedsize  int           not null,
-  primary key (filename)
-);
+--pragma page_size = 4096;
 
 /*
- * class_raw table
- */
-create table class_str (
-  classname  varchar(255)  not null, 
-  supername  varchar(255)  not null,
-  version    int           not null, 
-  access     int           not null, 
-  signature  varchar(255),
-  primary key (classname)
-);
-
-/*
- * method_str
- */
-create table method_str (
-  classname   varchar(255)  not null,
-  methodname  varchar(255)  not null,
-  methoddesc  varchar(255)  not null,
-  primary key (classname, methodname, methoddesc)
-);
-
-/*
- * callsite_raw table
- *
- * Contains a callsite to a method.
- */
-create table callsite_raw (
-  classname     varchar(255)  not null,
-  methodname    varchar(255)  not null,
-  methoddesc    varchar(255)  not null,
-  offset        int           not null,
-  targetclass   varchar(255)  not null,
-  targetmethod  varchar(255)  not null,
-  targetdesc    varchar(255)  not null,
-  primary key (classname, methodname, methoddesc, offset)
-);
-
-/*
- * allocsite_str
- */
-create table allocsite_str (
-  classname   varchar(255)  not null,
-  methodname  varchar(255)  not null,
-  methoddesc  varchar(255)  not null,
-  offset      int           not null,
-  opcode      varchar(255)  not null,
-  type        varchar(255)  not null,
-  primary key (classname, methodname, methoddesc, offset)
-);
-
-/*
+ * https://www.sqlite.org/pragma.html#pragma_journal_mode
  * 
+ * Better performance by disabling journaling.
+ * No need for journal since the db once is built, becomes read-only.
  */
-create table fieldaccess_str (
-  classname    varchar(255)  not null,
-  methodname   varchar(255)  not null,
-  methoddesc   varchar(255)  not null,
-  offset       int           not null,
-  targetclass  varchar(255)  not null,
-  targetfield  varchar(255)  not null,
-  targetdesc   varchar(255)  not null,
-  primary key (classname, methodname, methoddesc, offset)
-);
+--pragma journal_mode = off;
+
+attach "mavenindex.sqlite3" as mi; 
 
 /*
- * 
+ * properties table
  */
-create table literal_str (
-  classname   varchar(255)  not null,
-  methodname  varchar(255)  not null,
-  methoddesc  varchar(255)  not null,
-  offset      int           not null,
-  literal     text          not null,
-  primary key (classname, methodname, methoddesc, offset)
-);
+create table properties as
+select 
+  DESCRIPTOR, 
+  IDXINFO,
+  headb as creationdate,
+  date(creationdate, 'unixepoch' ) as creationdate
+from mi.properties;
+
 
 /*
- *
+ * stats table
  */
-create table zero (
-  classname   varchar(255)  not null,
-  methodname  varchar(255)  not null,
-  methoddesc  varchar(255)  not null,
-  offset      int           not null,
-  opcode          varchar(32)   not null,
-  primary key (classname, methodname, methoddesc, offset)
-);
+create table stats as
+  select
+    (select count(*) as artcount from mi.artifact ),
+    (select count(*) as gav from mi.artifact where sat is null),
+    (select count(*) as ga from (select distinct gid, aid from mi.artifact where sat is null));
 
 
+/*
 drop view if exists bytecode; 
 
 create view bytecode as
@@ -126,6 +65,7 @@ select distinct supername, supername from class
 UNION 
 select root, class.name from class, subclass where class.supername=subclass.cls )
 SELECT root, cls FROM subclass
+/
 
 */
 
@@ -191,4 +131,4 @@ inner join cp_sig cs on cs.rowid = c.signatureid ;
 drop table class3;
 
  * 
- */*/
+ */

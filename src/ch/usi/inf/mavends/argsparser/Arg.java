@@ -17,20 +17,18 @@ import java.lang.annotation.Target;
 public @interface Arg {
 
 	/**
-	 * The short key used for this argument. Usually the short key is a single
-	 * letter.
+	 * The key for this argument, used in scripts to self-document.
 	 * 
-	 * @return The short key of this argument.
+	 * @return The key of this argument.
 	 */
-	public String shortkey();
+	public String key();
 
 	/**
-	 * The long key for this argument. The long key is an alternative to the
-	 * short key, usually used in scripts to self-document.
+	 * The name is used to identify this argument.
 	 * 
-	 * @return The long ley of this argument.
+	 * @return The name of this argument.
 	 */
-	public String longkey();
+	public String name();
 
 	/**
 	 * The desc is used to provide some help text to the user to indicate what
