@@ -28,7 +28,7 @@ public class BuildUriList {
 
 	}
 
-	private static void emitDownloadFile(String path, String[] mirrors,
+	private static void outFetchFile(String path, String[] mirrors,
 			PrintStream out) {
 		for (String mirror : mirrors) {
 			out.format("%s/%s\t", mirror, path);
@@ -50,11 +50,19 @@ public class BuildUriList {
 
 			int n = 0;
 			while (rs.next()) {
-				String path = rs.getString("path");
+				String gid = rs.getString("gid");
+				String aid = rs.getString("aid");
+				String ver = rs.getString("ver");
 
 				n++;
+				outFetchFile(
+						BuildMavenIndexDb.getPath(gid, aid, ver, null, "jar"),
+						ar.mirrors, out);
 
-				emitDownloadFile(path, ar.mirrors, out);
+				n++;
+				outFetchFile(
+						BuildMavenIndexDb.getPath(gid, aid, ver, null, "pom"),
+						ar.mirrors, out);
 			}
 
 			log.info("No. emitted download files: %d", n);

@@ -65,7 +65,7 @@ public class BuildMavenIndexDb {
 		db.conn.setAutoCommit(false);
 
 		Inserter artins = db
-				.createInserter("insert into art (mdate, sha, gid, aid, ver, classifier, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				.createInserter("insert into art (mdate, sha, gid, aid, ver, classifier, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 		Inserter allins = db
 				.createInserter("insert into allgroups (value) values (?)");
@@ -120,22 +120,12 @@ public class BuildMavenIndexDb {
 					nart++;
 
 					artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-							mr.classifier, mr.packaging, mr.idate, mr.size, mr.is3,
-							mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc,
-							getPath(mr.gid, mr.aid, mr.ver, mr.classifier, mr.ext));
-
-					if (mr.classifier == null) {
-						nart++;
-
-						artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-								null, "*pom*", mr.idate, -2, mr.is3, mr.is4,
-								mr.is5, "pom", mr.gdesc, mr.adesc,
-								getPath(mr.gid, mr.aid, mr.ver, "", "pom"));
-					}
+							mr.classifier, mr.packaging, mr.idate, mr.size,
+							mr.is3, mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc);
 				}
 
 				if (nart % 100000 == 0) {
-					System.out.printf("arts: %,d\n", nart);
+					log.info("arts: %,d", nart);
 				}
 			}
 
@@ -144,11 +134,9 @@ public class BuildMavenIndexDb {
 					nip.headl / 1000));
 		}
 
-		System.out.println();
-		System.out
-				.printf("docs: %,d, allgroups: %,d, rootgroups: %,d, descriptor: %,d, artifacts: %,d",
-						ndoc, nallgroups, nrootgroups, ndesc, nart);
-		System.out.println();
+		log.info(
+				"docs: %,d, allgroups: %,d, rootgroups: %,d, descriptor: %,d, artifacts: %,d",
+				ndoc, nallgroups, nrootgroups, ndesc, nart);
 
 		db.conn.commit();
 	}

@@ -66,7 +66,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=select path from artifact where substr(gid, 1, 3) = 'ar.'" />
+			<arg value="--query=select gid, aid, ver, ext from art where classifier is null and packaging = 'jar' and ext = 'jar' and substr(gid, 1, 3) = 'ar.'" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -75,7 +75,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=select path from artifact where substr(gid, 1, 3) = 'es.'" />
+			<arg value="--query=select gid, aid, ver, ext from art where classifier is null and packaging = 'jar' and ext = 'jar' and substr(gid, 1, 3) = 'es.'" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
