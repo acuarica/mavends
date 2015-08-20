@@ -96,7 +96,7 @@ public class MavenRecord {
 			gid = us[0];
 			aid = us[1];
 			ver = us[2];
-			classifier = getSat(us[3]);
+			classifier = getClassifier(us[3]);
 
 			check(us.length != 4 || classifier == null, "Expected NA");
 
@@ -136,8 +136,8 @@ public class MavenRecord {
 		}
 	}
 
-	private static String getSat(String sat) {
-		return "NA".equals(sat) ? null : sat;
+	private static String getClassifier(String classifier) {
+		return "NA".equals(classifier) ? null : classifier;
 	}
 
 	private static int checkDigit(String s) {
