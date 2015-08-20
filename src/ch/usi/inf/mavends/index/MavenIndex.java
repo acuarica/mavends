@@ -44,9 +44,6 @@ public class MavenIndex {
 
 	public ResultSet select(String sql) throws SQLException {
 		Statement stmt = conn.createStatement();
-
-		System.err.println(sql);
-		
 		ResultSet rs = stmt.executeQuery(sql);
 		return rs;
 	}

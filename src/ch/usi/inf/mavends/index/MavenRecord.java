@@ -25,8 +25,8 @@ public class MavenRecord {
 	public final String gid;
 	public final String aid;
 	public final String ver;
-	public final String sat;
-	public final String is0;
+	public final String plugin;
+	public final String packaging;
 	public final Date idate;
 	public final long size;
 	public final int is3;
@@ -91,16 +91,17 @@ public class MavenRecord {
 			gid = us[0];
 			aid = us[1];
 			ver = us[2];
-			sat = getSat(us[3]);
+			plugin = getSat(us[3]);
 
-			check(us.length != 4 || sat == null, "Expected NA");
+			check(us.length != 4 || plugin == null, "Expected NA");
 
 			String[] is = i.split("\\|");
 			check(is.length == 7, "Invalid i: %s", doc);
 
-			is0 = is[0];
+			packaging = is[0];
 
-			check(us.length == 4 || us[4].equals(is0), "us4 and is0: %s", doc);
+			check(us.length == 4 || us[4].equals(packaging), "us4 and is0: %s",
+					doc);
 
 			idate = checkDate(is[1]);
 			size = checkSignedLong(is[2]);
@@ -112,14 +113,15 @@ public class MavenRecord {
 
 			ext = is[6];
 
-			check(!is0.equals("null") || (size == -1 && ext.equals("pom")),
+			check(!packaging.equals("null")
+					|| (size == -1 && ext.equals("pom")),
 					"size/no jar and null: %s", doc);
 		} else {
 			gid = null;
 			aid = null;
 			ver = null;
-			sat = null;
-			is0 = null;
+			plugin = null;
+			packaging = null;
 			idate = null;
 			size = 0;
 			is3 = 0;

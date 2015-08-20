@@ -29,20 +29,16 @@ public class MavenArtifact {
 		this.ext = ext;
 		this.groupDesc = groupDesc;
 		this.artifactDesc = artifactDesc;
-		this.kind = kind;
+		this.kind = kind == null || "".equals(kind) ? "" : "-" + kind;
 		this.one = one;
 	}
 
 	public String getPath() {
-		return getPath("." + ext);
+		return getPath(kind + "." + ext);
 	}
 
 	public String getPomPath() {
 		return getPath(".pom");
-	}
-
-	public String getSourcesPath() {
-		return getPath("-sources.jar");
 	}
 
 	public String getId() {

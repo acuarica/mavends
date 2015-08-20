@@ -26,10 +26,10 @@ public class ArgsParser {
 	}
 
 	private static String match(Arg arg, String param) {
-		String[] parts = param.split("=");
-		if (parts.length == 2) {
-			String key = parts[0];
-			String value = parts[1];
+		int i = param.indexOf("=");
+		if (i >= 0) {
+			String key = param.substring(0, i);
+			String value = param.substring(i + 1);
 			return key.equals("-" + arg.shortkey())
 					|| key.equals("--" + arg.longkey()) ? value : null;
 		} else {

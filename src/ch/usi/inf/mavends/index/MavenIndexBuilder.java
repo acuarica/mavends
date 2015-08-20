@@ -13,7 +13,7 @@ public class MavenIndexBuilder {
 	public static void build(String indexPath, Connection c) throws Exception {
 		Inserter artins = new Inserter(
 				c,
-				"insert into artifact (mdate, sha, gid, aid, ver, sat, is0, idate, size, is3, is4, is5, ext, gdesc, adesc) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				"insert into artifact (mdate, sha, gid, aid, ver, sat, is0, idate, size, is3, is4, is5, ext, gdesc, adesc, path, inrepo) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 		Inserter allins = new Inserter(c,
 				"insert into allgroups (value) values (?)");
@@ -68,33 +68,22 @@ public class MavenIndexBuilder {
 				} else if (mr.i != null) {
 					nart++;
 
-					// MavenArtifact a = new MavenArtifact(mr.gid, mr.aid,
-					// mr.ver,
-					// mr.size, mr.ext, mr.gdesc, mr.adesc, mr.sat, mr.sha);
-
 					artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-							mr.sat, mr.is0, mr.idate, mr.size, mr.is3, mr.is4,
-							mr.is5, mr.ext, mr.gdesc, mr.adesc);
+							mr.plugin, mr.packaging, mr.idate, mr.size, mr.is3,
+							mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc,
+							getPath(mr.gid, mr.aid, mr.ver, mr.plugin, mr.ext),
+							false);
 
-					// if (us.length == 4
-					// && Arrays.asList("jar", "ejb", "war", "ear").contains(
-					// ext))
+					if (mr.plugin == null) {
+						nart++;
 
-					// if (index.map.containsKey(id)) {
-					// MavenArtifact b = index.map.get(id);
-					// index.lastVersionJarsSize -= b.size;
-					//
-					// a = b.max(a);
-					// }
-					//
-					// index.lastVersionJarsSize += a.size;
-					// index.map.put(id, a);
+						artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
+								null, "*pom*", mr.idate, -2, mr.is3, mr.is4,
+								mr.is5, "pom", mr.gdesc, mr.adesc,
+								getPath(mr.gid, mr.aid, mr.ver, "", "pom"),
+								false);
+					}
 				}
-
-				// if (one != null &&
-				// !one.toLowerCase().matches("[0-9a-f]{40}")) {
-				// System.out.println(docText);
-				// }
 
 				if (ndoc % 100000 == 0) {
 					System.out.printf("docs: %,d\n", ndoc);
@@ -111,5 +100,13 @@ public class MavenIndexBuilder {
 				.printf("docs: %,d, allgroups: %,d, rootgroups: %,d, descriptor: %,d, artifacts: %,d",
 						ndoc, nallgroups, nrootgroups, ndesc, nart);
 		System.out.println();
+	}
+
+	private static String getPath(String gid, String aid, String ver,
+			String plugin, String ext) {
+		plugin = plugin == null || "".equals(plugin) ? "" : "-" + plugin;
+
+		return gid.replace('.', '/') + "/" + aid + "/" + ver + "/" + aid + "-"
+				+ ver + plugin + "." + ext;
 	}
 }

@@ -53,25 +53,20 @@ public class BuildUriList {
 		MavenIndex mi = new MavenIndex(ar.mavenIndexPath);
 
 		try (PrintStream out = new PrintStream(ar.uriListPath)) {
+			log.info("Using artifacts from: %s", ar.query);
+
 			ResultSet rs = mi.select(ar.query);
 
-			// int noArtifacts = 0;
-
+			int n = 0;
 			while (rs.next()) {
-				String sResult = rs.getString("gid");
-				System.out.println(sResult);
+				String path = rs.getString("path");
+
+				n++;
+
+				emitDownloadFile(path, ar.mirrors, out);
 			}
 
-			// for (MavenArtifact a : mi) {
-			// emitDownloadFile(a.getPomPath(), ar.mirrors, out);
-			//
-			// noArtifacts++;
-			//
-			// if (ar.noArtsToDownload == null
-			// || noArtifacts < ar.noArtsToDownload.intValue()) {
-			// emitDownloadFile(a.getPath(), ar.mirrors, out);
-			// }
-			// }
+			log.info("No. emitted download files: %d", n);
 		}
 	}
 }

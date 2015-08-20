@@ -34,7 +34,7 @@ public class Extract {
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:"
 				+ ar.dbPath);
 
-		String sql = BuildMavenIndex.getResourceContent("cls.sql");
+		String sql = BuildMavenIndexDb.getResourceContent("cls.sql");
 		Statement stmt = conn.createStatement();
 		stmt.executeUpdate(sql);
 		stmt.close();

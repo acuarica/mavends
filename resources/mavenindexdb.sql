@@ -5,8 +5,6 @@
  * Several misc index properties. This table should contain only 1 row.
  *  
  */
-drop table if exists properties;
-
 create table properties (
 	DESCRIPTOR   varchar(255) not null,
 	IDXINFO      varchar(255) not null,
@@ -19,8 +17,6 @@ create table properties (
  * 
  * Contains all maven groups.
  */
-drop table if exists allgroups;
-
 create table allgroups (
     value varchar(64) not null primary key
 );
@@ -30,17 +26,15 @@ create table allgroups (
  * 
  * Contains only the root groups of the Maven Repository.
  */
-drop table if exists rootgroups;
-
 create table rootgroups (
     value varchar(64) not null primary key
 );
 
 /*
  * artifact table
+ * 
+ * Contains all artifacts. POM files count as artifacts as well.
  */
-drop table if exists artifact;
-
 create table artifact (
 	gid 	varchar(255)	not null,	/* u[0] */
 	aid 	varchar(255)	not null,	/* u[1] */
@@ -57,7 +51,8 @@ create table artifact (
 	sha		varchar(64),				/* 1 */	
 	gdesc	text,						/* n */
 	adesc	text,						/* d */
-	--path	varchar(512)	not null,
-	--inrepo	boolean			not null,
+	path	varchar(512)	not null,
+	inrepo	boolean			not null,
 	primary key (gid, aid, ver, sat, is0)
 );
+

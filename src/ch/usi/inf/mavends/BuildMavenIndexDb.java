@@ -12,7 +12,7 @@ import ch.usi.inf.mavends.index.MavenIndex;
 import ch.usi.inf.mavends.index.MavenIndexBuilder;
 import ch.usi.inf.mavends.log.Log;
 
-public class BuildMavenIndex {
+public class BuildMavenIndexDb {
 
 	private static final Log log = new Log(System.out);
 
@@ -34,15 +34,12 @@ public class BuildMavenIndex {
 
 		MavenIndex mi = new MavenIndex(ar.mavenIndexPath);
 
-		sendSql(mi, "mavends-pragmas.sql", "MavenDS SQL Pragmas");
 		sendSql(mi, "mavenindexdb.sql", "Maven Index SQL Schema");
 
 		mi.conn.setAutoCommit(false);
 		MavenIndexBuilder.build(ar.nexusIndexPath, mi.conn);
 		mi.conn.commit();
 		mi.conn.setAutoCommit(true);
-		
-		sendSql(mi, "mavenindexdb-views.sql", "Maven Index SQL Views");
 	}
 
 	private static void sendSql(MavenIndex mi, String path, String message)
@@ -53,7 +50,7 @@ public class BuildMavenIndex {
 	}
 
 	public static String getResourceContent(String path) throws IOException {
-		ClassLoader cl = BuildMavenIndex.class.getClassLoader();
+		ClassLoader cl = BuildMavenIndexDb.class.getClassLoader();
 		InputStream in = cl.getResourceAsStream(path);
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
