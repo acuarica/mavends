@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
-import ch.usi.inf.mavends.util.Db;
+import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.util.Log;
 
 public class BuildUriList {

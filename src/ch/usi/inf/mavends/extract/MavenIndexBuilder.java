@@ -3,11 +3,11 @@ package ch.usi.inf.mavends.extract;
 import java.util.Arrays;
 import java.util.Date;
 
+import ch.usi.inf.mavends.db.Db;
+import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.NexusIndexParser;
 import ch.usi.inf.mavends.index.NexusRecord;
-import ch.usi.inf.mavends.util.Db;
-import ch.usi.inf.mavends.util.Inserter;
 import ch.usi.inf.mavends.util.Log;
 
 public class MavenIndexBuilder {

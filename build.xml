@@ -12,13 +12,10 @@
 	<property name="nexusindexgz.url" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
-	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
-	<property name="urilist-dev.path" location="${out}/uri-dev.list" />
-	<property name="urilist-test.path" location="${out}/uri-test.list" />
-	<property name="repo-dev" location="${cache}/repo-dev" />
-	<property name="repo-test" location="${cache}/repo-test" />
-	<property name="sessionlist-dev.path" location="${out}/session-dev.list" />
-	<property name="sessionlist-test.path" location="${out}/session-test.list" />
+	<property name="mavenindexdb.path" location="${out}/mavenindex.sqlite3" />
+	<property name="urilist.path" location="${out}/uri.list" />
+	<property name="sessionlist.path" location="${out}/session.list" />
+	<property name="repo" location="${cache}/repo" />
 	<property name="mavenbytecodedb-dev.path" location="${out}/mavenbytecode-dev.sqlite3" />
 	<property name="mavenbytecodedb-test.path" location="${out}/mavenbytecode-test.sqlite3" />
 	<property name="mavenpomdb-dev.path" location="${out}/mavenpom-dev.sqlite3" />
@@ -57,57 +54,57 @@
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
 	<target name="mavenindexdb" depends="compile,-mkoutdir" description="Builds the Maven Index (SQLite DB) from the Nexus Index.">
-		<delete file="${mavenindex.path}" />
+		<delete file="${mavenindexdb.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenIndexDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
-			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
 		</java>
 	</target>
-	<target name="urilist-dev" depends="compile,-mkoutdir" description="Builds the list of artifacts to download for Development.">
+	<target name="urilist-dev" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in development configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--urilist=${urilist-dev.path}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--urilist=${urilist.path}" />
 			<arg value="--query=select path from artifact where substr(gid, 1, 3) = 'ar.'" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="urilist-test" depends="compile,-mkoutdir" description="Builds the list of artifacts to download for Development.">
+	<target name="urilist-test" depends="compile,-mkoutdir" description="Builds the list of artifacts to download in test configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--urilist=${urilist-test.path}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--urilist=${urilist.path}" />
 			<arg value="--query=select path from artifact where substr(gid, 1, 3) = 'es.'" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="arts-dev" description="Fetches all artifacts specified by the URI list using aria2.">
+	<target name="arts-dev" description="Fetches all artifacts specified by the URI list in development configuration with *aria2*.">
 		<exec executable="aria2c">
-			<arg value="--dir=${repo-dev}" />
+			<arg value="--dir=${repo}" />
 			<arg value="--max-concurrent-downloads=16" />
 			<arg value="--auto-file-renaming=false" />
 			<arg value="--conditional-get=true" />
-			<arg value="--input-file=${urilist-dev.path}" />
-			<arg value="--save-session=${sessionlist-dev.path}" />
+			<arg value="--input-file=${urilist.path}" />
+			<arg value="--save-session=${sessionlist.path}" />
 		</exec>
 	</target>
-	<target name="arts-test" description="Fetches all artifacts specified by the URI list using aria2.">
+	<target name="arts-test" description="Fetches all artifacts specified by the URI list in test configuration with *aria2*.">
 		<exec executable="aria2c">
-			<arg value="--dir=${repo-test}" />
+			<arg value="--dir=${repo}" />
 			<arg value="--max-concurrent-downloads=16" />
 			<arg value="--auto-file-renaming=false" />
 			<arg value="--conditional-get=true" />
-			<arg value="--input-file=${urilist-test.path}" />
-			<arg value="--save-session=${sessionlist-test.path}" />
+			<arg value="--input-file=${urilist.path}" />
+			<arg value="--save-session=${sessionlist.path}" />
 		</exec>
 	</target>
 	<target name="mavenbytecodedb-dev" depends="compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecodedb-dev.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecodeDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo-dev}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--repo=${repo}" />
 			<arg value="--query=select gid, aid, ver from artifact where sat is null and ext = 'jar' and substr(gid, 1, 3) = 'ar.'" />
 			<arg value="--mavenbytecodedb=${mavenbytecodedb-dev.path}" />
 		</java>
@@ -116,8 +113,8 @@
 		<delete file="${mavenbytecodedb-test.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecodeDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo-test}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--repo=${repo}" />
 			<arg value="--query=select gid, aid, ver from artifact where sat is null and ext = 'jar' and substr(gid, 1, 3) = 'es.'" />
 			<arg value="--mavenbytecodedb=${mavenbytecodedb-test.path}" />
 		</java>
@@ -126,8 +123,8 @@
 		<delete file="${mavenpomdb-dev.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenPomDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo-dev}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--repo=${repo}" />
 			<arg value="--query=select gid, aid, ver from artifact where substr(gid, 1, 3) = 'ar.'" />
 			<arg value="--mavenpom=${mavenpomdb-dev.path}" />
 		</java>
@@ -136,8 +133,8 @@
 		<delete file="${mavenpomdb-test.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenPomDb" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo-test}" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--repo=${repo}" />
 			<arg value="--query=select gid, aid, ver from artifact where substr(gid, 1, 3) = 'es.'" />
 			<arg value="--mavenpom=${mavenpomdb-test.path}" />
 		</java>

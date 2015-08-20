@@ -10,11 +10,11 @@ import org.xml.sax.SAXException;
 
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
+import ch.usi.inf.mavends.db.Db;
+import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.extract.DepsManager;
 import ch.usi.inf.mavends.extract.MavenIndexBuilder;
 import ch.usi.inf.mavends.index.PomDependency;
-import ch.usi.inf.mavends.util.Db;
-import ch.usi.inf.mavends.util.Inserter;
 import ch.usi.inf.mavends.util.Log;
 
 public class BuildMavenPomDb {

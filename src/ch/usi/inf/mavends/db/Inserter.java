@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.util;
+package ch.usi.inf.mavends.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

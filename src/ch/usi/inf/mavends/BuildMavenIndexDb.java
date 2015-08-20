@@ -2,8 +2,8 @@ package ch.usi.inf.mavends;
 
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
+import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.extract.MavenIndexBuilder;
-import ch.usi.inf.mavends.util.Db;
 
 /**
  * 

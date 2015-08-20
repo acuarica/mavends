@@ -15,8 +15,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.Printer;
 
-import ch.usi.inf.mavends.util.Db;
-import ch.usi.inf.mavends.util.Inserter;
+import ch.usi.inf.mavends.db.Db;
+import ch.usi.inf.mavends.db.Inserter;
 
 public class ClassAnalysis {
 
