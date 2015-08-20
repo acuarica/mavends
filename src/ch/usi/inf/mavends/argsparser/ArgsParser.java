@@ -46,7 +46,7 @@ public class ArgsParser {
 				log.info("  * %s", value);
 			}
 		} else {
-			log.info("%s: %s\n", name, f.get(ar));
+			log.info("%s: %s", name, f.get(ar));
 		}
 	}
 
