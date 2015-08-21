@@ -16,6 +16,7 @@
 	<property name="query-dev" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar' and substr(gid, 1, 3) = 'ar.'" />
 	<property name="query-test" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar' and substr(gid, 1, 3) = 'es.'" />
 	<property name="query-last" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar' group by gid, aid having idate = max(idate)" />
+	<property name="query-prod" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar'" />
 	<property name="urilist.path" location="${out}/uri.list" />
 	<property name="sessionlist.path" location="${out}/session.list" />
 	<property name="repo" location="${cache}/repo" />
@@ -88,6 +89,15 @@
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
 			<arg value="--query=${query-last}" />
+			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
+		</java>
+	</target>
+	<target name="urilist-prod" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download in production configuration.">
+		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindexdb.path}" />
+			<arg value="--urilist=${urilist.path}" />
+			<arg value="--query=${query-prod}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>

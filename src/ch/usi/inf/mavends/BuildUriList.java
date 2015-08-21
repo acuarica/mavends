@@ -15,7 +15,7 @@ public class BuildUriList {
 
 	public static class Args {
 
-		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index (SQLite DB).")
+		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index DB.")
 		public String mavenIndexPath;
 
 		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file(aria2 format).")
