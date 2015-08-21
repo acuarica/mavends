@@ -109,6 +109,7 @@
 			<arg value="--conditional-get=true" />
 			<arg value="--input-file=${urilist.path}" />
 			<arg value="--save-session=${sessionlist.path}" />
+			<arg value="--deferred-input=true" />
 		</exec>
 	</target>
 	<target name="mavenbytecodedb-dev" depends="-compile" description="Extract the dependency information from POM files.">
