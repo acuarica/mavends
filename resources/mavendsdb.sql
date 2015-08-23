@@ -24,7 +24,7 @@ create table properties as
 select 
   DESCRIPTOR, 
   IDXINFO,
-  headb as creationdate,
+  headb as headerbyte,
   date(creationdate, 'unixepoch' ) as creationdate
 from mi.properties;
 
@@ -34,9 +34,9 @@ from mi.properties;
  */
 create table stats as
   select
-    (select count(*) as artcount from mi.artifact ),
-    (select count(*) as gav from mi.artifact where sat is null),
-    (select count(*) as ga from (select distinct gid, aid from mi.artifact where sat is null));
+    (select count(*) from (select path from mi.art union all select path from mi.sec) ) as nart,
+    (select count(*) from mi.art) as gav,
+    (select count(*) from (select distinct gid, aid from mi.art)) as ga;
 
 ----select count(gid) from art  group by gid
 

@@ -13,10 +13,13 @@
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindexdb.path" location="${out}/mavenindex.sqlite3" />
-	<property name="query-dev" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar' and substr(gid, 1, 3) = 'ar.'" />
-	<property name="query-test" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar' and substr(gid, 1, 3) = 'es.'" />
-	<property name="query-last" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar' group by gid, aid having idate = max(idate)" />
-	<property name="query-prod" value="select gid, aid, ver from art where classifier = 'NA' and packaging = 'jar' and ext = 'jar'" />
+	<property name="query-urilist" value="select path from (select * from pom union all select * from art) where packaging = 'jar' and ext = 'jar'" />
+	<property name="query-bytecode" value="select gid, aid, ver, path from art where packaging = 'jar' and ext = 'jar'" />
+	<property name="query-pom" value="select gid, aid, ver, path from pom where packaging = 'jar' and ext = 'jar'" />
+	<property name="filter-dev" value=" and substr(gid, 1, 3) = 'ar.'" />
+	<property name="filter-test" value=" and substr(gid, 1, 3) = 'es.'" />
+	<property name="filter-last" value=" group by gid, aid having idate = max(idate)" />
+	<property name="filter-prod" value="" />
 	<property name="urilist.path" location="${out}/uri.list" />
 	<property name="sessionlist.path" location="${out}/session.list" />
 	<property name="repo" location="${cache}/repo" />
@@ -70,7 +73,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-dev}" />
+			<arg value="--query=${query-urilist} ${filter-dev}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -79,7 +82,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-test}" />
+			<arg value="--query=${query-urilist} ${filter-test}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -88,7 +91,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-last}" />
+			<arg value="--query=${query-urilist} ${filter-last}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -97,7 +100,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-prod}" />
+			<arg value="--query=${query-urilist} ${filter-prod}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -118,7 +121,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-dev}" />
+			<arg value="--query=${query-bytecode} ${filter-dev}" />
 			<arg value="--mavenbytecodedb=${mavenbytecodedb-dev.path}" />
 		</java>
 	</target>
@@ -128,7 +131,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-test}" />
+			<arg value="--query=${query-bytecode} ${filter-test}" />
 			<arg value="--mavenbytecodedb=${mavenbytecodedb-test.path}" />
 		</java>
 	</target>
@@ -138,7 +141,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-dev}" />
+			<arg value="--query=${query-pom} ${filter-dev}" />
 			<arg value="--mavenpom=${mavenpomdb-dev.path}" />
 		</java>
 	</target>
@@ -148,7 +151,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindexdb.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-test}" />
+			<arg value="--query=${query-pom} ${filter-test}" />
 			<arg value="--mavenpom=${mavenpomdb-test.path}" />
 		</java>
 	</target>
@@ -156,7 +159,7 @@
 		<delete file="out/mavends.sqlite3" />
 		<exec executable="bash">
 			<arg value="-c" />
-			<arg value="cd ${out} &amp;&amp; cat ../resources/mavendsdb.sql | sqlite3 mavends.sqlite3" />
+			<arg value="cd ${out} &amp;&amp; cat ../resources/mavendsdb.sql | sqlite3 -stats mavends.sqlite3" />
 		</exec>
 	</target>
 	<target name="clean" description="Removes the *build* and *out* directories.">

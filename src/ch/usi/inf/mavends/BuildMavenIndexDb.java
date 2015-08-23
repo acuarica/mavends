@@ -40,8 +40,14 @@ public class BuildMavenIndexDb {
 
 		db.conn.setAutoCommit(false);
 
+		Inserter pomins = db
+				.createInserter("insert into pom (mdate, sha, gid, aid, ver, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
 		Inserter artins = db
-				.createInserter("insert into art (mdate, sha, gid, aid, ver, classifier, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				.createInserter("insert into art (mdate, sha, gid, aid, ver, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+		Inserter secins = db
+				.createInserter("insert into sec (mdate, sha, gid, aid, ver, classifier, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 		Inserter allins = db
 				.createInserter("insert into allgroups (value) values (?)");
@@ -93,15 +99,33 @@ public class BuildMavenIndexDb {
 					idxinfo = mr.idxinfo;
 
 				} else if (mr.i != null) {
-					nart++;
+					if (mr.classifier == null) {
+						nart += 2;
 
-					artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-							mr.classifier, mr.packaging, mr.idate, mr.size,
-							mr.is3, mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc);
+						pomins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
+								mr.packaging, mr.idate, mr.size, mr.is3,
+								mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc,
+								MavenRecord.getPath(mr.gid, mr.aid, mr.ver,
+										null, "pom"));
+
+						artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
+								mr.packaging, mr.idate, mr.size, mr.is3,
+								mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc,
+								MavenRecord.getPath(mr.gid, mr.aid, mr.ver,
+										null, mr.ext));
+					} else {
+						nart++;
+
+						secins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
+								mr.classifier, mr.packaging, mr.idate, mr.size,
+								mr.is3, mr.is4, mr.is5, mr.ext, mr.gdesc,
+								mr.adesc, MavenRecord.getPath(mr.gid, mr.aid,
+										mr.ver, mr.classifier, mr.ext));
+					}
 				}
 
-				if (nart % 100000 == 0) {
-					log.info("arts: %,d", nart);
+				if (ndoc % 100000 == 0) {
+					log.info("docs: %,d", ndoc);
 				}
 			}
 

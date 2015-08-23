@@ -96,7 +96,7 @@ public class MavenRecord {
 			gid = us[0];
 			aid = us[1];
 			ver = us[2];
-			classifier = us[3];
+			classifier = "NA".equals(us[3]) ? null : us[3];
 
 			check(us.length != 4 || isMain(classifier),
 					"Expected NA/Main classifier");
@@ -162,8 +162,7 @@ public class MavenRecord {
 	}
 
 	private static boolean isMain(String classifier) {
-		return classifier == null || "".equals(classifier)
-				|| "NA".equals(classifier);
+		return classifier == null;
 	}
 
 	private static int checkDigit(String s) {
