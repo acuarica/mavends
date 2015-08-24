@@ -159,7 +159,7 @@
 		<delete file="out/mavends.sqlite3" />
 		<exec executable="bash">
 			<arg value="-c" />
-			<arg value="cd ${out} &amp;&amp; cat ../resources/mavendsdb.sql | sqlite3 -stats mavends.sqlite3" />
+			<arg value="cd ${out} &amp;&amp; cat ../resources/mavendsdb.sql | sqlite3 -bail -echo mavends.sqlite3" />
 		</exec>
 	</target>
 	<target name="clean" description="Removes the *build* and *out* directories.">

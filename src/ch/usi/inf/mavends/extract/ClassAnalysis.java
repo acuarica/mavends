@@ -13,7 +13,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.util.Printer;
 
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
@@ -85,9 +84,9 @@ public class ClassAnalysis {
 
 				@Override
 				public void visitInsn(int opcode) {
-					String opcodeName = Printer.OPCODES[opcode];
-					zero.insert(gid, aid, ver, className, methodName,
-							methodDesc, offset++, opcodeName);
+					// String opcodeName = Printer.OPCODES[opcode];
+					// zero.insert(gid, aid, ver, className, methodName,
+					// methodDesc, offset++, opcodeName);
 				}
 
 				@Override
@@ -115,9 +114,9 @@ public class ClassAnalysis {
 
 				@Override
 				public void visitTypeInsn(int opcode, String type) {
-					String opcodeName = Printer.OPCODES[opcode];
-					allocsite.insert(gid, aid, ver, className, methodName,
-							methodDesc, offset++, opcodeName, type);
+					// String opcodeName = Printer.OPCODES[opcode];
+					// allocsite.insert(gid, aid, ver, className, methodName,
+					// methodDesc, offset++, opcodeName, type);
 				}
 
 			};

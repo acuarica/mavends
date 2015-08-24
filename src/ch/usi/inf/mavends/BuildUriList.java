@@ -20,7 +20,7 @@ public class BuildUriList {
 		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file(aria2 format).")
 		public String uriListPath;
 
-		@Arg(key = "query", name = "Query filter to download", desc = "Specifies the SQL query of artifacts to download.")
+		@Arg(key = "query", name = "Filter query", desc = "Specifies the SQL filter query of artifacts to download.")
 		public String query;
 
 		@Arg(key = "mirrors", name = "mirrors", desc = "Comma separated list of mirrors.")
@@ -44,8 +44,6 @@ public class BuildUriList {
 		Db db = new Db(ar.mavenIndexPath);
 
 		try (PrintStream out = new PrintStream(ar.uriListPath)) {
-			log.info("Using artifacts from: %s", ar.query);
-
 			ResultSet rs = db.select(ar.query);
 
 			int n = 0;
