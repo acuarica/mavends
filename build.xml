@@ -12,6 +12,7 @@
 	<property name="nexusindexgz.url" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
+	<property name="xmavenindex.path" location="${out}/xmavenindex.sqlite3" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
 	<property name="query-urilist" value="select path from (select * from pom union all select * from art) where packaging = 'jar' and ext = 'jar'" />
 	<property name="query-bytecode" value="select pid, path from art where packaging = 'jar' and ext = 'jar'" />
@@ -60,13 +61,20 @@
 	<target name="nexusindex" depends="-fetchnexusindex" description="Fetches and uncompresses the Nexus Maven Repository Index from a mirror using *aria2*.">
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
-	<target name="mavenindex" depends="-compile,-mkoutdir" description="Builds the Maven Index DB from the Nexus Index.">
-		<delete file="${mavenindex.path}" />
-		<java classname="ch.usi.inf.mavends.BuildMavenIndex" classpath="${build}:${resources}">
+	<target name="xmavenindex" depends="-compile,-mkoutdir" description="EXtracts Builds the Maven Index DB from the Nexus Index.">
+		<delete file="${xmavenindex.path}" />
+		<java classname="ch.usi.inf.mavends.ExtractMavenIndex" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
-			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--xmavenindex=${xmavenindex.path}" />
 		</java>
+	</target>
+	<target name="mavenindex" description="Builds the Maven Index.">
+		<delete file="${mavenindex.path}" />
+		<exec executable="bash">
+			<arg value="-c" />
+			<arg value="cat resources/mavenindex.sql | sqlite3 -bail -echo ${xmavenindex.path}" />
+		</exec>
 	</target>
 	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download in development configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
@@ -104,7 +112,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="arts" description="Fetches all artifacts specified by the URI list in with *aria2*.">
+	<target name="fetcharts" description="Fetches all artifacts specified by the URI list in with *aria2*.">
 		<exec executable="aria2c">
 			<arg value="--dir=${repo}" />
 			<arg value="--max-concurrent-downloads=16" />
@@ -129,7 +137,7 @@
 		<delete file="${mavenbytecode-test.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--mavenindex=${xmavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-bytecode} ${filter-test}" />
 			<arg value="--mavenbytecode=${mavenbytecode-test.path}" />
@@ -155,6 +163,7 @@
 			<arg value="--mavenpom=${mavenpom-test.path}" />
 		</java>
 	</target>
+	
 	<target name="mavends-dev" description="mavends db.">
 		<delete file="out/mavends.sqlite3" />
 		<exec executable="bash">

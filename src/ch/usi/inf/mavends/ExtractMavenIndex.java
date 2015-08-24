@@ -17,7 +17,7 @@ import ch.usi.inf.mavends.util.Log;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class BuildMavenIndex {
+public class ExtractMavenIndex {
 
 	private static final Log log = new Log(System.out);
 
@@ -26,34 +26,28 @@ public class BuildMavenIndex {
 		@Arg(key = "nexusindex", name = "Nexus Index path", desc = "Specifies the input path of the Nexus Index file.")
 		public String nexusIndexPath;
 
-		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the output path of the Maven Index DB file.")
-		public String mavenIndexDbPath;
+		@Arg(key = "xmavenindex", name = "X Maven Index path", desc = "Specifies the output path of the Maven Index DB file.")
+		public String xmavenIndexDbPath;
 
 	}
 
 	public static void main(String[] args) throws Exception {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		Db db = new Db(ar.mavenIndexDbPath);
+		Db db = new Db(ar.xmavenIndexDbPath);
 
-		db.send("mavenindex.sql", "Maven Index SQL Schema");
+		db.send("xmavenindex.sql", "X Maven Index SQL Schema");
 
 		db.conn.setAutoCommit(false);
 
-		Inserter pomins = db
-				.createInserter("insert into pom (mdate, sha, gid, aid, ver, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
 		Inserter artins = db
-				.createInserter("insert into art (mdate, sha, gid, aid, ver, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-		Inserter secins = db
-				.createInserter("insert into sec (mdate, sha, gid, aid, ver, classifier, packaging, idate, size, is3, is4, is5, ext, gdesc, adesc, path) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				.createInserter("insert into art (mdate, sha, groupname, artname, version, classifier, packaging, idate, size, is3, is4, is5, ext, arttitle, artdesc) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 		Inserter allins = db
-				.createInserter("insert into allgroups (value) values (?)");
+				.createInserter("insert into allgroups (groupname) values (?)");
 
 		Inserter rootins = db
-				.createInserter("insert into rootgroups (value) values (?)");
+				.createInserter("insert into rootgroups (groupname) values (?)");
 
 		Inserter propins = db
 				.createInserter("insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, ?)");
@@ -99,29 +93,12 @@ public class BuildMavenIndex {
 					idxinfo = mr.idxinfo;
 
 				} else if (mr.i != null) {
-					if (mr.classifier == null) {
-						nart += 2;
+					nart++;
 
-						pomins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-								mr.packaging, mr.idate, mr.size, mr.is3,
-								mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc,
-								MavenRecord.getPath(mr.gid, mr.aid, mr.ver,
-										null, "pom"));
-
-						artins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-								mr.packaging, mr.idate, mr.size, mr.is3,
-								mr.is4, mr.is5, mr.ext, mr.gdesc, mr.adesc,
-								MavenRecord.getPath(mr.gid, mr.aid, mr.ver,
-										null, mr.ext));
-					} else {
-						nart++;
-
-						secins.insert(mr.mdate, mr.sha, mr.gid, mr.aid, mr.ver,
-								mr.classifier, mr.packaging, mr.idate, mr.size,
-								mr.is3, mr.is4, mr.is5, mr.ext, mr.gdesc,
-								mr.adesc, MavenRecord.getPath(mr.gid, mr.aid,
-										mr.ver, mr.classifier, mr.ext));
-					}
+					artins.insert(mr.mdate, mr.sha, mr.groupname, mr.artname,
+							mr.version, mr.classifier, mr.packaging, mr.idate,
+							mr.size, mr.is3, mr.is4, mr.is5, mr.ext,
+							mr.arttitle, mr.artdesc);
 				}
 
 				if (ndoc % 100000 == 0) {

@@ -17,7 +17,7 @@ public class BuildUriList {
 		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index DB.")
 		public String mavenIndexPath;
 
-		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file(aria2 format).")
+		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
 		public String uriListPath;
 
 		@Arg(key = "query", name = "Filter query", desc = "Specifies the SQL filter query of artifacts to download.")

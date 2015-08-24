@@ -70,7 +70,7 @@ public class ClassAnalysis {
 		public MethodVisitor visitMethod(int access, final String methodName,
 				final String methodDesc, String signature, String[] exceptions) {
 
-			method.insert(pid, className, methodName, methodDesc);
+		//	method.insert(pid, className, methodName, methodDesc);
 
 			MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
 
@@ -86,8 +86,8 @@ public class ClassAnalysis {
 				@Override
 				public void visitMethodInsn(int opcode, String owner,
 						String name, String desc, boolean itf) {
-					callsite.insert(pid, className, methodName, methodDesc,
-							offset++, owner, name, desc);
+		//			callsite.insert(pid, className, methodName, methodDesc,
+			//				offset++, owner, name, desc);
 				}
 
 				@Override
@@ -130,9 +130,10 @@ public class ClassAnalysis {
 				.createInserter("insert into jarentry (pid, filename, originalsize, compressedsize) values (?,  ?, ?, ?)");
 
 		while ((entry = zip.getNextEntry()) != null) {
-			ei.insert(pid, entry.getName(), entry.getSize(),
-					entry.getCompressedSize());
+			//ei.insert(pid, entry.getName(), entry.getSize(),
+				//	entry.getCompressedSize());
 
+			//entry.getCrc()
 			if (!entry.getName().endsWith(".class")) {
 				continue;
 			}

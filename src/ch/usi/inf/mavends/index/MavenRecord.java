@@ -20,12 +20,12 @@ public class MavenRecord {
 	public final String u;
 	public final String i;
 	public final String del;
-	public final String gdesc;
-	public final String adesc;
+	public final String arttitle;
+	public final String artdesc;
 	public final Date mdate;
-	public final String gid;
-	public final String aid;
-	public final String ver;
+	public final String groupname;
+	public final String artname;
+	public final String version;
 	public final String classifier;
 	public final String packaging;
 	public final Date idate;
@@ -51,8 +51,8 @@ public class MavenRecord {
 		u = doc.get("u");
 		i = doc.get("i");
 		del = doc.get("del");
-		gdesc = doc.get("n");
-		adesc = doc.get("d");
+		arttitle = doc.get("n");
+		artdesc = doc.get("d");
 
 		check((allGroups == null) == (allGroupsList == null),
 				"Invalid all groups doc: " + doc);
@@ -93,9 +93,9 @@ public class MavenRecord {
 			check(us.length == 4 || us.length == 5,
 					"Invalid value for u field: %s", doc);
 
-			gid = us[0];
-			aid = us[1];
-			ver = us[2];
+			groupname = us[0];
+			artname = us[1];
+			version = us[2];
 			classifier = "NA".equals(us[3]) ? null : us[3];
 
 			check(us.length != 4 || isMain(classifier),
@@ -123,9 +123,9 @@ public class MavenRecord {
 					|| (size == -1 && ext.equals("pom")),
 					"size/no jar and null: %s", doc);
 		} else {
-			gid = null;
-			aid = null;
-			ver = null;
+			groupname = null;
+			artname = null;
+			version = null;
 			classifier = null;
 			packaging = null;
 			idate = null;
