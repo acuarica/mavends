@@ -17,14 +17,14 @@ import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.PomDependency;
 import ch.usi.inf.mavends.util.Log;
 
-public class BuildMavenPomDb {
+public class BuildMavenPom {
 
 	private static final Log log = new Log(System.out);
 
 	public static class Args {
 
 		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index.")
-		public String mavenIndexDbPath;
+		public String mavenIndexPath;
 
 		@Arg(key = "repo", name = "Maven Repo", desc = "Specifies the path of the Maven repository.")
 		public String repoDir;
@@ -33,23 +33,23 @@ public class BuildMavenPomDb {
 		public String query;
 
 		@Arg(key = "mavenpom", name = "Maven Pom path", desc = "Specifies the path of the output db file.")
-		public String mavenPomDbPath;
+		public String mavenPomPath;
 
 	}
 
 	public static void main(String[] args) throws Exception {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		Db db = new Db(ar.mavenPomDbPath);
+		Db db = new Db(ar.mavenPomPath);
 
-		db.send("mavenpomdb.sql", "SQL");
+		db.send("mavenpom.sql", "SQL");
 
 		db.conn.setAutoCommit(false);
 
 		Inserter ins = db
 				.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?, ?, ?, ?, ?, ?, ?)");
 
-		ResultSet rs = new Db(ar.mavenIndexDbPath).select(ar.query);
+		ResultSet rs = new Db(ar.mavenIndexPath).select(ar.query);
 
 		int n = 0;
 		while (rs.next()) {

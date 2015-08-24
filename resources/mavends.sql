@@ -50,7 +50,7 @@ create table stats (
  * Along each column is the original Nexus field that this column was taken from.
  */
 create table art (
-  pid         integer        primary key,
+  pid         integer        primary key, -- rowid alias
   gid         varchar(128)   not null,  -- Group ID ( u[0] )
   aid         varchar(128)   not null,  -- Artifact ID ( u[1] )
   ver         varchar(64)    not null,  -- Version ( u[2] )

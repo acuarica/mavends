@@ -17,7 +17,7 @@ import ch.usi.inf.mavends.util.Log;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class BuildMavenIndexDb {
+public class BuildMavenIndex {
 
 	private static final Log log = new Log(System.out);
 
@@ -36,7 +36,7 @@ public class BuildMavenIndexDb {
 
 		Db db = new Db(ar.mavenIndexDbPath);
 
-		db.send("mavenindexdb.sql", "Maven Index SQL Schema");
+		db.send("mavenindex.sql", "Maven Index SQL Schema");
 
 		db.conn.setAutoCommit(false);
 

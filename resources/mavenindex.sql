@@ -30,6 +30,7 @@ create table pom (
 -- that this column was taken from.
 --
 create table art (
+  pid         integer primary key,      -- Rowid alias
   gid         varchar(128)   not null,  -- Group ID ( u[0] )
   aid         varchar(128)   not null,  -- Artifact ID ( u[1] )
   ver         varchar(64)    not null,  -- Version ( u[2] )
@@ -46,7 +47,7 @@ create table art (
   adesc       text,                     -- Artifact description ( d )
   path        varchar(255)   not null,  -- Relative path of the 
                                         --   artifact within a repo.
-  primary key (gid, aid, ver)
+  unique (gid, aid, ver)
 );
 
 --
@@ -99,3 +100,30 @@ create table allgroups (
 create table rootgroups (
   value varchar(64) not null primary key
 );
+
+
+--
+-- Merge of art and sec tables to have an unified view of all artifacts.
+--
+create view art_view as
+  select * from (
+      select gid, aid, ver, null as classifier, packaging, 
+             idate, size , is3, is4, is5, ext, mdate, 
+             sha, gdesc, adesc, path 
+      from art
+    union all 
+      select gid, aid, ver, classifier, packaging, 
+             idate, size , is3, is4, is5, ext, mdate, 
+             sha, gdesc, adesc, path 
+      from sec
+  ) order by gid, aid, ver, classifier, packaging;
+
+--
+-- Quick stats of the Maven Index. 
+--
+create view stats_view as
+  select
+    (select count(*) 
+     from (select path from art union all select path from sec)) as docs,
+    (select count(*) from art) as gav,
+    (select count(*) from (select distinct gid, aid from art)) as ga;
