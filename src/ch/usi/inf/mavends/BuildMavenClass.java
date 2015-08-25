@@ -9,7 +9,7 @@ import ch.usi.inf.mavends.extract.ClassAnalysis;
 import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
 
-public class BuildMavenBytecode {
+public class BuildMavenClass {
 
 	private static final Log log = new Log(System.out);
 
@@ -42,11 +42,11 @@ public class BuildMavenBytecode {
 
 		int n = 0;
 		while (rs.next()) {
-			String gid = rs.getString("groupname");
-			String aid = rs.getString("artname");
-			String ver = rs.getString("version");
-			String pid = String.format("%s:%s@%s", gid, aid, ver); // rs.getString("pid");
-			String path = MavenRecord.getPath(gid, aid, ver, null, "jar"); // rs.getString("path");
+			// String gid = rs.getString("gid");
+			// String aid = rs.getString("aid");
+			// String ver = rs.getString("ver");
+			String pid = rs.getString("pid");
+			String path = rs.getString("path");
 
 			ClassAnalysis.searchJarFile(ar.repoDir + "/" + path, db, pid);
 

@@ -17,7 +17,7 @@ import org.objectweb.asm.Opcodes;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
 
-public class ClassAnalysis {
+public class BytecodeAnalysis {
 
 	private static class ExtractVisitor extends ClassVisitor {
 
@@ -63,14 +63,14 @@ public class ClassAnalysis {
 			className = name;
 			super.visit(version, access, name, signature, superName, interfaces);
 
-		//	cls.insert(pid, name, superName, version, access, signature);
+			cls.insert(pid, name, superName, version, access, signature);
 		}
 
 		@Override
 		public MethodVisitor visitMethod(int access, final String methodName,
 				final String methodDesc, String signature, String[] exceptions) {
 
-		//	method.insert(pid, className, methodName, methodDesc);
+			method.insert(pid, className, methodName, methodDesc);
 
 			MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
 
@@ -86,8 +86,8 @@ public class ClassAnalysis {
 				@Override
 				public void visitMethodInsn(int opcode, String owner,
 						String name, String desc, boolean itf) {
-		//			callsite.insert(pid, className, methodName, methodDesc,
-			//				offset++, owner, name, desc);
+					callsite.insert(pid, className, methodName, methodDesc,
+							offset++, owner, name, desc);
 				}
 
 				@Override
@@ -127,13 +127,12 @@ public class ClassAnalysis {
 		ZipEntry entry;
 
 		Inserter ei = db
-				.createInserter("insert into jarentry (pid, filename, originalsize, compressedsize, crc32) values (?,  ?, ?, ?, ?)");
+				.createInserter("insert into jarentry (pid, filename, originalsize, compressedsize) values (?,  ?, ?, ?)");
 
 		while ((entry = zip.getNextEntry()) != null) {
 			ei.insert(pid, entry.getName(), entry.getSize(),
-					entry.getCompressedSize(),entry.getCrc());
+					entry.getCompressedSize());
 
-			
 			if (!entry.getName().endsWith(".class")) {
 				continue;
 			}

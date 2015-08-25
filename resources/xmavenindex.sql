@@ -3,6 +3,7 @@
 -- Contains all artifacts and its classifiers (e.g., 'sources' or 'javadoc').
 -- Along each column is the original Nexus field 
 -- that this column was taken from.
+-- unique (groupname, artname, version, classifier, packaging)
 --
 create table art (
   groupname   varchar(64)    not null,  -- Group name ( u[0] )
@@ -19,8 +20,7 @@ create table art (
   mdate       date           not null,  -- m
   sha         varchar(64),              -- SHA1 hash (optional) ( 1 )
   arttitle    text,                     -- Artifact title ( n )
-  artdesc     text,                     -- Artifact description ( d )
-  unique (groupname, artname, version, classifier, packaging)
+  artdesc     text                      -- Artifact description ( d )
 );
 
 --

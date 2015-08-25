@@ -139,7 +139,7 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${xmavenindex.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-bytecode} ${filter-test}" />
+			<arg value="--query=select groupname, artname, version from art where classifier is null and packaging = 'jar' and ext = 'jar' and substr(groupname, 1, 3) = 'ar.'" />
 			<arg value="--mavenbytecode=${mavenbytecode-test.path}" />
 		</java>
 	</target>

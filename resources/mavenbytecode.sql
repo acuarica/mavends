@@ -11,6 +11,7 @@ create table jarentry (
   filename        varchar(255)  not null, 
   originalsize    int           not null,
   compressedsize  int           not null,
+  crc32             varchar(64) not null,
   primary key (pid, filename)
 );
 
