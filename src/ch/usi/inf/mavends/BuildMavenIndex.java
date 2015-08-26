@@ -17,7 +17,7 @@ import ch.usi.inf.mavends.util.Log;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class ExtractMavenIndex {
+public class BuildMavenIndex {
 
 	private static final Log log = new Log(System.out);
 
@@ -26,28 +26,28 @@ public class ExtractMavenIndex {
 		@Arg(key = "nexusindex", name = "Nexus Index path", desc = "Specifies the input path of the Nexus Index file.")
 		public String nexusIndexPath;
 
-		@Arg(key = "xmavenindex", name = "X Maven Index path", desc = "Specifies the output path of the Maven Index DB file.")
-		public String xmavenIndexDbPath;
+		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the output path of the Maven Index DB file.")
+		public String mavenIndexDbPath;
 
 	}
 
 	public static void main(String[] args) throws Exception {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		Db db = new Db(ar.xmavenIndexDbPath);
+		Db db = new Db(ar.mavenIndexDbPath);
 
-		db.send("xmavenindex.sql", "X Maven Index SQL Schema");
+		db.send("mavenindex.sql", "Maven Index SQL Schema");
 
 		db.conn.setAutoCommit(false);
 
 		Inserter artins = db
-				.createInserter("insert into art (mdate, sha, groupname, artname, version, classifier, packaging, idate, size, is3, is4, is5, ext, arttitle, artdesc) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				.createInserter("insert into artifact (mdate, sha, groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, artifactname, artifactdesc) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 		Inserter allins = db
-				.createInserter("insert into allgroups (groupname) values (?)");
+				.createInserter("insert into allgroups (groupid) values (?)");
 
 		Inserter rootins = db
-				.createInserter("insert into rootgroups (groupname) values (?)");
+				.createInserter("insert into rootgroups (groupid) values (?)");
 
 		Inserter propins = db
 				.createInserter("insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, ?)");
@@ -95,10 +95,10 @@ public class ExtractMavenIndex {
 				} else if (mr.i != null) {
 					nart++;
 
-					artins.insert(mr.mdate, mr.sha, mr.groupname, mr.artname,
+					artins.insert(mr.mdate, mr.sha, mr.groupid, mr.artifactid,
 							mr.version, mr.classifier, mr.packaging, mr.idate,
-							mr.size, mr.is3, mr.is4, mr.is5, mr.ext,
-							mr.arttitle, mr.artdesc);
+							mr.size, mr.is3, mr.is4, mr.is5, mr.extension,
+							mr.artifactname, mr.artifactdesc);
 				}
 
 				if (ndoc % 100000 == 0) {
@@ -110,6 +110,8 @@ public class ExtractMavenIndex {
 			propins.insert(descriptor, idxinfo, nip.headb, new Date(
 					nip.headl / 1000));
 		}
+
+		db.send("mavenindex-post.sql", "Post setup");
 
 		log.info(
 				"docs: %,d, allgroups: %,d, rootgroups: %,d, descriptor: %,d, artifacts: %,d",

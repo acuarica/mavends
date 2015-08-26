@@ -20,11 +20,11 @@ public class MavenRecord {
 	public final String u;
 	public final String i;
 	public final String del;
-	public final String arttitle;
-	public final String artdesc;
+	public final String artifactname;
+	public final String artifactdesc;
 	public final Date mdate;
-	public final String groupname;
-	public final String artname;
+	public final String groupid;
+	public final String artifactid;
 	public final String version;
 	public final String classifier;
 	public final String packaging;
@@ -33,7 +33,7 @@ public class MavenRecord {
 	public final int is3;
 	public final int is4;
 	public final int is5;
-	public final String ext;
+	public final String extension;
 
 	/**
 	 * 
@@ -51,8 +51,8 @@ public class MavenRecord {
 		u = doc.get("u");
 		i = doc.get("i");
 		del = doc.get("del");
-		arttitle = doc.get("n");
-		artdesc = doc.get("d");
+		artifactname = doc.get("n");
+		artifactdesc = doc.get("d");
 
 		check((allGroups == null) == (allGroupsList == null),
 				"Invalid all groups doc: " + doc);
@@ -93,8 +93,8 @@ public class MavenRecord {
 			check(us.length == 4 || us.length == 5,
 					"Invalid value for u field: %s", doc);
 
-			groupname = us[0];
-			artname = us[1];
+			groupid = us[0];
+			artifactid = us[1];
 			version = us[2];
 			classifier = "NA".equals(us[3]) ? null : us[3];
 
@@ -117,14 +117,14 @@ public class MavenRecord {
 			is4 = checkDigit(is[4]);
 			is5 = checkDigit(is[5]);
 
-			ext = is[6];
+			extension = is[6];
 
 			check(!packaging.equals("null")
-					|| (size == -1 && ext.equals("pom")),
+					|| (size == -1 && extension.equals("pom")),
 					"size/no jar and null: %s", doc);
 		} else {
-			groupname = null;
-			artname = null;
+			groupid = null;
+			artifactid = null;
 			version = null;
 			classifier = null;
 			packaging = null;
@@ -133,7 +133,7 @@ public class MavenRecord {
 			is3 = 0;
 			is4 = 0;
 			is5 = 0;
-			ext = null;
+			extension = null;
 		}
 	}
 

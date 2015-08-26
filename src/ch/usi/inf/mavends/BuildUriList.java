@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
 
 public class BuildUriList {
@@ -44,14 +45,33 @@ public class BuildUriList {
 		Db db = new Db(ar.mavenIndexPath);
 
 		try (PrintStream out = new PrintStream(ar.uriListPath)) {
-			ResultSet rs = db.select(ar.query);
+			ResultSet rs = db
+					.select("select a.groupid as groupid, a.artifactid as artifactid, a.version as version, a.classifier as classifier, a.extension as extension from ("
+							+ ar.query
+							+ ") t inner join artifact a on a.coorid = t.coorid");
 
 			int n = 0;
 			while (rs.next()) {
-				String path = rs.getString("path");
+				String groupid = rs.getString("groupid");
+				String artifactid = rs.getString("artifactid");
+				String version = rs.getString("version");
+				String classifier = rs.getString("classifier");
+				String extension = rs.getString("extension");
+
+				String path = MavenRecord.getPath(groupid, artifactid, version,
+						classifier, extension);
 
 				n++;
 				emitFetchFile(path, ar.mirrors, out);
+
+				if (classifier == null) {
+					n++;
+
+					path = MavenRecord.getPath(groupid, artifactid, version,
+							null, "pom");
+
+					emitFetchFile(path, ar.mirrors, out);
+				}
 			}
 
 			log.info("No. emitted fetch files: %,d", n);
