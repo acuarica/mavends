@@ -24,6 +24,7 @@
 	<property name="mavenbytecode-dev.path" location="${out}/mavenbytecode-dev.sqlite3" />
 	<property name="mavenbytecode-test.path" location="${out}/mavenbytecode-test.sqlite3" />
 	<property name="mavenbytecode-stage.path" location="${out}/mavenbytecode-stage.sqlite3" />
+	<property name="mavenbytecode-prod.path" location="${out}/mavenbytecode-prod.sqlite3" />
 	<property name="mavenpom-dev.path" location="${out}/mavenpom-dev.sqlite3" />
 	<property name="mavenpom-test.path" location="${out}/mavenpom-test.sqlite3" />
 	<path id="lib">
@@ -135,6 +136,16 @@
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-stage}" />
 			<arg value="--mavenbytecode=${mavenbytecode-stage.path}" />
+		</java>
+	</target>
+	<target name="mavenbytecode-prod" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${mavenbytecode-prod.path}" />
+		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--query=${query-prod}" />
+			<arg value="--mavenbytecode=${mavenbytecode-prod.path}" />
 		</java>
 	</target>
 	<target name="mavenpom-dev" depends="-compile" description="Extract the information from POM files.">
