@@ -2,6 +2,13 @@
 --
 --
 --
+create view artifact_view as
+  select groupid || ':' || artifactid || '@' || version ||  ifnull('/' || classifier, '') || '.' || extension as id, * 
+  from artifact;
+
+--
+--
+--
 create view artifact_main as
   select * from artifact where classifier is null;
 

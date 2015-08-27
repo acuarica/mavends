@@ -9,6 +9,7 @@ import java.util.Date;
  *
  */
 public class MavenRecord {
+
 	public final String allGroups;
 	public final String allGroupsList;
 	public final String rootGroups;
