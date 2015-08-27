@@ -1,6 +1,8 @@
 package ch.usi.inf.mavends;
 
+import java.io.IOException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -34,7 +36,9 @@ public class BuildMavenBytecode {
 
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws InstantiationException,
+			IllegalAccessException, IllegalArgumentException,
+			ClassNotFoundException, SQLException, IOException {
 		Args ar = ArgsParser.parse(args, Args.class);
 
 		Db db = new Db(ar.mavenBytecodePath);
@@ -93,80 +97,90 @@ public class BuildMavenBytecode {
 
 			log.info("Analysing %s...", path);
 
-			JarVisitor.accept(ar.repoDir + "/" + path, new ClassVisitor(
-					Opcodes.ASM5) {
+			try {
+				JarVisitor.accept(ar.repoDir + "/" + path, new ClassVisitor(
+						Opcodes.ASM5) {
 
-				String className;
+					String className;
 
-				@Override
-				public void visit(int version, int access, String name,
-						String signature, String superName, String[] interfaces) {
-					className = name;
-					super.visit(version, access, name, signature, superName,
-							interfaces);
+					@Override
+					public void visit(int version, int access, String name,
+							String signature, String superName,
+							String[] interfaces) {
+						className = name;
+						super.visit(version, access, name, signature,
+								superName, interfaces);
 
-					// cls.insert(pid, name, superName, version, access,
-					// signature);
-				}
+						// cls.insert(pid, name, superName, version, access,
+						// signature);
+					}
 
-				@Override
-				public MethodVisitor visitMethod(int access,
-						final String methodName, final String methodDesc,
-						String signature, String[] exceptions) {
+					@Override
+					public MethodVisitor visitMethod(int access,
+							final String methodName, final String methodDesc,
+							String signature, String[] exceptions) {
 
-					// method.insert(pid, className, methodName, methodDesc);
-					MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
+						// method.insert(pid, className, methodName,
+						// methodDesc);
+						MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
 
-						int offset = 0;
+							int offset = 0;
 
-						// int getc(String cn) {
-						// int hc = cn.hashCode();
-						// cls.insert(hc, cn);
-						// return hc;
-						// }
-						//
-						// int get(String a, String b, String c) {
-						// int cid = getc(a);
-						// int hc = (a + b + c).hashCode();
-						// method.insert(hc, cid, b, c);
-						// return hc;
-						// }
+							// int getc(String cn) {
+							// int hc = cn.hashCode();
+							// cls.insert(hc, cn);
+							// return hc;
+							// }
+							//
+							// int get(String a, String b, String c) {
+							// int cid = getc(a);
+							// int hc = (a + b + c).hashCode();
+							// method.insert(hc, cid, b, c);
+							// return hc;
+							// }
 
-						@Override
-						public void visitMethodInsn(int opcode, String owner,
-								String name, String desc, boolean itf) {
-							// int a = get(className, methodName, methodDesc);
-							// int b = get(owner, name, desc);
-							// callsite.insert(pid, className, methodName,
-							// methodDesc,
-							// offset++, owner, name, desc);
-							callsite.insert(coorid, owner, name, desc);
-							// callsite.insert(coorid, b);
-						}
+							@Override
+							public void visitMethodInsn(int opcode,
+									String owner, String name, String desc,
+									boolean itf) {
+								// int a = get(className, methodName,
+								// methodDesc);
+								// int b = get(owner, name, desc);
+								// callsite.insert(pid, className, methodName,
+								// methodDesc,
+								// offset++, owner, name, desc);
+								callsite.insert(coorid, owner, name, desc);
+								// callsite.insert(coorid, b);
+							}
 
-						@Override
-						public void visitFieldInsn(int opcode, String owner,
-								String name, String desc) {
-							// fieldaccess.insert(pid, className, methodName,
-							// methodDesc,
-							// offset++, owner, name, desc);
+							@Override
+							public void visitFieldInsn(int opcode,
+									String owner, String name, String desc) {
+								// fieldaccess.insert(pid, className,
+								// methodName,
+								// methodDesc,
+								// offset++, owner, name, desc);
+							};
+
+							@Override
+							public void visitLdcInsn(Object cst) {
+								if (cst instanceof String) {
+									String value = (String) cst;
+									// literal.insert(pid, className,
+									// methodName,
+									// methodDesc,
+									// offset++, value);
+								}
+							}
+
 						};
 
-						@Override
-						public void visitLdcInsn(Object cst) {
-							if (cst instanceof String) {
-								String value = (String) cst;
-								// literal.insert(pid, className, methodName,
-								// methodDesc,
-								// offset++, value);
-							}
-						}
-
-					};
-
-					return mv;
-				}
-			});
+						return mv;
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			n++;
 		}

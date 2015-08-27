@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -20,14 +19,15 @@ import org.objectweb.asm.ClassVisitor;
 public class JarVisitor {
 
 	/**
+	 * For each .class file in the jar file buffer, it calls the ClassVisitor
+	 * cv.
 	 * 
 	 * @param jarFileBuffer
 	 * @param cv
 	 * @throws IOException
-	 * @throws SQLException
 	 */
 	public static void accept(byte[] jarFileBuffer, ClassVisitor cv)
-			throws IOException, SQLException {
+			throws IOException {
 		ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(
 				jarFileBuffer));
 
@@ -52,14 +52,15 @@ public class JarVisitor {
 	}
 
 	/**
+	 * For each .class file in the jar file path, it calls the ClassVisitor cv.
 	 * 
 	 * @param jarFileName
 	 * @param cv
 	 * @throws IOException
-	 * @throws SQLException
+	 * @see {@link #accept(byte[], ClassVisitor)}
 	 */
 	public static void accept(String jarFileName, ClassVisitor cv)
-			throws IOException, SQLException {
+			throws IOException {
 		byte[] jarFileBuffer = Files.readAllBytes(Paths.get(jarFileName));
 
 		accept(jarFileBuffer, cv);
