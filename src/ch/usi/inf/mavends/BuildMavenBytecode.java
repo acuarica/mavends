@@ -87,8 +87,9 @@ public class BuildMavenBytecode {
 				.createInserter("insert into mb.cp_methodref (classnameid, methodname, methoddesc) select "
 						+ "(select c.classnameid from mb.cp_class c where c.classname = cs.targetclassname), cs.targetmethodname, cs.targetmethoddesc from callsite cs");
 		Inserter ii3 = dbm
-				.createInserter("insert into mb.callsite (coorid, tm) select cs.coorid, "
-						+ " (select m.methodrefid from mb.cp_methodref_view m where m.classname=cs.targetclassname and m.methodname=cs.targetmethodname and m.methoddesc=cs.targetmethoddesc) from callsite cs");
+				.createInserter("insert into mb.callsite (coorid, sm, tm) select cs.coorid, sm.methodrefid, tm.methodrefid from callsite cs "
+						+ "inner join mb.cp_methodref_view sm on sm.classname=cs.classname and sm.methodname=cs.methodname and sm.methoddesc=cs.methoddesc "
+						+ "inner join mb.cp_methodref_view tm on tm.classname=cs.targetclassname and tm.methodname=cs.targetmethodname and tm.methoddesc=cs.targetmethoddesc ");
 
 		int n = 0;
 		while (rs.next()) {
@@ -172,7 +173,7 @@ public class BuildMavenBytecode {
 				ii3.insert();
 
 				dbm.execute("delete from callsite");
-				
+
 				dbm.conn.commit();
 			} catch (Exception e) {
 				e.printStackTrace();

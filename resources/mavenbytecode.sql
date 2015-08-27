@@ -32,18 +32,23 @@ create view cp_methodref_view as
 --
 create table callsite (
   coorid     int           not null,  --
+  sm         int           not null,  --
   tm         int           not null,  --
-  primary key (coorid, tm) on conflict ignore
+  primary key (coorid, sm, tm) on conflict ignore
 );
 
 --
 --
 --
 create view callsite_view as
-  select coorid, classname, methodname, methoddesc 
+  select 
+    cs.coorid, 
+    sm.classname, sm.methodname, sm.methoddesc, 
+    tm.classname as targetclassname, tm.methodname as targetmethodname, tm.methoddesc as targetmethoddesc  
   from callsite cs 
-  inner join cp_methodref m on m.methodrefid = cs.tm
-  inner join cp_class c     on c.classnameid = m.classnameid;
+  inner join cp_methodref_view sm on sm.methodrefid = cs.sm
+  inner join cp_methodref_view tm on tm.methodrefid = cs.tm;
+
 
 --
 --
