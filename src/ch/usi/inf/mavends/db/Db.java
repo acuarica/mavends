@@ -82,4 +82,9 @@ public class Db {
 	public Inserter createInserter(String sql) throws SQLException {
 		return new Inserter(conn, sql);
 	}
+
+	//@Override
+	public void close() throws SQLException {
+		conn.close();
+	}
 }

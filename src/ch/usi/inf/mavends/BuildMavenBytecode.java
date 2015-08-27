@@ -41,11 +41,10 @@ public class BuildMavenBytecode {
 			ClassNotFoundException, SQLException, IOException {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		Db db = new Db(ar.mavenBytecodePath);
+		Db db4 = new Db(ar.mavenBytecodePath);
 
-		db.send("mavenbytecode.sql", "Creating database with");
-
-		db.conn.setAutoCommit(false);
+		db4.send("mavenbytecode.sql", "Creating database with");
+		db4.close();
 
 		ResultSet rs = new Db(ar.mavenIndexPath)
 				.select("select a.coorid as coorid, a.groupid as groupid, a.artifactid as artifactid, a.version as version, a.classifier as classifier, a.extension as extension from ("
@@ -58,6 +57,12 @@ public class BuildMavenBytecode {
 		final Inserter fieldaccess;
 		final Inserter literal;
 
+		Db dbm = new Db(":memory:");
+		dbm.execute("attach database '" + ar.mavenBytecodePath + "' as mb");
+		dbm.send("mavencallsite.sql", "Creating database with");
+
+		dbm.conn.setAutoCommit(false);
+
 		// cls =
 		// db.createInserter("insert into class (pid, classname, supername, version, access, signature) values (?,  ?, ?, ?, ?, ?)");
 
@@ -67,10 +72,8 @@ public class BuildMavenBytecode {
 		// method = db
 		// .createInserter("insert into method (mid, cid, methodname, methoddesc) values (?,  ?, ?, ?)");
 		//
-		callsite = db
-				.createInserter("insert into callsite_view (coorid, classname,methodname, methoddesc) values (?,  ?, ?, ?)");
-		// callsite = db
-		// .createInserter("insert into callsite (pid, tm) values (?,  ?)");
+		callsite = dbm
+				.createInserter("insert into callsite (coorid, classname,methodname, methoddesc, offset, targetclassname,targetmethodname, targetmethoddesc) values (?,  ?, ?, ?, ?, ?, ?, ?)");
 		//
 		// fieldaccess = db
 		// .createInserter("insert into fieldaccess (pid, classname,methodname, methoddesc, offset, targetclass,targetfield,targetdesc) values (?,  ?, ?, ?, ?,  ?, ?, ?)");
@@ -78,22 +81,26 @@ public class BuildMavenBytecode {
 		// literal = db
 		// .createInserter("insert into literal (pid, classname,methodname, methoddesc, offset, literal) values (?,  ?, ?, ?, ?,  ?)");
 
+		Inserter ii1 = dbm
+				.createInserter("insert into mb.cp_class (classname) select distinct cs.targetclassname from callsite cs");
+		Inserter ii2 = dbm
+				.createInserter("insert into mb.cp_methodref (classnameid, methodname, methoddesc) select "
+						+ "(select c.classnameid from mb.cp_class c where c.classname = cs.targetclassname), cs.targetmethodname, cs.targetmethoddesc from callsite cs");
+		Inserter ii3 = dbm
+				.createInserter("insert into mb.callsite (coorid, tm) select cs.coorid, "
+						+ " (select m.methodrefid from mb.cp_methodref_view m where m.classname=cs.targetclassname and m.methodname=cs.targetmethodname and m.methoddesc=cs.targetmethoddesc) from callsite cs");
+
 		int n = 0;
 		while (rs.next()) {
 			final String coorid = rs.getString("coorid");
-			final String groupid = rs.getString("groupid");
-			final String artifactid = rs.getString("artifactid");
-			final String version = rs.getString("version");
-			final String classifier = rs.getString("classifier");
-			final String extension = rs.getString("extension");
+			String groupid = rs.getString("groupid");
+			String artifactid = rs.getString("artifactid");
+			String version = rs.getString("version");
+			String classifier = rs.getString("classifier");
+			String extension = rs.getString("extension");
 
-			final String path = MavenRecord.getPath(groupid, artifactid,
-					version, classifier, extension);
-
-			// String pid = String.format("%s:%s@%s", gid, aid, ver); //
-			// rs.getString("pid");
-			// String path = MavenRecord.getPath(gid, aid, ver, null, "jar"); //
-			// rs.getString("path");
+			String path = MavenRecord.getPath(groupid, artifactid, version,
+					classifier, extension);
 
 			log.info("Analysing %s...", path);
 
@@ -126,31 +133,12 @@ public class BuildMavenBytecode {
 
 							int offset = 0;
 
-							// int getc(String cn) {
-							// int hc = cn.hashCode();
-							// cls.insert(hc, cn);
-							// return hc;
-							// }
-							//
-							// int get(String a, String b, String c) {
-							// int cid = getc(a);
-							// int hc = (a + b + c).hashCode();
-							// method.insert(hc, cid, b, c);
-							// return hc;
-							// }
-
 							@Override
 							public void visitMethodInsn(int opcode,
 									String owner, String name, String desc,
 									boolean itf) {
-								// int a = get(className, methodName,
-								// methodDesc);
-								// int b = get(owner, name, desc);
-								// callsite.insert(pid, className, methodName,
-								// methodDesc,
-								// offset++, owner, name, desc);
-								callsite.insert(coorid, owner, name, desc);
-								// callsite.insert(coorid, b);
+								callsite.insert(coorid, className, methodName,
+										methodDesc, offset++, owner, name, desc);
 							}
 
 							@Override
@@ -178,6 +166,14 @@ public class BuildMavenBytecode {
 						return mv;
 					}
 				});
+
+				ii1.insert();
+				ii2.insert();
+				ii3.insert();
+
+				dbm.execute("delete from callsite");
+				
+				dbm.conn.commit();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -187,6 +183,6 @@ public class BuildMavenBytecode {
 
 		log.info("No. jar files: %d", n);
 
-		db.conn.commit();
+		dbm.conn.commit();
 	}
 }
