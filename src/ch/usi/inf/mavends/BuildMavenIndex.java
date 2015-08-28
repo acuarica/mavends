@@ -50,7 +50,7 @@ public class BuildMavenIndex {
 				.createInserter("insert into rootgroups (groupid) values (?)");
 
 		Inserter propins = db
-				.createInserter("insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, ?)");
+				.createInserter("insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, date(?, 'unixepoch' ))");
 
 		long ndoc = 0;
 		long nallgroups = 0;
