@@ -8,7 +8,7 @@ import java.util.Date;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class MavenRecord {
+public class MavenRecordChecker {
 
 	public final String allGroups;
 	public final String allGroupsList;
@@ -40,7 +40,7 @@ public class MavenRecord {
 	 * 
 	 * @param doc
 	 */
-	public MavenRecord(NexusRecord doc) {
+	public MavenRecordChecker(NexusRecord doc) {
 		allGroups = doc.get("allGroups");
 		allGroupsList = doc.get("allGroupsList");
 		rootGroups = doc.get("rootGroups");

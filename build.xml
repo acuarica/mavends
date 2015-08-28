@@ -61,6 +61,13 @@
 	<target name="nexusindex" depends="fetchnexusindex" description="Fetches and uncompresses the Nexus Maven Repository Index from ibiblio.org mirror using *aria2*. See target fetchnexusindex.">
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
+	<target name="checkmavenindex" depends="-compile,-mkoutdir" description="Checks if the Nexus Index is well formed.">
+		<delete file="${mavenindex.path}" />
+		<java classname="ch.usi.inf.mavends.CheckMavenIndex" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--nexusindex=${nexusindex.path}" />
+		</java>
+	</target>	
 	<target name="mavenindex" depends="-compile,-mkoutdir" description="Builds the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenIndex" classpath="${build}:${resources}">
@@ -68,6 +75,13 @@
 			<arg value="--nexusindex=${nexusindex.path}" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
+	</target>
+	<target name="mavenindex-views" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
+		<exec executable="sqlite3" input="resources/mavenindex-views.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenindex.path}" />
+		</exec>
 	</target>
 	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
@@ -168,16 +182,7 @@
 			<arg value="--mavenpom=${mavenpom-test.path}" />
 		</java>
 	</target>
-
-	<target name="mavends-dev" description="mavends db.">
-		<delete file="out/mavends.sqlite3" />
-		<exec executable="bash">
-			<arg value="-c" />
-			<arg value="cd ${out} &amp;&amp; cat ../resources/mavends.sql | sqlite3 -bail -echo mavends.sqlite3" />
-		</exec>
-	</target>
-	<target name="clean" description="Removes the *build* and *out* directories.">
+	<target name="clean" description="Removes the *build* directory.">
 		<delete dir="${build}" />
-		<delete dir="${out}" />
 	</target>
 </project>

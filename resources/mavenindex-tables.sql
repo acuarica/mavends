@@ -23,21 +23,27 @@ create table artifact (
   mdate         date          not null,     -- m
   sha           varchar(128),               -- SHA1 hash (optional) ( 1 )
   artifactname  text,                       -- Artifact title ( n )
-  artifactdesc  text,                       -- Artifact description ( d )
-  unique (groupid, artifactid, version, classifier, packaging)
+  artifactdesc  text--,                       -- Artifact description ( d )
+  --unique (groupid, artifactid, version, classifier, packaging)
 );
 
 --
--- Several misc index properties.
+-- Header index properties.
 -- This table should contain only 1 row.
 --
-create table properties (
-  DESCRIPTOR   varchar(255) not null,
-  IDXINFO      varchar(255) not null,
+create table header (
   headb        varchar(32)  not null,
   creationdate date         not null
 );
 
+--
+-- Descriptor index properties.
+-- This table should contain only 1 row.
+--
+create table descriptor (
+  DESCRIPTOR   varchar(255) not null,
+  IDXINFO      varchar(255) not null
+);
 
 --
 -- Contains all maven groups.

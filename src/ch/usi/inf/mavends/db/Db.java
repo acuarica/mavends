@@ -83,7 +83,7 @@ public class Db {
 		return new Inserter(conn, sql);
 	}
 
-	//@Override
+	// @Override
 	public void close() throws SQLException {
 		conn.close();
 	}

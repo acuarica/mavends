@@ -7,7 +7,6 @@ import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
-import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.NexusIndexParser;
 import ch.usi.inf.mavends.index.NexusRecord;
 import ch.usi.inf.mavends.util.Log;
@@ -36,7 +35,7 @@ public class BuildMavenIndex {
 
 		Db db = new Db(ar.mavenIndexDbPath);
 
-		db.send("mavenindex.sql", "Maven Index SQL Schema");
+		db.send("mavenindex-tables.sql", "Maven Index SQL Schema");
 
 		db.conn.setAutoCommit(false);
 
@@ -49,73 +48,93 @@ public class BuildMavenIndex {
 		Inserter rootins = db
 				.createInserter("insert into rootgroups (groupid) values (?)");
 
-		Inserter propins = db
-				.createInserter("insert into properties (descriptor, idxinfo, headb, creationdate) values (?, ?, ?, date(?, 'unixepoch' ))");
+		Inserter headerins = db
+				.createInserter("insert into header (headb, creationdate) values (?, date(?, 'unixepoch' ))");
 
-		long ndoc = 0;
-		long nallgroups = 0;
-		long nrootgroups = 0;
-		long ndesc = 0;
-		long nart = 0;
+		Inserter descins = db
+				.createInserter("insert into descriptor (descriptor, idxinfo) values (?, ?)");
 
-		String descriptor = null;
-		String idxinfo = null;
+		long ndocs = 0;
 
 		try (NexusIndexParser nip = new NexusIndexParser(ar.nexusIndexPath)) {
+			log.info("Inserting header...");
+			headerins.insert(nip.headb, new Date(nip.headl / 1000));
+
 			for (NexusRecord nr : nip) {
-				ndoc++;
+				ndocs++;
 
-				MavenRecord mr = new MavenRecord(nr);
-
-				if (mr.allGroups != null) {
-					nallgroups++;
-
-					log.info("Inserting allGroups...");
-
-					for (String g : Arrays
-							.asList(mr.allGroupsList.split("\\|"))) {
-						allins.insert(g);
-					}
-
-				} else if (mr.rootGroups != null) {
-					nrootgroups++;
-
-					log.info("Inserting rootGroups...");
-
-					for (String g : Arrays.asList(mr.rootGroupsList
-							.split("\\|"))) {
-						rootins.insert(g);
-					}
-				} else if (mr.descriptor != null) {
-					ndesc++;
-
-					descriptor = mr.descriptor;
-					idxinfo = mr.idxinfo;
-
-				} else if (mr.i != null) {
-					nart++;
-
-					artins.insert(mr.mdate, mr.sha, mr.groupid, mr.artifactid,
-							mr.version, mr.classifier, mr.packaging, mr.idate,
-							mr.size, mr.is3, mr.is4, mr.is5, mr.extension,
-							mr.artifactname, mr.artifactdesc);
+				if (ndocs % 100000 == 0) {
+					log.info("ndocs: %,d", ndocs);
 				}
 
-				if (ndoc % 100000 == 0) {
-					log.info("docs: %,d", ndoc);
+				String i = nr.get("i");
+
+				if (i != null) {
+					String sha = nr.get("1");
+					String m = nr.get("m");
+					String u = nr.get("u");
+					String artifactname = nr.get("n");
+					String artifactdesc = nr.get("d");
+
+					long mdate = m != null ? Long.parseLong(m) / 1000 : 0;
+
+					String[] us = u.split("\\|");
+
+					String groupid = us[0];
+					String artifactid = us[1];
+					String version = us[2];
+					String classifier = "NA".equals(us[3]) ? null : us[3];
+
+					String[] is = i.split("\\|");
+
+					String packaging = is[0];
+
+					long idate = Long.parseLong(is[1]) / 1000;
+					String size = is[2];
+					String is3 = is[3];
+					String is4 = is[4];
+					String is5 = is[5];
+
+					String extension = is[6];
+
+					artins.insert(mdate, sha, groupid, artifactid, version,
+							classifier, packaging, idate, size, is3, is4, is5,
+							extension, artifactname, artifactdesc);
+				} else {
+					String allGroups = nr.get("allGroups");
+					String allGroupsList = nr.get("allGroupsList");
+					String rootGroups = nr.get("rootGroups");
+					String rootGroupsList = nr.get("rootGroupsList");
+					String descriptor = nr.get("DESCRIPTOR");
+					String idxinfo = nr.get("IDXINFO");
+
+					if (allGroups != null) {
+						log.info("Inserting allGroups...");
+
+						for (String g : Arrays.asList(allGroupsList
+								.split("\\|"))) {
+							allins.insert(g);
+						}
+					} else if (rootGroups != null) {
+
+						log.info("Inserting rootGroups...");
+
+						for (String g : Arrays.asList(rootGroupsList
+								.split("\\|"))) {
+							rootins.insert(g);
+						}
+					} else if (descriptor != null) {
+						log.info("Inserting descriptor...");
+
+						descins.insert(descriptor, idxinfo);
+					}
 				}
 			}
-
-			log.info("Inserting properties...");
-			propins.insert(descriptor, idxinfo, nip.headb, new Date(
-					nip.headl / 1000));
 		}
 
-		db.send("mavenindex-post.sql", "Post setup");
+		db.send("mavenindex-views.sql", "Post setup");
 
-		log.info(
-				"docs: %,d, allgroups: %,d, rootgroups: %,d, descriptor: %,d, artifacts: %,d",
-				ndoc, nallgroups, nrootgroups, ndesc, nart);
+		log.info("ndocs: %,d", ndocs);
 
 		db.conn.commit();
 	}
