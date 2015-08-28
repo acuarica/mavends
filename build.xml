@@ -13,10 +13,10 @@
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
-	<property name="query-dev" value="select coorid from artifact_jar where substr(groupid, 1, 3) = 'ar.'" />
-	<property name="query-test" value="select coorid from artifact_jar where substr(groupid, 1, 3) = 'es.'" />
-	<property name="query-stage" value="select coorid from artifact_jar where substr(groupid, 1, 4) = 'net.'" />
-	<property name="query-last" value="select coorid from artifact_jar where substr(groupid, 1, 4) = 'net.'" />
+	<property name="query-dev" value="select coorid from artifact_jar where rootgroup = 'ar'" />
+	<property name="query-test" value="select coorid from artifact_jar where rootgroup = 'es'" />
+	<property name="query-stage" value="select coorid from artifact_jar where rootgroup = 'net'" />
+	<property name="query-last" value="select coorid from artifact_jar group by groupid, artifactid having idate = max(idate)" />
 	<property name="query-prod" value="select coorid from artifact_jar" />
 	<property name="urilist.path" location="${out}/uri.list" />
 	<property name="sessionlist.path" location="${out}/session.list" />
@@ -67,7 +67,7 @@
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
 		</java>
-	</target>	
+	</target>
 	<target name="mavenindex" depends="-compile,-mkoutdir" description="Builds the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenIndex" classpath="${build}:${resources}">

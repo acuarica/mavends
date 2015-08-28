@@ -3,32 +3,6 @@
 attach "mavenindex.sqlite3"         as mi; 
 attach "mavenbytecode-test.sqlite3" as mb; 
 
-/*
- * Contains some general stats of the Maven Index. 
- */
-create table stats ( 
-  DESCRIPTOR   varchar(255) not null,
-  IDXINFO      varchar(255) not null,
-  headb        varchar(32)  not null,
-  creationdate date         not null,
-  nart         integer      not null,
-  gav          integer      not null,
-  ga           integer      not null
-);
-
-/*
- * stats table data
- */
---insert into stats (DESCRIPTOR, IDXINFO, headb, creationdate, nart, gav, ga)
---  select
---    (select DESCRIPTOR from mi.properties), 
---    (select IDXINFO from mi.properties),
---    (select headb from mi.properties),
---    (select date(creationdate, 'unixepoch' ) from mi.properties),
---    (select count(*) from (select path from mi.art union all select path from mi.sec) ),
---    (select count(*) from mi.art),
---    (select count(*) from (select distinct gid, aid from mi.art));
-
     
 /*
  * Contains all main artifacts.
