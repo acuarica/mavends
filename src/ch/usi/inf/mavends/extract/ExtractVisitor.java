@@ -38,19 +38,21 @@ public class ExtractVisitor extends ClassVisitor {
 
 			int offset = 0;
 
-			private String get(String c) {
+			private String[] get(String c) {
 				int i = c.lastIndexOf("/");
 				if (i == -1) {
-					return ":" + c;
+					return new String[] { "", c };
 				}
-				return c.substring(0, i) + ":" + c.substring(i + 1);
+				return new String[] { c.substring(0, i), c.substring(i + 1) };
 			}
 
 			@Override
 			public void visitMethodInsn(int opcode, String owner, String name,
 					String desc, boolean itf) {
-				callsite.insert(coorid, get(className), methodName, methodDesc,
-						offset++, get(owner), name, desc);
+				String[] cn = get(className);
+				String[] tcn = get(owner);
+				callsite.insert(coorid, cn[0], cn[1], methodName, methodDesc,
+						offset++, tcn[0], tcn[1], name, desc);
 			}
 
 			@Override

@@ -141,6 +141,13 @@
 			<arg value="--mavenbytecode=${mavenbytecode-dev.path}" />
 		</java>
 	</target>
+	<target name="mavenbytecode-dev-post" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
+		<exec executable="sqlite3" input="resources/mavenbytecode-post.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenbytecode-dev.path}" />
+		</exec>
+	</target>
 	<target name="mavenbytecode-test" depends="-compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecode-test.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
@@ -150,6 +157,13 @@
 			<arg value="--query=${query-test}" />
 			<arg value="--mavenbytecode=${mavenbytecode-test.path}" />
 		</java>
+	</target>
+	<target name="mavenbytecode-test-post" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
+		<exec executable="sqlite3" input="resources/mavenbytecode-post.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenbytecode-test.path}" />
+		</exec>
 	</target>
 	<target name="mavenbytecode-stage" depends="-compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecode-stage.path}" />

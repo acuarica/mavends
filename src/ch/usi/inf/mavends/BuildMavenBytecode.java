@@ -74,7 +74,7 @@ public class BuildMavenBytecode {
 		// .createInserter("insert into method (mid, cid, methodname, methoddesc) values (?,  ?, ?, ?)");
 		//
 		callsite = dbm
-				.createInserter("insert into callsite (coorid, classname,methodname, methoddesc, offset, targetclassname,targetmethodname, targetmethoddesc) values (?,  ?, ?, ?, ?, ?, ?, ?)");
+				.createInserter("insert into callsite (coorid, package, classname,methodname, methoddesc, offset, targetpackage, targetclassname,targetmethodname, targetmethoddesc) values (?,  ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 		//
 		// fieldaccess = db
 		// .createInserter("insert into fieldaccess (pid, classname,methodname, methoddesc, offset, targetclass,targetfield,targetdesc) values (?,  ?, ?, ?, ?,  ?, ?, ?)");
@@ -83,14 +83,14 @@ public class BuildMavenBytecode {
 		// .createInserter("insert into literal (pid, classname,methodname, methoddesc, offset, literal) values (?,  ?, ?, ?, ?,  ?)");
 
 		Inserter ii1 = dbm
-				.createInserter("insert into mb.cp_class (classname) select distinct cs.targetclassname from callsite cs");
+				.createInserter("insert into mb.cp_class (package, classname) select cs.targetpackage, cs.targetclassname from callsite cs");
 		Inserter ii2 = dbm
 				.createInserter("insert into mb.cp_methodref (classnameid, methodname, methoddesc) select "
-						+ "(select c.classnameid from mb.cp_class c where c.classname = cs.targetclassname), cs.targetmethodname, cs.targetmethoddesc from callsite cs");
+						+ "(select c.classnameid from mb.cp_class c where c.package = cs.targetpackage and c.classname = cs.targetclassname), cs.targetmethodname, cs.targetmethoddesc from callsite cs");
 		Inserter ii3 = dbm
 				.createInserter("insert into mb.callsite (coorid, sm, tm) select cs.coorid, sm.methodrefid, tm.methodrefid from callsite cs "
-						+ "inner join mb.cp_methodref_view sm on sm.classname=cs.classname and sm.methodname=cs.methodname and sm.methoddesc=cs.methoddesc "
-						+ "inner join mb.cp_methodref_view tm on tm.classname=cs.targetclassname and tm.methodname=cs.targetmethodname and tm.methoddesc=cs.targetmethoddesc ");
+						+ "inner join mb.cp_methodref_view sm on sm.package=cs.package and sm.classname=cs.classname and sm.methodname=cs.methodname and sm.methoddesc=cs.methoddesc "
+						+ "inner join mb.cp_methodref_view tm on tm.package=cs.targetpackage and tm.classname=cs.targetclassname and tm.methodname=cs.targetmethodname and tm.methoddesc=cs.targetmethoddesc ");
 
 		int n = 0;
 		while (rs.next()) {

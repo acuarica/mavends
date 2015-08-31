@@ -1,8 +1,11 @@
 
 
+--
+--
+--
 create table idx_cp_package (
-  packageid integer primary key,
-  package   varchar(255) not null,
+  packageid integer       primary key,  --
+  package   varchar(255)  not null,     --
   unique (package) on conflict ignore
 );
 
@@ -12,29 +15,29 @@ create table idx_cp_class (
   classname    varchar(255)  not null,    -- Name of the class
   unique (packageid, classname) on conflict ignore
 );
---
---create view cp_class as
---  select c.classnameid, p.package || ':' || c.classname as classname
---  from idx_cp_class c
---  inner join idx_cp_package p on p.packageid = c.packageid;
---
---create trigger cp_class_insert
---instead of insert on cp_class
---begin
---  insert into idx_cp_package (package) select substr(new.classname, 1, instr(new.classname, ':')-1);
---  insert into idx_cp_class (packageid, classname) select 
---    (select p.packageid from idx_cp_package p where p.package = substr(new.classname, 1, instr(new.classname, ':')-1) ), 
---    substr(new.classname, instr(new.classname, ':')+1);
---end;
+
+create view cp_class as
+  select c.classnameid, p.package, c.classname
+  from idx_cp_class c
+  inner join idx_cp_package p on p.packageid = c.packageid;
+
+create trigger cp_class_insert
+instead of insert on cp_class
+begin
+  insert into idx_cp_package (package) select new.package;
+  insert into idx_cp_class (packageid, classname) select 
+    (select p.packageid from idx_cp_package p where p.package = new.package), 
+    new.classname;
+end;
 
 --
 --
 --
-create table cp_class (
-  classnameid  integer       primary key, -- rowid alias
-  classname    varchar(255)  not null,    -- Name of the class
-  unique (classname) on conflict ignore
-);
+--create table cp_class (
+--  classnameid  integer       primary key, -- rowid alias
+--  classname    varchar(255)  not null,    -- Name of the class
+--  unique (classname) on conflict ignore
+--);
 
 --
 --
@@ -51,7 +54,7 @@ create table cp_methodref (
 --
 --
 create view cp_methodref_view as
-  select m.methodrefid, m.classnameid, c.classname, m.methodname, m.methoddesc 
+  select m.methodrefid, m.classnameid, c.package, c.classname, m.methodname, m.methoddesc 
   from cp_methodref m 
   inner join cp_class c on c.classnameid = m.classnameid;
 
