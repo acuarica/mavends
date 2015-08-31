@@ -12,6 +12,7 @@ import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
+import ch.usi.inf.mavends.extract.ExtractVisitor;
 import ch.usi.inf.mavends.index.MavenRecordChecker;
 import ch.usi.inf.mavends.util.JarVisitor;
 import ch.usi.inf.mavends.util.Log;
@@ -100,73 +101,14 @@ public class BuildMavenBytecode {
 			String classifier = rs.getString("classifier");
 			String extension = rs.getString("extension");
 
-			String path = MavenRecordChecker.getPath(groupid, artifactid, version,
-					classifier, extension);
+			String path = MavenRecordChecker.getPath(groupid, artifactid,
+					version, classifier, extension);
 
 			log.info("Analysing %s...", path);
 
 			try {
-				JarVisitor.accept(ar.repoDir + "/" + path, new ClassVisitor(
-						Opcodes.ASM5) {
-
-					String className;
-
-					@Override
-					public void visit(int version, int access, String name,
-							String signature, String superName,
-							String[] interfaces) {
-						className = name;
-						super.visit(version, access, name, signature,
-								superName, interfaces);
-
-						// cls.insert(pid, name, superName, version, access,
-						// signature);
-					}
-
-					@Override
-					public MethodVisitor visitMethod(int access,
-							final String methodName, final String methodDesc,
-							String signature, String[] exceptions) {
-
-						// method.insert(pid, className, methodName,
-						// methodDesc);
-						MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
-
-							int offset = 0;
-
-							@Override
-							public void visitMethodInsn(int opcode,
-									String owner, String name, String desc,
-									boolean itf) {
-								callsite.insert(coorid, className, methodName,
-										methodDesc, offset++, owner, name, desc);
-							}
-
-							@Override
-							public void visitFieldInsn(int opcode,
-									String owner, String name, String desc) {
-								// fieldaccess.insert(pid, className,
-								// methodName,
-								// methodDesc,
-								// offset++, owner, name, desc);
-							};
-
-							@Override
-							public void visitLdcInsn(Object cst) {
-								if (cst instanceof String) {
-									String value = (String) cst;
-									// literal.insert(pid, className,
-									// methodName,
-									// methodDesc,
-									// offset++, value);
-								}
-							}
-
-						};
-
-						return mv;
-					}
-				});
+				JarVisitor.accept(ar.repoDir + "/" + path, new ExtractVisitor(
+						coorid, callsite));
 
 				ii1.insert();
 				ii2.insert();

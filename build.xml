@@ -110,6 +110,15 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
+	<target name="urilist-last" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
+		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--urilist=${urilist.path}" />
+			<arg value="--query=${query-last}" />
+			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
+		</java>
+	</target>
 	<target name="fetcharts" description="Fetches all artifacts specified by the URI list in with *aria2*.">
 		<exec executable="aria2c">
 			<arg value="--dir=${repo}" />

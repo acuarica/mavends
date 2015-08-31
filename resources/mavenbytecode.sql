@@ -1,4 +1,32 @@
 
+
+create table idx_cp_package (
+  packageid integer primary key,
+  package   varchar(255) not null,
+  unique (package) on conflict ignore
+);
+
+create table idx_cp_class (
+  classnameid  integer       primary key, -- rowid alias
+  packageid int not null,
+  classname    varchar(255)  not null,    -- Name of the class
+  unique (packageid, classname) on conflict ignore
+);
+--
+--create view cp_class as
+--  select c.classnameid, p.package || ':' || c.classname as classname
+--  from idx_cp_class c
+--  inner join idx_cp_package p on p.packageid = c.packageid;
+--
+--create trigger cp_class_insert
+--instead of insert on cp_class
+--begin
+--  insert into idx_cp_package (package) select substr(new.classname, 1, instr(new.classname, ':')-1);
+--  insert into idx_cp_class (packageid, classname) select 
+--    (select p.packageid from idx_cp_package p where p.package = substr(new.classname, 1, instr(new.classname, ':')-1) ), 
+--    substr(new.classname, instr(new.classname, ':')+1);
+--end;
+
 --
 --
 --
@@ -35,7 +63,7 @@ create table callsite (
   sm         int           not null,  --
   tm         int           not null,  --
   primary key (coorid, sm, tm) on conflict ignore
-);
+) without rowid;
 
 --
 --
