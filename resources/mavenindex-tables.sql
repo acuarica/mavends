@@ -23,8 +23,21 @@ create table artifact (
   mdate         date          not null,     -- m
   sha           varchar(128),               -- SHA1 hash (optional) ( 1 )
   artifactname  text,                       -- Artifact title ( n )
-  artifactdesc  text--,                       -- Artifact description ( d )
-  --unique (groupid, artifactid, version, classifier, packaging)
+  artifactdesc  text,                       -- Artifact description ( d )
+  unique (groupid, artifactid, version, classifier, packaging)
+);
+
+--
+--
+--
+create table del ( 
+  groupid       varchar(128)  not null,     -- Group name ( u[0] )
+  artifactid    varchar(128)  not null,     -- Artifact ID ( u[1] )
+  version       varchar(64)   not null,     -- Version ( u[2] )
+  classifier    varchar(64),                -- Secondary artifacts (e.g., 'sources' or 'javadoc'). ( u[3] )
+  packaging     varchar(64),                -- i[0] == u[4] if not null
+  mdate         date          not null,     -- Modified date
+  unique (groupid, artifactid, version, classifier, packaging)
 );
 
 --

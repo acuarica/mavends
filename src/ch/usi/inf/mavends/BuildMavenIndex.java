@@ -42,6 +42,9 @@ public class BuildMavenIndex {
 		Inserter artins = db
 				.createInserter("insert into artifact (mdate, sha, groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, artifactname, artifactdesc) values (date(?, 'unixepoch' ), ?, ?, ?, ?, ?, ?, date(?, 'unixepoch' ), ?, ?, ?, ?, ?, ?, ?)");
 
+		Inserter delins = db
+				.createInserter("insert into del (groupid, artifactid, version, classifier, packaging, mdate) values (?, ?, ?, ?, ?, date(?, 'unixepoch'))");
+
 		Inserter allins = db
 				.createInserter("insert into allgroups (groupid) values (?)");
 
@@ -68,6 +71,7 @@ public class BuildMavenIndex {
 				}
 
 				String i = nr.get("i");
+				String del = nr.get("del");
 
 				if (i != null) {
 					String sha = nr.get("1");
@@ -76,7 +80,7 @@ public class BuildMavenIndex {
 					String artifactname = nr.get("n");
 					String artifactdesc = nr.get("d");
 
-					long mdate = m != null ? Long.parseLong(m) / 1000 : 0;
+					long mdate = Long.parseLong(m) / 1000;
 
 					String[] us = u.split("\\|");
 
@@ -100,6 +104,20 @@ public class BuildMavenIndex {
 					artins.insert(mdate, sha, groupid, artifactid, version,
 							classifier, packaging, idate, size, is3, is4, is5,
 							extension, artifactname, artifactdesc);
+				} else if (del != null) {
+					String[] dels = del.split("\\|");
+
+					String groupid = dels[0];
+					String artifactid = dels[1];
+					String version = dels[2];
+					String classifier = "NA".equals(dels[3]) ? null : dels[3];
+					String packaging = dels.length == 4 ? null : dels[4];
+
+					String m = nr.get("m");
+					long mdate = Long.parseLong(m) / 1000;
+
+					delins.insert(groupid, artifactid, version, classifier,
+							packaging, mdate);
 				} else {
 					String allGroups = nr.get("allGroups");
 					String allGroupsList = nr.get("allGroupsList");

@@ -69,10 +69,12 @@ public class MavenRecordChecker {
 
 		check((u == null) || (m != null), "u and m: " + doc);
 		check((i == null) || (m != null), "i and m: " + doc);
-		check((u != null) == (i != null), "u and i: " + doc);
-
 		check((del == null) || (m != null), "del and m: " + doc);
 		check((sha == null) || (m != null), "one and m: " + doc);
+
+		check((u != null) == (i != null), "u and i: " + doc);
+		check((sha == null) || (u != null), "u and sha: " + doc);
+		check((u == null) || (del == null), "u and del: " + doc);
 
 		if (allGroups != null) {
 			check(allGroups.equals("allGroups"), "allGroups: %s", doc);
@@ -123,6 +125,24 @@ public class MavenRecordChecker {
 			check(!packaging.equals("null")
 					|| (size == -1 && extension.equals("pom")),
 					"size/no jar and null: %s", doc);
+		} else if (del != null) {
+			String[] dels = del.split("\\|");
+
+			check(dels.length == 4 || dels.length == 5,
+					"Invalid value for del field: %s", doc);
+
+			groupid = dels[0];
+			artifactid = dels[1];
+			version = dels[2];
+			classifier = "NA".equals(dels[3]) ? null : dels[3];
+			packaging = null;
+			idate = null;
+			size = 0;
+			is3 = 0;
+			is4 = 0;
+			is5 = 0;
+			extension = null;
+
 		} else {
 			groupid = null;
 			artifactid = null;
