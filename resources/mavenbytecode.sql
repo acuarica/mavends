@@ -1,5 +1,16 @@
 
 
+create table jarentry (
+  coorid          int not null,
+  filename        varchar(255)  not null, 
+  originalsize    int           not null,
+  compressedsize  int           not null,
+  crc32 int,
+  method text,
+  unique (coorid, filename) on conflict ignore
+);
+
+
 --
 --
 --

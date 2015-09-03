@@ -11,6 +11,8 @@ import java.util.zip.ZipInputStream;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 
+import ch.usi.inf.mavends.db.Inserter;
+
 /**
  * 
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
@@ -24,30 +26,37 @@ public class JarVisitor {
 	 * 
 	 * @param jarFileBuffer
 	 * @param cv
+	 * @param ji
+	 * @param coorid
 	 * @throws IOException
 	 */
-	public static void accept(byte[] jarFileBuffer, ClassVisitor cv)
-			throws IOException {
+	public static void accept(byte[] jarFileBuffer, ClassVisitor cv,
+			Inserter ji, String coorid) throws IOException {
 		ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(
 				jarFileBuffer));
 
 		ZipEntry entry;
 
 		while ((entry = zip.getNextEntry()) != null) {
-			if (!entry.getName().endsWith(".class")) {
-				continue;
-			}
-
-			ByteArrayOutputStream classfile = new ByteArrayOutputStream();
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			byte[] buffer = new byte[4096];
 
 			int len = 0;
 			while ((len = zip.read(buffer)) > 0) {
-				classfile.write(buffer, 0, len);
+				stream.write(buffer, 0, len);
 			}
 
-			ClassReader cr = new ClassReader(classfile.toByteArray());
-			cr.accept(cv, 0);
+			String m = String.format("%s (%d)",
+					entry.getMethod() == ZipEntry.STORED ? "STORED"
+							: "DEFLATED", entry.getMethod());
+
+			ji.insert(coorid, entry.getName(), entry.getSize(),
+					entry.getCompressedSize(), entry.getCrc(), m);
+
+			if (entry.getName().endsWith(".class")) {
+				ClassReader cr = new ClassReader(stream.toByteArray());
+				cr.accept(cv, 0);
+			}
 		}
 	}
 
@@ -56,13 +65,15 @@ public class JarVisitor {
 	 * 
 	 * @param jarFileName
 	 * @param cv
+	 * @param ji
+	 * @param coorid
 	 * @throws IOException
 	 * @see {@link #accept(byte[], ClassVisitor)}
 	 */
-	public static void accept(String jarFileName, ClassVisitor cv)
-			throws IOException {
+	public static void accept(String jarFileName, ClassVisitor cv, Inserter ji,
+			String coorid) throws IOException {
 		byte[] jarFileBuffer = Files.readAllBytes(Paths.get(jarFileName));
 
-		accept(jarFileBuffer, cv);
+		accept(jarFileBuffer, cv, ji, coorid);
 	}
 }

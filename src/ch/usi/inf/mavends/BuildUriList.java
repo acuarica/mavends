@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
-import ch.usi.inf.mavends.index.MavenRecordChecker;
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
 
 public class BuildUriList {
@@ -58,7 +58,7 @@ public class BuildUriList {
 				String classifier = rs.getString("classifier");
 				String extension = rs.getString("extension");
 
-				String path = MavenRecordChecker.getPath(groupid, artifactid, version,
+				String path = MavenRecord.getPath(groupid, artifactid, version,
 						classifier, extension);
 
 				n++;
@@ -67,7 +67,7 @@ public class BuildUriList {
 				if (classifier == null) {
 					n++;
 
-					path = MavenRecordChecker.getPath(groupid, artifactid, version,
+					path = MavenRecord.getPath(groupid, artifactid, version,
 							null, "pom");
 
 					emitFetchFile(path, ar.mirrors, out);

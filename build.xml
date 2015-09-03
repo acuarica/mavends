@@ -46,7 +46,7 @@
 			<classpath refid="lib" />
 		</javac>
 	</target>
-	<target name="fetchnexusindex" depends="-mkcachedir" description="Fetches the Nexus Maven Repository Index (GZipped) from ibiblio.org mirror using *aria2* (http://aria2.sourceforge.net/).">
+	<target name="nexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index (GZipped) from ibiblio.org mirror using *aria2* (http://aria2.sourceforge.net/).">
 		<exec executable="aria2c">
 			<arg value="--dir=/" />
 			<arg value="--max-concurrent-downloads=16" />
@@ -57,26 +57,20 @@
 			<arg value="--out=${nexusindexgz.path}" />
 			<arg value="${nexusindexgz.url}" />
 		</exec>
-	</target>
-	<target name="nexusindex" depends="fetchnexusindex" description="Fetches and uncompresses the Nexus Maven Repository Index from ibiblio.org mirror using *aria2*. See target fetchnexusindex.">
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
-	<target name="checkmavenindex" depends="-compile,-mkoutdir" description="Checks if the Nexus Index is well formed.">
+	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index. After it populates the Maven Index, it creates views and materialized views (tables in SQLite).">
 		<delete file="${mavenindex.path}" />
-		<java classname="ch.usi.inf.mavends.CheckMavenIndex" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--nexusindex=${nexusindex.path}" />
-		</java>
-	</target>
-	<target name="mavenindex" depends="-compile,-mkoutdir" description="Builds the Maven Index DB from the Nexus Index.">
-		<delete file="${mavenindex.path}" />
-		<java classname="ch.usi.inf.mavends.BuildMavenIndex" classpath="${build}:${resources}">
+		<exec executable="sqlite3" input="resources/mavenindex-tables.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenindex.path}" />
+		</exec>
+		<java classname="ch.usi.inf.mavends.PopulateMavenIndex" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
-	</target>
-	<target name="mavenindex-views" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
 		<exec executable="sqlite3" input="resources/mavenindex-views.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />

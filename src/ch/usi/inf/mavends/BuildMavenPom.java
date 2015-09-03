@@ -13,7 +13,7 @@ import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.extract.DepsManager;
-import ch.usi.inf.mavends.index.MavenRecordChecker;
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.PomDependency;
 import ch.usi.inf.mavends.util.Log;
 
@@ -56,7 +56,7 @@ public class BuildMavenPom {
 			String gid = rs.getString("gid");
 			String aid = rs.getString("aid");
 			String ver = rs.getString("ver");
-			String path = MavenRecordChecker.getPath(gid, aid, ver, null, "pom");
+			String path = MavenRecord.getPath(gid, aid, ver, null, "pom");
 
 			List<PomDependency> deps;
 			try {

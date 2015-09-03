@@ -8,7 +8,7 @@ import java.util.Date;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class MavenRecordChecker {
+public class MavenRecord {
 
 	public final String allGroups;
 	public final String allGroupsList;
@@ -37,55 +37,58 @@ public class MavenRecordChecker {
 	public final String extension;
 
 	/**
+	 * Constructs a MavenRecord from a NexusRecord. It checks if all the
+	 * invariants for a MavenRecord hold.
 	 * 
-	 * @param doc
+	 * @param nr
+	 *            The NexusRecord taken from the Nexus Index.
 	 */
-	public MavenRecordChecker(NexusRecord doc) {
-		allGroups = doc.get("allGroups");
-		allGroupsList = doc.get("allGroupsList");
-		rootGroups = doc.get("rootGroups");
-		rootGroupsList = doc.get("rootGroupsList");
-		descriptor = doc.get("DESCRIPTOR");
-		idxinfo = doc.get("IDXINFO");
-		sha = doc.get("1");
-		m = doc.get("m");
-		u = doc.get("u");
-		i = doc.get("i");
-		del = doc.get("del");
-		artifactname = doc.get("n");
-		artifactdesc = doc.get("d");
+	public MavenRecord(NexusRecord nr) {
+		allGroups = nr.get("allGroups");
+		allGroupsList = nr.get("allGroupsList");
+		rootGroups = nr.get("rootGroups");
+		rootGroupsList = nr.get("rootGroupsList");
+		descriptor = nr.get("DESCRIPTOR");
+		idxinfo = nr.get("IDXINFO");
+		sha = nr.get("1");
+		m = nr.get("m");
+		u = nr.get("u");
+		i = nr.get("i");
+		del = nr.get("del");
+		artifactname = nr.get("n");
+		artifactdesc = nr.get("d");
 
 		check((allGroups == null) == (allGroupsList == null),
-				"Invalid all groups doc: " + doc);
+				"Invalid all groups doc: " + nr);
 
 		check((rootGroups == null) == (rootGroupsList == null),
-				"Invalid root groups doc: " + doc);
+				"Invalid root groups doc: " + nr);
 
 		check((descriptor == null) == (idxinfo == null),
-				"Invalid description/idxinfo doc: " + doc);
+				"Invalid description/idxinfo doc: " + nr);
 
 		check(((allGroups == null) && (rootGroups == null) && (descriptor == null)) == (m != null),
-				"null m: " + doc);
+				"null m: " + nr);
 
-		check((u == null) || (m != null), "u and m: " + doc);
-		check((i == null) || (m != null), "i and m: " + doc);
-		check((del == null) || (m != null), "del and m: " + doc);
-		check((sha == null) || (m != null), "one and m: " + doc);
+		check((u == null) || (m != null), "u and m: " + nr);
+		check((i == null) || (m != null), "i and m: " + nr);
+		check((del == null) || (m != null), "del and m: " + nr);
+		check((sha == null) || (m != null), "one and m: " + nr);
 
-		check((u != null) == (i != null), "u and i: " + doc);
-		check((sha == null) || (u != null), "u and sha: " + doc);
-		check((u == null) || (del == null), "u and del: " + doc);
+		check((u != null) == (i != null), "u and i: " + nr);
+		check((sha == null) || (u != null), "u and sha: " + nr);
+		check((u == null) || (del == null), "u and del: " + nr);
 
 		if (allGroups != null) {
-			check(allGroups.equals("allGroups"), "allGroups: %s", doc);
+			check(allGroups.equals("allGroups"), "allGroups: %s", nr);
 		}
 
 		if (rootGroups != null) {
-			check(rootGroups.equals("rootGroups"), "rootGroups: %s", doc);
+			check(rootGroups.equals("rootGroups"), "rootGroups: %s", nr);
 		}
 
 		if (descriptor != null) {
-			check(descriptor.equals("NexusIndex"), "NexusIndex: %s", doc);
+			check(descriptor.equals("NexusIndex"), "NexusIndex: %s", nr);
 		}
 
 		mdate = m != null ? checkDate(m) : null;
@@ -94,7 +97,7 @@ public class MavenRecordChecker {
 			String[] us = u.split("\\|");
 
 			check(us.length == 4 || us.length == 5,
-					"Invalid value for u field: %s", doc);
+					"Invalid value for u field: %s", nr);
 
 			groupid = us[0];
 			artifactid = us[1];
@@ -105,16 +108,16 @@ public class MavenRecordChecker {
 					"Expected NA/Main classifier");
 
 			String[] is = i.split("\\|");
-			check(is.length == 7, "Invalid i: %s", doc);
+			check(is.length == 7, "Invalid i: %s", nr);
 
 			packaging = is[0];
 
 			check(us.length == 4 || us[4].equals(packaging), "us4 and is0: %s",
-					doc);
+					nr);
 
 			idate = checkDate(is[1]);
 			size = checkSignedLong(is[2]);
-			check(size >= -1, "Size more negative: %s", doc);
+			check(size >= -1, "Size more negative: %s", nr);
 
 			is3 = checkDigit(is[3]);
 			is4 = checkDigit(is[4]);
@@ -124,25 +127,24 @@ public class MavenRecordChecker {
 
 			check(!packaging.equals("null")
 					|| (size == -1 && extension.equals("pom")),
-					"size/no jar and null: %s", doc);
+					"size/no jar and null: %s", nr);
 		} else if (del != null) {
 			String[] dels = del.split("\\|");
 
 			check(dels.length == 4 || dels.length == 5,
-					"Invalid value for del field: %s", doc);
+					"Invalid value for del field: %s", nr);
 
 			groupid = dels[0];
 			artifactid = dels[1];
 			version = dels[2];
 			classifier = "NA".equals(dels[3]) ? null : dels[3];
-			packaging = null;
+			packaging = dels.length == 4 ? null : dels[4];
 			idate = null;
 			size = 0;
 			is3 = 0;
 			is4 = 0;
 			is5 = 0;
 			extension = null;
-
 		} else {
 			groupid = null;
 			artifactid = null;

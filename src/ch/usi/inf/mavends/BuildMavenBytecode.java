@@ -4,16 +4,12 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
 import ch.usi.inf.mavends.argsparser.Arg;
 import ch.usi.inf.mavends.argsparser.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.extract.ExtractVisitor;
-import ch.usi.inf.mavends.index.MavenRecordChecker;
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.JarVisitor;
 import ch.usi.inf.mavends.util.Log;
 
@@ -64,6 +60,9 @@ public class BuildMavenBytecode {
 
 		dbm.conn.setAutoCommit(false);
 
+		Inserter ji = dbm
+				.createInserter("insert into mb.jarentry (coorid,filename, originalsize,compressedsize,crc32,method) values (?,?,?,?,?,?)");
+
 		// cls =
 		// db.createInserter("insert into class (pid, classname, supername, version, access, signature) values (?,  ?, ?, ?, ?, ?)");
 
@@ -81,16 +80,19 @@ public class BuildMavenBytecode {
 		//
 		// literal = db
 		// .createInserter("insert into literal (pid, classname,methodname, methoddesc, offset, literal) values (?,  ?, ?, ?, ?,  ?)");
-
-		Inserter ii1 = dbm
-				.createInserter("insert into mb.cp_class (package, classname) select cs.targetpackage, cs.targetclassname from callsite cs");
-		Inserter ii2 = dbm
-				.createInserter("insert into mb.cp_methodref (classnameid, methodname, methoddesc) select "
-						+ "(select c.classnameid from mb.cp_class c where c.package = cs.targetpackage and c.classname = cs.targetclassname), cs.targetmethodname, cs.targetmethoddesc from callsite cs");
-		Inserter ii3 = dbm
-				.createInserter("insert into mb.callsite (coorid, sm, tm) select cs.coorid, sm.methodrefid, tm.methodrefid from callsite cs "
-						+ "inner join mb.cp_methodref_view sm on sm.package=cs.package and sm.classname=cs.classname and sm.methodname=cs.methodname and sm.methoddesc=cs.methoddesc "
-						+ "inner join mb.cp_methodref_view tm on tm.package=cs.targetpackage and tm.classname=cs.targetclassname and tm.methodname=cs.targetmethodname and tm.methoddesc=cs.targetmethoddesc ");
+		//
+		// Inserter ii1 = dbm
+		// .createInserter("insert into mb.cp_class (package, classname) select cs.targetpackage, cs.targetclassname from callsite cs");
+		// Inserter ii2 = dbm
+		// .createInserter("insert into mb.cp_methodref (classnameid, methodname, methoddesc) select "
+		// +
+		// "(select c.classnameid from mb.cp_class c where c.package = cs.targetpackage and c.classname = cs.targetclassname), cs.targetmethodname, cs.targetmethoddesc from callsite cs");
+		// Inserter ii3 = dbm
+		// .createInserter("insert into mb.callsite (coorid, sm, tm) select cs.coorid, sm.methodrefid, tm.methodrefid from callsite cs "
+		// +
+		// "inner join mb.cp_methodref_view sm on sm.package=cs.package and sm.classname=cs.classname and sm.methodname=cs.methodname and sm.methoddesc=cs.methoddesc "
+		// +
+		// "inner join mb.cp_methodref_view tm on tm.package=cs.targetpackage and tm.classname=cs.targetclassname and tm.methodname=cs.targetmethodname and tm.methoddesc=cs.targetmethoddesc ");
 
 		int n = 0;
 		while (rs.next()) {
@@ -101,23 +103,22 @@ public class BuildMavenBytecode {
 			String classifier = rs.getString("classifier");
 			String extension = rs.getString("extension");
 
-			String path = MavenRecordChecker.getPath(groupid, artifactid,
-					version, classifier, extension);
+			String path = MavenRecord.getPath(groupid, artifactid, version,
+					classifier, extension);
 
 			log.info("Analysing %s...", path);
 
 			try {
 				JarVisitor.accept(ar.repoDir + "/" + path, new ExtractVisitor(
-						coorid, callsite));
+						coorid, callsite), ji, coorid);
 
-				ii1.insert();
-				ii2.insert();
-				ii3.insert();
-
-				dbm.execute("delete from callsite");
-
-				dbm.conn.commit();
+				// ii1.insert();
+				// ii2.insert();
+				// ii3.insert();
+				// dbm.execute("delete from callsite");
+				// dbm.conn.commit();
 			} catch (Exception e) {
+				ji = dbm.createInserter("insert into mb.jarentry (coorid,filename, originalsize,compressedsize,crc32,method) values (?,?,?,?,?,?)");
 				e.printStackTrace();
 			}
 
