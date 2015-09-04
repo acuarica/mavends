@@ -6,7 +6,6 @@ create table jarentry (
   originalsize    int           not null,
   compressedsize  int           not null,
   crc32 int,
-  method text,
   unique (coorid, filename) on conflict ignore
 );
 

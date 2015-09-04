@@ -61,7 +61,7 @@ public class BuildMavenBytecode {
 		dbm.conn.setAutoCommit(false);
 
 		Inserter ji = dbm
-				.createInserter("insert into mb.jarentry (coorid,filename, originalsize,compressedsize,crc32,method) values (?,?,?,?,?,?)");
+				.createInserter("insert into mb.jarentry (coorid,filename, originalsize,compressedsize,crc32) values (?,?,?,?,?)");
 
 		// cls =
 		// db.createInserter("insert into class (pid, classname, supername, version, access, signature) values (?,  ?, ?, ?, ?, ?)");
@@ -106,7 +106,10 @@ public class BuildMavenBytecode {
 			String path = MavenRecord.getPath(groupid, artifactid, version,
 					classifier, extension);
 
-			log.info("Analysing %s...", path);
+			if (n % 100 == 0) {
+				// log.info("Analysing %s...", path);
+				log.info("%d jars", n);
+			}
 
 			try {
 				JarVisitor.accept(ar.repoDir + "/" + path, new ExtractVisitor(
@@ -118,8 +121,11 @@ public class BuildMavenBytecode {
 				// dbm.execute("delete from callsite");
 				// dbm.conn.commit();
 			} catch (Exception e) {
-				ji = dbm.createInserter("insert into mb.jarentry (coorid,filename, originalsize,compressedsize,crc32,method) values (?,?,?,?,?,?)");
+				log.info("Exception analysing %s...", path);
 				e.printStackTrace();
+
+				ji = dbm.createInserter("insert into mb.jarentry (coorid,filename, originalsize,compressedsize,crc32) values (?,?,?,?,?)");
+
 			}
 
 			n++;

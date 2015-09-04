@@ -38,6 +38,10 @@ public class JarVisitor {
 		ZipEntry entry;
 
 		while ((entry = zip.getNextEntry()) != null) {
+			if (entry.isDirectory()) {
+				continue;
+			}
+
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			byte[] buffer = new byte[4096];
 
@@ -46,12 +50,8 @@ public class JarVisitor {
 				stream.write(buffer, 0, len);
 			}
 
-			String m = String.format("%s (%d)",
-					entry.getMethod() == ZipEntry.STORED ? "STORED"
-							: "DEFLATED", entry.getMethod());
-
 			ji.insert(coorid, entry.getName(), entry.getSize(),
-					entry.getCompressedSize(), entry.getCrc(), m);
+					entry.getCompressedSize(), entry.getCrc());
 
 			if (entry.getName().endsWith(".class")) {
 				ClassReader cr = new ClassReader(stream.toByteArray());
