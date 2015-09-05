@@ -15,4 +15,23 @@ drop table cp_methodref;
 
 alter table cp_methodref_1 rename to cp_method_ref;
 
+
+
+drop table if exists jarentry_1;
+
+create table jarentry_1 (
+  coorid          int not null,
+  filename        varchar(255)  not null, 
+  originalsize    int           not null,
+  compressedsize  int           not null,
+  crc32 int
+);
+
+insert into jarentry_1 (coorid,filename        , originalsize    ,compressedsize  ,crc32) 
+select coorid,filename        , originalsize    ,compressedsize  ,crc32 from jarentry;
+
+drop table jarentry;
+
+alter table jarentry_1 rename to jarentry;
+
 vacuum;

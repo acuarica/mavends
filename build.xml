@@ -169,6 +169,13 @@
 			<arg value="--mavenbytecode=${mavenbytecode-stage.path}" />
 		</java>
 	</target>
+	<target name="mavenbytecode-stage-post" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
+		<exec executable="sqlite3" input="resources/mavenbytecode-post.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenbytecode-stage.path}" />
+		</exec>
+	</target>
 	<target name="mavenbytecode-prod" depends="-compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecode-prod.path}" />
 		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
