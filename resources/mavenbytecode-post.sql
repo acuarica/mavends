@@ -24,8 +24,9 @@ create table jarentry_1 (
   filename        varchar(255)  not null, 
   originalsize    int           not null,
   compressedsize  int           not null,
-  crc32 int
-);
+  crc32 int,
+  primary key (coorid, filename)
+) without rowid;
 
 insert into jarentry_1 (coorid,filename        , originalsize    ,compressedsize  ,crc32) 
 select coorid,filename        , originalsize    ,compressedsize  ,crc32 from jarentry;
