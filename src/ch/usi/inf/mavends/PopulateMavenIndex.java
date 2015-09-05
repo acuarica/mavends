@@ -3,8 +3,8 @@ package ch.usi.inf.mavends;
 import java.util.Arrays;
 import java.util.Date;
 
-import ch.usi.inf.mavends.argsparser.Arg;
-import ch.usi.inf.mavends.argsparser.ArgsParser;
+import ch.usi.inf.mavends.args.Arg;
+import ch.usi.inf.mavends.args.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.index.MavenRecord;

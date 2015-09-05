@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.argsparser;
+package ch.usi.inf.mavends.args;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -8,8 +8,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import ch.usi.inf.mavends.argsparser.Arg;
-import ch.usi.inf.mavends.argsparser.ArgsParser;
+import ch.usi.inf.mavends.args.Arg;
+import ch.usi.inf.mavends.args.ArgsParser;
 import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.extract.DepsManager;

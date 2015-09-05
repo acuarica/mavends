@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.argsparser;
+package ch.usi.inf.mavends.args;
 
 import java.lang.reflect.Field;
 
@@ -13,15 +13,6 @@ import ch.usi.inf.mavends.util.Log;
 public class ArgsParser {
 
 	private static final Log log = new Log(System.out);
-
-	private static class ArgumentMissingException extends Exception {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5053354343992245633L;
-
-	}
 
 	private static <T> void show(T ar) throws InstantiationException,
 			IllegalAccessException {
