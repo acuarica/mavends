@@ -1,5 +1,5 @@
 <project name="MavenDS" basedir=".">
-	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '-' are executed internally by other targets.</description>
+	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '-' are executed internally by other targets. To fetch the Nexus Index and Maven Artifact *aria2* (http://aria2.sourceforge.net/) is used.</description>
 	<property name="src" location="src" />
 	<property name="resources" location="resources" />
 	<property name="lib" location="lib" />
@@ -44,7 +44,7 @@
 			<classpath refid="lib" />
 		</javac>
 	</target>
-	<target name="nexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index (GZipped) from ibiblio.org mirror using *aria2* (http://aria2.sourceforge.net/).">
+	<target name="nexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index.">
 		<exec executable="aria2c">
 			<arg value="--dir=/" />
 			<arg value="--max-concurrent-downloads=16" />
@@ -57,7 +57,7 @@
 		</exec>
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
-	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index. After it populates the Maven Index, it creates views and materialized views (tables in SQLite).">
+	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />
 		<exec executable="sqlite3" input="resources/mavenindex-tables.sql">
 			<arg value="-bail" />
