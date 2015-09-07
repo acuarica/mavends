@@ -42,8 +42,6 @@ public class BuildMavenPom {
 
 		Db db = new Db(ar.mavenPomPath);
 
-		db.send("mavenpom.sql", "SQL");
-
 		db.conn.setAutoCommit(false);
 
 		Inserter ins = db

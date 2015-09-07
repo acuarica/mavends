@@ -14,6 +14,21 @@ public class ArgsParser {
 
 	private static final Log log = new Log(System.out);
 
+	/**
+	 * Exception internally thrown when some argument is misssing.
+	 * 
+	 * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
+	 *
+	 */
+	private static class ArgumentMissingException extends Exception {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5053354343992245633L;
+
+	}
+
 	private static <T> void show(T ar) throws InstantiationException,
 			IllegalAccessException {
 

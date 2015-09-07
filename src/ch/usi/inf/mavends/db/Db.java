@@ -1,14 +1,10 @@
 package ch.usi.inf.mavends.db;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import ch.usi.inf.mavends.util.Log;
-import ch.usi.inf.mavends.util.Resource;
 
 /**
  * 
@@ -16,8 +12,6 @@ import ch.usi.inf.mavends.util.Resource;
  *
  */
 public class Db {
-
-	private static final Log log = new Log(System.out);
 
 	/**
 	 * 
@@ -61,30 +55,11 @@ public class Db {
 
 	/**
 	 * 
-	 * @param path
-	 * @param message
-	 * @throws IOException
-	 * @throws SQLException
-	 */
-	public void send(String path, String message) throws IOException,
-			SQLException {
-		String sql = Resource.get(path);
-		log.info(message + ": " + sql);
-		execute(sql);
-	}
-
-	/**
-	 * 
 	 * @param sql
 	 * @return
 	 * @throws SQLException
 	 */
 	public Inserter createInserter(String sql) throws SQLException {
 		return new Inserter(conn, sql);
-	}
-
-	// @Override
-	public void close() throws SQLException {
-		conn.close();
 	}
 }

@@ -13,20 +13,18 @@
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
-	<property name="query-dev" value="select coorid from artifact_jar where rootgroup = 'ar'" />
-	<property name="query-test" value="select coorid from artifact_jar where rootgroup = 'es'" />
-	<property name="query-stage" value="select coorid from artifact_jar where rootgroup = 'net'" />
-	<property name="query-last" value="select coorid from artifact_jar group by groupid, artifactid having idate = max(idate)" />
+	<property name="query-dev" value="select coorid from artifact_jar where rootgroup = 'es'" />
+	<property name="query-test" value="select coorid from artifact_jar where rootgroup = 'net'" />
 	<property name="query-prod" value="select coorid from artifact_jar" />
 	<property name="urilist.path" location="${out}/uri.list" />
 	<property name="sessionlist.path" location="${out}/session.list" />
 	<property name="repo" location="${cache}/repo" />
-	<property name="mavenbytecode-dev.path" location="${out}/mavenbytecode-dev.sqlite3" />
-	<property name="mavenbytecode-test.path" location="${out}/mavenbytecode-test.sqlite3" />
-	<property name="mavenbytecode-stage.path" location="${out}/mavenbytecode-stage.sqlite3" />
-	<property name="mavenbytecode-prod.path" location="${out}/mavenbytecode-prod.sqlite3" />
+	<property name="mavenfs-dev.path" location="${out}/mavenfs-dev.sqlite3" />
+	<property name="mavenfs-test.path" location="${out}/mavenfs-test.sqlite3" />
+	<property name="mavenfs-prod.path" location="${out}/mavenfs-prod.sqlite3" />
 	<property name="mavenpom-dev.path" location="${out}/mavenpom-dev.sqlite3" />
 	<property name="mavenpom-test.path" location="${out}/mavenpom-test.sqlite3" />
+	<property name="mavenpom-prod.path" location="${out}/mavenpom-prod.sqlite3" />
 	<path id="lib">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
@@ -95,15 +93,6 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="urilist-stage" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
-		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-stage}" />
-			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
-		</java>
-	</target>
 	<target name="urilist-last" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
@@ -125,56 +114,35 @@
 			<arg value="--deferred-input=true" />
 		</exec>
 	</target>
-	<target name="mavenbytecode-dev" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${mavenbytecode-dev.path}" />
-		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
+	<target name="mavenfs-dev" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${mavenfs-dev.path}" />
+		<exec executable="sqlite3" input="resources/mavenfs.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenfs-dev.path}" />
+		</exec>
+		<java classname="ch.usi.inf.mavends.BuildMavenFs" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-dev}" />
-			<arg value="--mavenbytecode=${mavenbytecode-dev.path}" />
+			<arg value="--mavenfs=${mavenfs-dev.path}" />
 		</java>
 	</target>
-	<target name="mavenbytecode-dev-post" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
-		<exec executable="sqlite3" input="resources/mavenbytecode-post.sql">
+	<target name="mavenfs-test" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${mavenfs-test.path}" />
+		<exec executable="sqlite3" input="resources/mavenfs.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />
-			<arg value="${mavenbytecode-dev.path}" />
+			<arg value="${mavenfs-test.path}" />
 		</exec>
-	</target>
-	<target name="mavenbytecode-test" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${mavenbytecode-test.path}" />
-		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
+		<java classname="ch.usi.inf.mavends.BuildMavenFs" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-test}" />
-			<arg value="--mavenbytecode=${mavenbytecode-test.path}" />
+			<arg value="--mavenfs=${mavenfs-test.path}" />
 		</java>
-	</target>
-	<target name="mavenbytecode-test-post" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
-		<exec executable="sqlite3" input="resources/mavenbytecode-post.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${mavenbytecode-test.path}" />
-		</exec>
-	</target>
-	<target name="mavenbytecode-stage" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${mavenbytecode-stage.path}" />
-		<java classname="ch.usi.inf.mavends.BuildMavenBytecode" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-stage}" />
-			<arg value="--mavenbytecode=${mavenbytecode-stage.path}" />
-		</java>
-	</target>
-	<target name="mavenbytecode-stage-post" description="Creates views and materialized views (tables in SQLite) in the Maven Index DB.">
-		<exec executable="sqlite3" input="resources/mavenbytecode-post.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${mavenbytecode-stage.path}" />
-		</exec>
 	</target>
 	<target name="mavenbytecode-prod" depends="-compile" description="Extract the dependency information from POM files.">
 		<delete file="${mavenbytecode-prod.path}" />
