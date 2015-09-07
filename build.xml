@@ -19,9 +19,9 @@
 	<property name="urilist.path" location="${out}/uri.list" />
 	<property name="sessionlist.path" location="${out}/session.list" />
 	<property name="repo" location="${cache}/repo" />
-	<property name="mavenfs-dev.path" location="${out}/mavenfs-dev.sqlite3" />
-	<property name="mavenfs-test.path" location="${out}/mavenfs-test.sqlite3" />
-	<property name="mavenfs-prod.path" location="${out}/mavenfs-prod.sqlite3" />
+	<property name="maveninode-dev.path" location="${out}/maveninode-dev.sqlite3" />
+	<property name="maveninode-test.path" location="${out}/maveninode-test.sqlite3" />
+	<property name="maveninode-prod.path" location="${out}/maveninode-prod.sqlite3" />
 	<property name="mavenpom-dev.path" location="${out}/mavenpom-dev.sqlite3" />
 	<property name="mavenpom-test.path" location="${out}/mavenpom-test.sqlite3" />
 	<property name="mavenpom-prod.path" location="${out}/mavenpom-prod.sqlite3" />
@@ -109,34 +109,34 @@
 			<arg value="--deferred-input=true" />
 		</exec>
 	</target>
-	<target name="mavenfs-dev" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${mavenfs-dev.path}" />
-		<exec executable="sqlite3" input="resources/mavenfs.sql">
+	<target name="maveninode-dev" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${maveninode-dev.path}" />
+		<exec executable="sqlite3" input="resources/maveninode.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />
-			<arg value="${mavenfs-dev.path}" />
+			<arg value="${maveninode-dev.path}" />
 		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenFs" classpath="${build}:${resources}">
+		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-dev}" />
-			<arg value="--mavenfs=${mavenfs-dev.path}" />
+			<arg value="--maveninode=${maveninode-dev.path}" />
 		</java>
 	</target>
-	<target name="mavenfs-test" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${mavenfs-test.path}" />
-		<exec executable="sqlite3" input="resources/mavenfs.sql">
+	<target name="maveninode-test" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${maveninode-test.path}" />
+		<exec executable="sqlite3" input="resources/maveninode.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />
-			<arg value="${mavenfs-test.path}" />
+			<arg value="${maveninode-test.path}" />
 		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenFs" classpath="${build}:${resources}">
+		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-test}" />
-			<arg value="--mavenfs=${mavenfs-test.path}" />
+			<arg value="--maveninode=${maveninode-test.path}" />
 		</java>
 	</target>
 	<target name="mavenfs-prod" depends="-compile" description="Extract the dependency information from POM files.">
