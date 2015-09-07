@@ -56,9 +56,8 @@ public class BuildMavenInode {
 		}
 	}
 
-	public static void main(String[] args) throws InstantiationException,
-			IllegalAccessException, IllegalArgumentException,
-			ClassNotFoundException, SQLException, NoSuchAlgorithmException {
+	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, ClassNotFoundException, SQLException, NoSuchAlgorithmException {
 
 		Args ar = ArgsParser.parse(args, Args.class);
 
@@ -71,6 +70,7 @@ public class BuildMavenInode {
 		db.conn.setAutoCommit(false);
 
 		MessageDigest md = MessageDigest.getInstance("SHA-1");
+		byte[] buffer = new byte[8192];
 
 		int n = 0;
 		while (rs.next()) {
@@ -80,12 +80,26 @@ public class BuildMavenInode {
 			Inserter ins = db
 					.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
 
-			try (JarIterator ji = new JarIterator(ar.repoDir + "/" + path)) {
-				JarEntry je;
-				while ((je = ji.next()) != null) {
-					String sha1 = byteArray2Hex(md.digest(je.data));
-					ins.insert(coorid, je.name, je.size, je.compressedSize,
-							je.crc32, sha1, je.data);
+			try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(Files.readAllBytes(Paths
+					.get((ar.repoDir + "/" + path)))))) {
+
+				ZipEntry ze = zip.getNextEntry();
+				while ((ze = zip.getNextEntry()) != null) {
+					if (!ze.getName().endsWith(".class")) {
+						continue;
+					}
+
+					ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
+
+					int len = 0;
+					while ((len = zip.read(buffer)) > 0) {
+						stream.write(buffer, 0, len);
+					}
+
+					byte[] data = stream.toByteArray();
+
+					String sha1 = byteArray2Hex(md.digest(data));
+					ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, data);
 				}
 			} catch (IOException e) {
 				log.info("Exception on %s", path);
@@ -102,59 +116,5 @@ public class BuildMavenInode {
 		}
 
 		log.info("No. jar files: %d", n);
-	}
-
-	private static class JarEntry {
-		public final String name;
-		public final long size;
-		public final long compressedSize;
-		public final long crc32;
-		public final byte[] data;
-
-		public JarEntry(String name, long size, long compressedSize,
-				long crc32, byte[] data) {
-			this.name = name;
-			this.size = size;
-			this.compressedSize = compressedSize;
-			this.crc32 = crc32;
-			this.data = data;
-		}
-	}
-
-	private static class JarIterator implements AutoCloseable {
-
-		private final ZipInputStream zip;
-
-		private static byte[] buffer = new byte[4096];
-
-		public JarIterator(String jarFileName) throws IOException {
-			byte[] jarFileBuffer = Files.readAllBytes(Paths.get(jarFileName));
-			zip = new ZipInputStream(new ByteArrayInputStream(jarFileBuffer));
-		}
-
-		public JarEntry next() throws IOException {
-			ZipEntry entry = zip.getNextEntry();
-
-			if (entry == null) {
-				return null;
-			}
-
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
-			int len = 0;
-			while ((len = zip.read(buffer)) > 0) {
-				stream.write(buffer, 0, len);
-			}
-
-			byte[] data = stream.toByteArray();
-
-			return new JarEntry(entry.getName(), entry.getSize(),
-					entry.getCompressedSize(), entry.getCrc(), data);
-		}
-
-		@Override
-		public void close() throws IOException {
-			zip.close();
-		}
 	}
 }
