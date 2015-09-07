@@ -59,7 +59,7 @@
 	</target>
 	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />
-		<exec executable="sqlite3" input="resources/mavenindex-tables.sql">
+		<exec executable="sqlite3" input="resources/mavenindex.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />
 			<arg value="${mavenindex.path}" />
@@ -69,11 +69,6 @@
 			<arg value="--nexusindex=${nexusindex.path}" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
-		<exec executable="sqlite3" input="resources/mavenindex-views.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${mavenindex.path}" />
-		</exec>
 	</target>
 	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
