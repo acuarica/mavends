@@ -2,6 +2,7 @@ package ch.usi.inf.mavends;
 
 import java.io.IOException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,48 +38,43 @@ public class BuildMavenPom {
 
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, ClassNotFoundException, SQLException {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		Db db = new Db(ar.mavenPomPath);
+		try (Db dbi = new Db(ar.mavenIndexPath);
+				ResultSet rs = dbi
+						.select("select a.groupid as groupid, a.artifactid as artifactid, a.version as version from ("
+								+ ar.query + ") t inner join artifact a on a.coorid = t.coorid");
+				Db db = new Db(ar.mavenPomPath);
+				Inserter ins = db
+						.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?, ?, ?, ?, ?, ?, ?)")) {
 
-		db.conn.setAutoCommit(false);
+			int n = 0;
+			while (rs.next()) {
+				String groupid = rs.getString("groupid");
+				String artifactid = rs.getString("artifactid");
+				String version = rs.getString("version");
 
-		Inserter ins = db
-				.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?, ?, ?, ?, ?, ?, ?)");
+				String path = MavenRecord.getPath(groupid, artifactid, version, null, "pom");
 
-		ResultSet rs = new Db(ar.mavenIndexPath).select(ar.query);
-
-		int n = 0;
-		while (rs.next()) {
-			String gid = rs.getString("gid");
-			String aid = rs.getString("aid");
-			String ver = rs.getString("ver");
-			String path = MavenRecord.getPath(gid, aid, ver, null, "pom");
-
-			List<PomDependency> deps;
-			try {
-				deps = DepsManager.extractDeps(ar.repoDir + "/" + path);
+				List<PomDependency> deps;
 				try {
+					deps = DepsManager.extractDeps(ar.repoDir + "/" + path);
 
 					for (PomDependency dep : deps) {
-						ins.insert(gid, aid, ver, dep.groupId, dep.artifactId,
-								dep.version, dep.scope);
+						ins.insert(groupid, artifactid, version, dep.groupId, dep.artifactId, dep.version, dep.scope);
 					}
-				} catch (RuntimeException e) {
-					System.out.println(deps);
-					log.info("SQL Exception in %s (# %d): %s", path, n, e);
-					throw e;
+				} catch (SAXException | IOException | ParserConfigurationException e) {
+					log.info("Exception in %s (# %d): %s", path, n, e);
 				}
-			} catch (SAXException | IOException | ParserConfigurationException e) {
-				log.info("Exception in %s (# %d): %s", path, n, e);
+
+				n++;
 			}
 
-			n++;
+			log.info("No. pom files: %d", n);
+
+			db.conn.commit();
 		}
-
-		log.info("No. pom files: %d", n);
-
-		db.conn.commit();
 	}
 }

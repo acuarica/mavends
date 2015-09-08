@@ -16,8 +16,8 @@ import ch.usi.inf.mavends.index.PomDependency;
 
 public class DepsManager {
 
-	public static List<PomDependency> extractDeps(String pomPath)
-			throws SAXException, IOException, ParserConfigurationException {
+	public static List<PomDependency> extractDeps(String pomPath) throws SAXException, IOException,
+			ParserConfigurationException {
 		SAXParserFactory spf = SAXParserFactory.newInstance();
 
 		final List<PomDependency> deps = new ArrayList<PomDependency>();
@@ -28,25 +28,25 @@ public class DepsManager {
 			private String value;
 
 			@Override
-			public void startElement(String uri, String localName,
-					String qName, Attributes attributes) throws SAXException {
+			public void startElement(String uri, String localName, String qName, Attributes attributes)
+					throws SAXException {
 				if (qName.equals("dependency")) {
 					dep = new PomDependency();
 				}
 			}
 
 			@Override
-			public void characters(char[] ch, int start, int length)
-					throws SAXException {
+			public void characters(char[] ch, int start, int length) throws SAXException {
 				value = new String(ch, start, length);
 			}
 
 			@Override
-			public void endElement(String uri, String localName, String qName)
-					throws SAXException {
+			public void endElement(String uri, String localName, String qName) throws SAXException {
 				if (qName.equals("dependency")) {
-					deps.add(dep);
-					dep = null;
+					if (dep != null) {
+						deps.add(dep);
+						dep = null;
+					}
 				} else if (dep != null && qName.equals("groupId")) {
 					dep.groupId = value;
 				} else if (dep != null && qName.equals("artifactId")) {

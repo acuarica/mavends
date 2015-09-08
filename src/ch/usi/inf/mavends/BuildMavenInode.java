@@ -61,62 +61,58 @@ public class BuildMavenInode {
 
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		ResultSet rs = new Db(ar.mavenIndexPath)
-				.select("select coorid, (select path from artifact_view a where a.coorid = t.coorid) as path from ("
-						+ ar.query + ") t");
+		try (Db dbi = new Db(ar.mavenIndexPath);
+				ResultSet rs = dbi
+						.select("select coorid, (select path from artifact_view a where a.coorid = t.coorid) as path from ("
+								+ ar.query + ") t");
+				Db db = new Db(ar.mavenInodePath)) {
 
-		Db db = new Db(ar.mavenInodePath);
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			byte[] buffer = new byte[8192];
 
-		db.conn.setAutoCommit(false);
+			int n = 0;
+			while (rs.next()) {
+				String coorid = rs.getString("coorid");
+				String path = rs.getString("path");
 
-		MessageDigest md = MessageDigest.getInstance("SHA-1");
-		byte[] buffer = new byte[8192];
+				try (Inserter ins = db
+						.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
+						ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(Files.readAllBytes(Paths
+								.get((ar.repoDir + "/" + path)))))) {
 
-		int n = 0;
-		while (rs.next()) {
-			String coorid = rs.getString("coorid");
-			String path = rs.getString("path");
+					ZipEntry ze = zip.getNextEntry();
+					while ((ze = zip.getNextEntry()) != null) {
+						if (!ze.getName().endsWith(".class")) {
+							continue;
+						}
 
-			// Inserter ins = db
-			// .createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
+						ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
 
-			try (Inserter ins = db
-					.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
-					ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(Files.readAllBytes(Paths
-							.get((ar.repoDir + "/" + path)))))) {
+						int len = 0;
+						while ((len = zip.read(buffer)) > 0) {
+							stream.write(buffer, 0, len);
+						}
 
-				ZipEntry ze = zip.getNextEntry();
-				while ((ze = zip.getNextEntry()) != null) {
-					if (!ze.getName().endsWith(".class")) {
-						continue;
+						byte[] data = stream.toByteArray();
+
+						String sha1 = byteArray2Hex(md.digest(data));
+						ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, data);
 					}
-
-					ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
-
-					int len = 0;
-					while ((len = zip.read(buffer)) > 0) {
-						stream.write(buffer, 0, len);
-					}
-
-					byte[] data = stream.toByteArray();
-
-					String sha1 = byteArray2Hex(md.digest(data));
-					ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, data);
+				} catch (IOException e) {
+					log.info("Exception on %s", path);
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				log.info("Exception on %s", path);
-				e.printStackTrace();
+
+				db.conn.commit();
+
+				n++;
+
+				if (n % 100 == 0) {
+					log.info("%d jars", n);
+				}
 			}
 
-			db.conn.commit();
-
-			n++;
-
-			if (n % 100 == 0) {
-				log.info("%d jars", n);
-			}
+			log.info("No. jar files: %d", n);
 		}
-
-		log.info("No. jar files: %d", n);
 	}
 }

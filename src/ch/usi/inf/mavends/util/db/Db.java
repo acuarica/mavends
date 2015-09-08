@@ -29,6 +29,7 @@ public class Db implements AutoCloseable {
 		Class.forName("org.sqlite.JDBC");
 
 		conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+		conn.setAutoCommit(false);
 	}
 
 	/**

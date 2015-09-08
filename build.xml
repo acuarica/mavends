@@ -40,7 +40,7 @@
 		<mkdir dir="${out}" />
 	</target>
 	<target name="-compile" depends="-mkbuilddir" description="Compiles all Java files under the src/ directory.">
-		<javac includeantruntime="false" srcdir="${src}" destdir="${build}">
+		<javac includeantruntime="false" srcdir="${src}" destdir="${build}" debug="true">
 			<classpath refid="lib" />
 		</javac>
 	</target>
@@ -88,12 +88,12 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="urilist-last" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
+	<target name="urilist-prod" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-last}" />
+			<arg value="--query=${query-prod}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -156,22 +156,47 @@
 	</target>
 	<target name="mavenpom-dev" depends="-compile" description="Extract the information from POM files.">
 		<delete file="${mavenpom-dev.path}" />
+		<exec executable="sqlite3" input="resources/mavenpom.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenpom-dev.path}" />
+		</exec>
 		<java classname="ch.usi.inf.mavends.BuildMavenPom" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-test}" />
+			<arg value="--query=${query-dev}" />
 			<arg value="--mavenpom=${mavenpom-dev.path}" />
 		</java>
 	</target>
 	<target name="mavenpom-test" depends="-compile" description="Extract the information from POM files.">
 		<delete file="${mavenpom-test.path}" />
+		<exec executable="sqlite3" input="resources/mavenpom.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenpom-test.path}" />
+		</exec>
 		<java classname="ch.usi.inf.mavends.BuildMavenPom" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-test}" />
 			<arg value="--mavenpom=${mavenpom-test.path}" />
+		</java>
+	</target>
+	<target name="mavenpom-prod" depends="-compile" description="Extract the information from POM files.">
+		<delete file="${mavenpom-prod.path}" />
+		<exec executable="sqlite3" input="resources/mavenpom.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${mavenpom-prod.path}" />
+		</exec>
+		<java classname="ch.usi.inf.mavends.BuildMavenPom" classpath="${build}:${resources}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--query=${query-prod}" />
+			<arg value="--mavenpom=${mavenpom-prod.path}" />
 		</java>
 	</target>
 	<target name="clean" description="Removes the *build* directory.">
