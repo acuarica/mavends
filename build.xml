@@ -15,6 +15,7 @@
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
 	<property name="query-dev" value="select coorid from artifact_jar where rootgroup = 'es'" />
 	<property name="query-test" value="select coorid from artifact_jar where rootgroup = 'net'" />
+	<property name="query-stage" value="select coorid from artifact_jar where rootgroup = 'com'" />
 	<property name="query-prod" value="select coorid from artifact_jar" />
 	<property name="urilist.path" location="${out}/uri.list" />
 	<property name="sessionlist.path" location="${out}/session.list" />
@@ -85,6 +86,15 @@
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--urilist=${urilist.path}" />
 			<arg value="--query=${query-test}" />
+			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
+		</java>
+	</target>
+	<target name="urilist-stage" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
+		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--urilist=${urilist.path}" />
+			<arg value="--query=${query-stage}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
