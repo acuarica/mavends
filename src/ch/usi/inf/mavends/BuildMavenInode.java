@@ -1,10 +1,9 @@
 package ch.usi.inf.mavends;
 
-import java.io.ByteArrayInputStream;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
@@ -69,6 +68,7 @@ public class BuildMavenInode {
 
 			MessageDigest md = MessageDigest.getInstance("SHA-1");
 			byte[] buffer = new byte[8192];
+			ByteArrayOutputStream stream = new ByteArrayOutputStream(4096);
 
 			int n = 0;
 			while (rs.next()) {
@@ -77,8 +77,9 @@ public class BuildMavenInode {
 
 				try (Inserter ins = db
 						.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
-						ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(Files.readAllBytes(Paths
-								.get((ar.repoDir + "/" + path)))))) {
+						FileInputStream fis = new FileInputStream(ar.repoDir + "/" + path);
+						BufferedInputStream bis = new BufferedInputStream(fis);
+						ZipInputStream zip = new ZipInputStream(bis)) {
 
 					ZipEntry ze = zip.getNextEntry();
 					while ((ze = zip.getNextEntry()) != null) {
@@ -86,8 +87,7 @@ public class BuildMavenInode {
 							continue;
 						}
 
-						ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
-
+						stream.reset();
 						int len = 0;
 						while ((len = zip.read(buffer)) > 0) {
 							stream.write(buffer, 0, len);
@@ -99,17 +99,12 @@ public class BuildMavenInode {
 						ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, data);
 					}
 				} catch (IOException e) {
-					log.info("Exception on %s", path);
-					e.printStackTrace();
+					log.info("Exception in %s (# %d): %s", path, n, e);
 				}
 
 				db.conn.commit();
 
 				n++;
-
-				if (n % 100 == 0) {
-					log.info("%d jars", n);
-				}
 			}
 
 			log.info("No. jar files: %d", n);

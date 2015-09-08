@@ -65,6 +65,8 @@ public class BuildMavenPom {
 					for (PomDependency dep : deps) {
 						ins.insert(groupid, artifactid, version, dep.groupId, dep.artifactId, dep.version, dep.scope);
 					}
+
+					db.conn.commit();
 				} catch (SAXException | IOException | ParserConfigurationException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);
 				}
@@ -73,8 +75,6 @@ public class BuildMavenPom {
 			}
 
 			log.info("No. pom files: %d", n);
-
-			db.conn.commit();
 		}
 	}
 }

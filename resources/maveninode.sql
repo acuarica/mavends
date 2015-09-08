@@ -21,7 +21,8 @@ create table ifile (
 
 
 create view file as
-  select f.coorid, f.filename, n.originalsize, n.compressedsize, n.crc32, n.sha1, n.data
+  select f.coorid, f.filename, n.originalsize, n.compressedsize, n.crc32, 
+    n.sha1, n.data
   from ifile f
   inner join inode n on n.inodeid = f.inodeid;
 
@@ -29,10 +30,18 @@ create trigger file_insert
 instead of insert on file
 begin
   insert into inode (originalsize, compressedsize, crc32, sha1, data) 
-  select new.originalsize, new.compressedsize, new.crc32, new.sha1, new.data;
+    select 
+      new.originalsize, 
+      new.compressedsize, 
+      new.crc32, 
+      new.sha1, 
+      new.data;
   
-  insert into ifile (coorid, filename, inodeid) select new.coorid, new.filename,
-    (select n.inodeid from inode n where n.sha1 = new.sha1);
+  insert into ifile (coorid, filename, inodeid) 
+    select 
+      new.coorid, 
+      new.filename,
+      (select n.inodeid from inode n where n.sha1 = new.sha1);
 end;
 
 
