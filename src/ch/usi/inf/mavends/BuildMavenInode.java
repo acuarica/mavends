@@ -13,11 +13,11 @@ import java.util.Formatter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import ch.usi.inf.mavends.args.Arg;
-import ch.usi.inf.mavends.args.ArgsParser;
-import ch.usi.inf.mavends.db.Db;
-import ch.usi.inf.mavends.db.Inserter;
 import ch.usi.inf.mavends.util.Log;
+import ch.usi.inf.mavends.util.args.Arg;
+import ch.usi.inf.mavends.util.args.ArgsParser;
+import ch.usi.inf.mavends.util.db.Db;
+import ch.usi.inf.mavends.util.db.Inserter;
 
 public class BuildMavenInode {
 
@@ -77,11 +77,13 @@ public class BuildMavenInode {
 			String coorid = rs.getString("coorid");
 			String path = rs.getString("path");
 
-			Inserter ins = db
-					.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
+			// Inserter ins = db
+			// .createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
 
-			try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(Files.readAllBytes(Paths
-					.get((ar.repoDir + "/" + path)))))) {
+			try (Inserter ins = db
+					.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
+					ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(Files.readAllBytes(Paths
+							.get((ar.repoDir + "/" + path)))))) {
 
 				ZipEntry ze = zip.getNextEntry();
 				while ((ze = zip.getNextEntry()) != null) {

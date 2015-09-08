@@ -1,10 +1,10 @@
-package ch.usi.inf.mavends.extract;
+package ch.usi.inf.mavends.analysis;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import ch.usi.inf.mavends.db.Inserter;
+import ch.usi.inf.mavends.util.db.Inserter;
 
 public class ExtractVisitor extends ClassVisitor {
 

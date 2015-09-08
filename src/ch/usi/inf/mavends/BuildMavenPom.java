@@ -8,14 +8,14 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import ch.usi.inf.mavends.args.Arg;
-import ch.usi.inf.mavends.args.ArgsParser;
-import ch.usi.inf.mavends.db.Db;
-import ch.usi.inf.mavends.db.Inserter;
-import ch.usi.inf.mavends.extract.DepsManager;
+import ch.usi.inf.mavends.analysis.DepsManager;
 import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.PomDependency;
 import ch.usi.inf.mavends.util.Log;
+import ch.usi.inf.mavends.util.args.Arg;
+import ch.usi.inf.mavends.util.args.ArgsParser;
+import ch.usi.inf.mavends.util.db.Db;
+import ch.usi.inf.mavends.util.db.Inserter;
 
 public class BuildMavenPom {
 

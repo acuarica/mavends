@@ -3,11 +3,11 @@ package ch.usi.inf.mavends;
 import java.io.PrintStream;
 import java.sql.ResultSet;
 
-import ch.usi.inf.mavends.args.Arg;
-import ch.usi.inf.mavends.args.ArgsParser;
-import ch.usi.inf.mavends.db.Db;
 import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
+import ch.usi.inf.mavends.util.args.Arg;
+import ch.usi.inf.mavends.util.args.ArgsParser;
+import ch.usi.inf.mavends.util.db.Db;
 
 public class BuildUriList {
 
@@ -29,8 +29,7 @@ public class BuildUriList {
 
 	}
 
-	private static void emitFetchFile(String path, String[] mirrors,
-			PrintStream out) {
+	private static void emitFetchFile(String path, String[] mirrors, PrintStream out) {
 		for (String mirror : mirrors) {
 			out.format("%s/%s\t", mirror, path);
 		}
@@ -42,13 +41,10 @@ public class BuildUriList {
 	public static void main(String[] args) throws Exception {
 		Args ar = ArgsParser.parse(args, Args.class);
 
-		Db db = new Db(ar.mavenIndexPath);
-
-		try (PrintStream out = new PrintStream(ar.uriListPath)) {
+		try (Db db = new Db(ar.mavenIndexPath); PrintStream out = new PrintStream(ar.uriListPath)) {
 			ResultSet rs = db
 					.select("select a.groupid as groupid, a.artifactid as artifactid, a.version as version, a.classifier as classifier, a.extension as extension from ("
-							+ ar.query
-							+ ") t inner join artifact a on a.coorid = t.coorid");
+							+ ar.query + ") t inner join artifact a on a.coorid = t.coorid");
 
 			int n = 0;
 			while (rs.next()) {
@@ -58,8 +54,7 @@ public class BuildUriList {
 				String classifier = rs.getString("classifier");
 				String extension = rs.getString("extension");
 
-				String path = MavenRecord.getPath(groupid, artifactid, version,
-						classifier, extension);
+				String path = MavenRecord.getPath(groupid, artifactid, version, classifier, extension);
 
 				n++;
 				emitFetchFile(path, ar.mirrors, out);
@@ -67,8 +62,7 @@ public class BuildUriList {
 				if (classifier == null) {
 					n++;
 
-					path = MavenRecord.getPath(groupid, artifactid, version,
-							null, "pom");
+					path = MavenRecord.getPath(groupid, artifactid, version, null, "pom");
 
 					emitFetchFile(path, ar.mirrors, out);
 				}

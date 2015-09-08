@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.extract;
+package ch.usi.inf.mavends.analysis;
 
 import java.io.File;
 import java.io.IOException;

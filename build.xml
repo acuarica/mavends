@@ -139,19 +139,19 @@
 			<arg value="--maveninode=${maveninode-test.path}" />
 		</java>
 	</target>
-	<target name="mavenfs-prod" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${mavenfs-prod.path}" />
-		<exec executable="sqlite3" input="resources/mavenfs.sql">
+	<target name="maveninode-prod" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${maveninode-prod.path}" />
+		<exec executable="sqlite3" input="resources/maveninode.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />
-			<arg value="${mavenfs-prod.path}" />
+			<arg value="${maveninode-prod.path}" />
 		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenFs" classpath="${build}:${resources}">
+		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
 			<arg value="--query=${query-prod}" />
-			<arg value="--mavenfs=${mavenfs-prod.path}" />
+			<arg value="--maveninode=${maveninode-prod.path}" />
 		</java>
 	</target>
 	<target name="mavenpom-dev" depends="-compile" description="Extract the information from POM files.">

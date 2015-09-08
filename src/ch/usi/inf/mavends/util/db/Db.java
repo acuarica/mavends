@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.db;
+package ch.usi.inf.mavends.util.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,11 +7,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
+ * JDBC SQLite connection wrapper.
  * 
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class Db {
+public class Db implements AutoCloseable {
 
 	/**
 	 * 
@@ -36,9 +37,9 @@ public class Db {
 	 * @throws SQLException
 	 */
 	public void execute(String sql) throws SQLException {
-		Statement stmt = conn.createStatement();
-		stmt.executeUpdate(sql);
-		stmt.close();
+		try (Statement stmt = conn.createStatement()) {
+			stmt.executeUpdate(sql);
+		}
 	}
 
 	/**
@@ -61,5 +62,10 @@ public class Db {
 	 */
 	public Inserter createInserter(String sql) throws SQLException {
 		return new Inserter(conn, sql);
+	}
+
+	@Override
+	public void close() throws SQLException {
+		conn.close();
 	}
 }
