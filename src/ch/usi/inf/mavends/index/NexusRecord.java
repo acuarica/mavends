@@ -1,6 +1,8 @@
 package ch.usi.inf.mavends.index;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Represents a Nexus Record within a Nexus Index. A record is a map from keys
@@ -14,22 +16,7 @@ public class NexusRecord {
 	/**
 	 * Map to hold the key/value pairs.
 	 */
-
-	private static class Entry {
-		final byte[] key;
-		final byte[] value;
-
-		Entry(byte[] key, byte[] value) {
-			this.key = key;
-			this.value = value;
-		}
-	}
-
-	private final Entry[] values;
-
-	public NexusRecord(int fieldCount) {
-		values = new Entry[fieldCount];
-	}
+	private final Map<String, String> values = new HashMap<String, String>();
 
 	/**
 	 * Given a key, retrieves the associated value in the record.
@@ -38,14 +25,8 @@ public class NexusRecord {
 	 *            The key to look for
 	 * @return The associated value to the given key.
 	 */
-	public byte[] get(byte[] key) {
-		for (Entry entry : values) {
-			if (Arrays.equals(key, entry.key)) {
-				return entry.value;
-			}
-		}
-
-		return null;
+	public String get(String key) {
+		return values.get(key);
 	}
 
 	/**
@@ -56,15 +37,15 @@ public class NexusRecord {
 	 * @param value
 	 *            The value associated to the given key.
 	 */
-	public void put(int index, byte[] key, byte[] value) {
-		values[index] = new Entry(key, value);
+	public void put(String key, String value) {
+		values.put(key, value);
 	}
 
 	@Override
 	public String toString() {
 		String res = "";
-		for (Entry entry : values) {
-			res += entry.key + "=" + entry.value + " ";
+		for (Entry<String, String> entry : values.entrySet()) {
+			res += entry.getKey() + "=" + entry.getValue() + " ";
 		}
 
 		return res;

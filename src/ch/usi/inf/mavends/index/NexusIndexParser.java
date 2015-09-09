@@ -3,9 +3,9 @@ package ch.usi.inf.mavends.index;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Iterator;
 
 /**
  * Iterator interface to parse a Nexus Maven Repository Index.
@@ -13,7 +13,7 @@ import java.nio.channels.FileChannel;
  * @author Luis Mastrangelo
  *
  */
-public class NexusIndexParser implements Closeable {
+public class NexusIndexParser implements Iterable<NexusRecord>, Closeable {
 
 	private RandomAccessFile raf;
 	private FileChannel fc;
@@ -40,30 +40,46 @@ public class NexusIndexParser implements Closeable {
 		headl = mbb.getLong();
 	}
 
-	public boolean hasNext() {
-		return mbb.hasRemaining();
-	}
+	@Override
+	public Iterator<NexusRecord> iterator() {
+		return new Iterator<NexusRecord>() {
 
-	public NexusRecord next() throws UnsupportedEncodingException {
-		int fieldCount = mbb.getInt();
+			@Override
+			public boolean hasNext() {
+				return mbb.hasRemaining();
+			}
 
-		NexusRecord nr = new NexusRecord(fieldCount);
+			@Override
+			public NexusRecord next() {
+				NexusRecord nr = new NexusRecord();
+				int fieldCount = mbb.getInt();
 
-		for (int i = 0; i < fieldCount; i++) {
-			mbb.get();
+				for (int i = 0; i < fieldCount; i++) {
+					mbb.get();
 
-			int keyLen = mbb.getShort();
-			byte[] key = new byte[keyLen];
-			mbb.get(key);
+					int keyLen = mbb.getShort();
+					String key = readString(keyLen);
 
-			int valueLen = mbb.getInt();
-			byte[] value = new byte[valueLen];
-			mbb.get(value);
+					int valueLen = mbb.getInt();
+					String value = readString(valueLen);
 
-			nr.put(i, key, value);
-		}
+					nr.put(key, value);
+				}
 
-		return nr;
+				return nr;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException("Remove not supported");
+			}
+
+			private String readString(int len) {
+				byte[] buffer = new byte[len];
+				mbb.get(buffer);
+				return new String(buffer);
+			}
+		};
 	}
 
 	@Override
