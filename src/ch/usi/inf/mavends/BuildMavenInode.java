@@ -100,10 +100,6 @@ public class BuildMavenInode {
 
 					ZipEntry ze = zip.getNextEntry();
 					while ((ze = zip.getNextEntry()) != null) {
-						if (!ze.getName().endsWith(".class")) {
-							continue;
-						}
-
 						stream.reset();
 						int len = 0;
 						while ((len = zip.read(buffer)) > 0) {
@@ -111,9 +107,10 @@ public class BuildMavenInode {
 						}
 
 						byte[] data = stream.toByteArray();
-						byte[] cdata = compress(data);
-
 						String sha1 = byteArray2Hex(md.digest(data));
+
+						byte[] cdata = ze.getName().endsWith(".class") ? compress(data) : null;
+
 						ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
 					}
 				} catch (IOException e) {

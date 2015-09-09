@@ -8,7 +8,7 @@ create table inode (
   compressedsize  int           not null,     -- 
   crc32           int           not null,     -- 
   sha1            varchar(40)   not null,     -- 
-  data            blob          not null,     --
+  data            blob,                       --
   unique (sha1) on conflict ignore
 );
 
@@ -20,12 +20,18 @@ create table ifile (
 ) without rowid;
 
 
+--
+--
+--
 create view file as
-  select f.coorid, f.filename, n.originalsize, n.compressedsize, n.crc32, 
-    n.sha1, n.data
+  select f.coorid, f.filename, n.originalsize, n.compressedsize, 
+    n.crc32, n.sha1, n.data
   from ifile f
   inner join inode n on n.inodeid = f.inodeid;
 
+--
+--
+--
 create trigger file_insert
 instead of insert on file
 begin
@@ -44,7 +50,9 @@ begin
       (select n.inodeid from inode n where n.sha1 = new.sha1);
 end;
 
-
+--
+--
+--
 create view stats as
   with 
     je  as (select * from file),

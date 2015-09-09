@@ -1,13 +1,13 @@
 
 # MavenDS: The Maven Repository on a Silver Platter
 
+
 ## Introduction
 
 *MavenDS* is a dataset and analysis framework for the Maven Central Repository.
-*MavenDS* is filesystem.
-In short, with *MavenDS*: Everything you wanted to know about the Maven Repository.
+*MavenDS* resembles a filesystem to hold every Maven Central artifact.
+In short, *Everything you wanted to know about the Maven Repository* is possible with *MavenDS*.
 
-https://www.sqlite.org/intern-v-extern-blob.html
 
 ## Getting Started
 
@@ -39,5 +39,12 @@ Instead they are used by other targets.
  
     ant clean
 
- 
- 
+## Implementation
+
+We take advantage of the following fact:
+
+https://www.sqlite.org/intern-v-extern-blob.html
+
+To store small files in directly in the database.
+
+The files are compressed.
