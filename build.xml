@@ -1,4 +1,4 @@
-<project name="MavenDS" basedir=".">
+<project name="MavenDS" basedir="." default="-compile">
 	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '-' are executed internally by other targets. To fetch the Nexus Index and Maven Artifact *aria2* (http://aria2.sourceforge.net/) is used.</description>
 	<property name="src" location="src" />
 	<property name="sql" location="sql" />
@@ -57,6 +57,12 @@
 			<arg value="${nexusindexgz.url}" />
 		</exec>
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
+	</target>
+	<target name="checknexusindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
+		<java classname="ch.usi.inf.mavends.CheckNexusIndex" classpath="${build}">
+			<classpath refid="lib" />
+			<arg value="--nexusindex=${nexusindex.path}" />
+		</java>
 	</target>
 	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />

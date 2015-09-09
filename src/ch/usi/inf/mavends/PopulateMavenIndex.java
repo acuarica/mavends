@@ -57,39 +57,39 @@ public class PopulateMavenIndex {
 			log.info("Inserting header...");
 			headerins.insert(nip.headb, new Date(nip.headl / 1000));
 
-			for (NexusRecord nr : nip) {
-				ndocs++;
-
-				if (ndocs % 100000 == 0) {
-					log.info("ndocs: %,d", ndocs);
-				}
-
-				MavenRecord mr = new MavenRecord(nr);
-
-				if (mr.i != null) {
-					artins.insert(mr.mdate, mr.sha, mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging,
-							mr.idate, mr.size, mr.is3, mr.is4, mr.is5, mr.extension, mr.artifactname, mr.artifactdesc);
-				} else if (mr.del != null) {
-					delins.insert(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.mdate);
-				} else if (mr.allGroups != null) {
-					log.info("Inserting allGroups...");
-
-					for (String groupid : mr.allGroupsList.split("\\|")) {
-						allins.insert(groupid);
-					}
-				} else if (mr.rootGroups != null) {
-
-					log.info("Inserting rootGroups...");
-
-					for (String groupid : mr.rootGroupsList.split("\\|")) {
-						rootins.insert(groupid);
-					}
-				} else if (mr.descriptor != null) {
-					log.info("Inserting descriptor...");
-
-					descins.insert(mr.descriptor, mr.idxinfo);
-				}
-			}
+//			for (NexusRecord nr : nip) {
+//				ndocs++;
+//
+//				if (ndocs % 100000 == 0) {
+//					log.info("ndocs: %,d", ndocs);
+//				}
+//
+//				MavenRecord mr = new MavenRecord(nr);
+//
+//				if (mr.i != null) {
+//					artins.insert(mr.mdate, mr.sha, mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging,
+//							mr.idate, mr.size, mr.is3, mr.is4, mr.is5, mr.extension, mr.artifactname, mr.artifactdesc);
+//				} else if (mr.del != null) {
+//					delins.insert(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.mdate);
+//				} else if (mr.allGroups != null) {
+//					log.info("Inserting allGroups...");
+//
+//					for (String groupid : mr.allGroupsList.split("\\|")) {
+//						allins.insert(groupid);
+//					}
+//				} else if (mr.rootGroups != null) {
+//
+//					log.info("Inserting rootGroups...");
+//
+//					for (String groupid : mr.rootGroupsList.split("\\|")) {
+//						rootins.insert(groupid);
+//					}
+//				} else if (mr.descriptor != null) {
+//					log.info("Inserting descriptor...");
+//
+//					descins.insert(mr.descriptor, mr.idxinfo);
+//				}
+//			}
 			log.info("ndocs: %,d", ndocs);
 
 			db.conn.commit();

@@ -1,11 +1,9 @@
 package ch.usi.inf.mavends.index;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Iterator;
 
 /**
  * Iterator interface to parse a Nexus Maven Repository Index.
@@ -13,7 +11,7 @@ import java.util.Iterator;
  * @author Luis Mastrangelo
  *
  */
-public class NexusIndexParser implements Iterable<NexusRecord>, Closeable {
+public class NexusIndexParser implements AutoCloseable {
 
 	private RandomAccessFile raf;
 	private FileChannel fc;
@@ -40,46 +38,27 @@ public class NexusIndexParser implements Iterable<NexusRecord>, Closeable {
 		headl = mbb.getLong();
 	}
 
-	@Override
-	public Iterator<NexusRecord> iterator() {
-		return new Iterator<NexusRecord>() {
+	public boolean hasNext() {
+		return mbb.hasRemaining();
+	}
 
-			@Override
-			public boolean hasNext() {
-				return mbb.hasRemaining();
-			}
+	public NexusRecord next() {
+		int fieldCount = mbb.getInt();
+		NexusRecord nr = new NexusRecord(fieldCount);
 
-			@Override
-			public NexusRecord next() {
-				NexusRecord nr = new NexusRecord();
-				int fieldCount = mbb.getInt();
+		for (int i = 0; i < fieldCount; i++) {
+			mbb.get();
 
-				for (int i = 0; i < fieldCount; i++) {
-					mbb.get();
+			byte[] key = new byte[mbb.getShort()];
+			mbb.get(key);
 
-					int keyLen = mbb.getShort();
-					String key = readString(keyLen);
+			byte[] value = new byte[mbb.getInt()];
+			mbb.get(value);
 
-					int valueLen = mbb.getInt();
-					String value = readString(valueLen);
+			nr.put(i, key, value);
+		}
 
-					nr.put(key, value);
-				}
-
-				return nr;
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException("Remove not supported");
-			}
-
-			private String readString(int len) {
-				byte[] buffer = new byte[len];
-				mbb.get(buffer);
-				return new String(buffer);
-			}
-		};
+		return nr;
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package ch.usi.inf.mavends.index;
 
-import java.util.Date;
+import java.util.Arrays;
 
 /**
  * Represents a Maven Record.
@@ -8,146 +8,120 @@ import java.util.Date;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class MavenRecord {
-
-	public final String allGroups;
-	public final String allGroupsList;
-	public final String rootGroups;
-	public final String rootGroupsList;
-	public final String descriptor;
-	public final String idxinfo;
-	public final String sha;
-	public final String m;
-	public final String u;
-	public final String i;
-	public final String del;
-	public final String artifactname;
-	public final String artifactdesc;
-	public final Date mdate;
-	public final String groupid;
-	public final String artifactid;
-	public final String version;
-	public final String classifier;
-	public final String packaging;
-	public final Date idate;
-	public final long size;
-	public final int is3;
-	public final int is4;
-	public final int is5;
-	public final String extension;
+public class MavenRecord implements NexusConstants {
 
 	/**
-	 * Constructs a MavenRecord from a NexusRecord. It checks if all the
-	 * invariants for a MavenRecord hold.
+	 * It checks if all invariants for a MavenRecord hold from the NexusRecord.
 	 * 
 	 * @param nr
 	 *            The NexusRecord taken from the Nexus Index.
 	 */
-	public MavenRecord(NexusRecord nr) {
-		allGroups = nr.get("allGroups");
-		allGroupsList = nr.get("allGroupsList");
-		rootGroups = nr.get("rootGroups");
-		rootGroupsList = nr.get("rootGroupsList");
-		descriptor = nr.get("DESCRIPTOR");
-		idxinfo = nr.get("IDXINFO");
-		sha = nr.get("1");
-		m = nr.get("m");
-		u = nr.get("u");
-		i = nr.get("i");
-		del = nr.get("del");
-		artifactname = nr.get("n");
-		artifactdesc = nr.get("d");
+	public static void check(NexusRecord nr) {
+		byte[] m = nr.get(M);
+		byte[] u = nr.get(U);
+		byte[] i = nr.get(I);
+		byte[] del = nr.get(DEL);
+		byte[] sha = nr.get(SHA);
+		byte[] n = nr.get(N);
+		byte[] d = nr.get(D);
 
-		check((allGroups == null) == (allGroupsList == null), "Invalid all groups doc: " + nr);
+		byte[] descriptor = nr.get(DESCRIPTOR);
+		byte[] idxinfo = nr.get(IDXINFO);
+		byte[] allGroups = nr.get(ALL_GROUPS);
+		byte[] allGroupsList = nr.get(ALL_GROUPS_LIST);
+		byte[] rootGroups = nr.get(ROOT_GROUPS);
+		byte[] rootGroupsList = nr.get(ROOT_GROUPS_LIST);
 
-		check((rootGroups == null) == (rootGroupsList == null), "Invalid root groups doc: " + nr);
+		if (m != null) {
+			checkDate(m);
 
-		check((descriptor == null) == (idxinfo == null), "Invalid description/idxinfo doc: " + nr);
+			check(descriptor == null && idxinfo == null && allGroups == null && allGroupsList == null
+					&& rootGroups == null && rootGroupsList == null, "Descriptor/all groups/root groups doc: %s");
 
-		check(((allGroups == null) && (rootGroups == null) && (descriptor == null)) == (m != null), "null m: " + nr);
+			if (u != null) {
+				check(del == null && i != null, "u and i: %s", nr);
 
-		check((u == null) || (m != null), "u and m: " + nr);
-		check((i == null) || (m != null), "i and m: " + nr);
-		check((del == null) || (m != null), "del and m: " + nr);
-		check((sha == null) || (m != null), "one and m: " + nr);
+				byte[][] us = split(u, 5);
 
-		check((u != null) == (i != null), "u and i: " + nr);
-		check((sha == null) || (u != null), "u and sha: " + nr);
-		check((u == null) || (del == null), "u and del: " + nr);
+				check(us[3] != null, "Invalid value for u field: %s", nr);
 
-		if (allGroups != null) {
-			check(allGroups.equals("allGroups"), "allGroups: %s", nr);
-		}
+				byte[] classifier = Arrays.equals(us[3], NA) ? null : us[3];
 
-		if (rootGroups != null) {
-			check(rootGroups.equals("rootGroups"), "rootGroups: %s", nr);
-		}
+				check((us[4] == null) == isMain(classifier), "Expected NA/Main classifier");
 
-		if (descriptor != null) {
-			check(descriptor.equals("NexusIndex"), "NexusIndex: %s", nr);
-		}
+				byte[][] is = split(i, 7);
+				check(is.length == 7, "Invalid i: %s", nr);
 
-		mdate = m != null ? checkDate(m) : null;
+				byte[] packaging = is[0];
 
-		if (i != null) {
-			String[] us = u.split("\\|");
+				check(isMain(classifier) || Arrays.equals(us[4], packaging), "us4 and is0: %s", nr);
 
-			check(us.length == 4 || us.length == 5, "Invalid value for u field: %s", nr);
+				checkDate(is[1]);
+				long size = checkSignedLong(is[2]);
+				check(size >= -1, "size-1: %s", nr);
 
-			groupid = us[0];
-			artifactid = us[1];
-			version = us[2];
-			classifier = "NA".equals(us[3]) ? null : us[3];
+				checkDigit(is[3]);
+				checkDigit(is[4]);
+				checkDigit(is[5]);
 
-			check(us.length != 4 || isMain(classifier), "Expected NA/Main classifier");
+				byte[] extension = is[6];
 
-			String[] is = i.split("\\|");
-			check(is.length == 7, "Invalid i: %s", nr);
+				if (Arrays.equals(packaging, NULL)) {
+					check(isMain(classifier) && size == -1 && Arrays.equals(extension, POM), "size-1=pom: %s", nr);
+				}
 
-			packaging = is[0];
+				if (size == -1) {
+					check(Arrays.equals(extension, POM), "size-1=pom: %s", nr);
+				}
 
-			check(us.length == 4 || us[4].equals(packaging), "us4 and is0: %s", nr);
+			} else if (del != null) {
+				check(u == null && i == null && sha == null && n == null && d == null, "u and m: %s", nr);
 
-			idate = checkDate(is[1]);
-			size = checkSignedLong(is[2]);
-			check(size >= -1, "Size more negative: %s", nr);
+				byte[][] dels = split(del, 5);
 
-			is3 = checkDigit(is[3]);
-			is4 = checkDigit(is[4]);
-			is5 = checkDigit(is[5]);
-
-			extension = is[6];
-
-			check(!packaging.equals("null") || (size == -1 && extension.equals("pom")), "size/no jar and null: %s", nr);
-		} else if (del != null) {
-			String[] dels = del.split("\\|");
-
-			check(dels.length == 4 || dels.length == 5, "Invalid value for del field: %s", nr);
-
-			groupid = dels[0];
-			artifactid = dels[1];
-			version = dels[2];
-			classifier = "NA".equals(dels[3]) ? null : dels[3];
-			packaging = dels.length == 4 ? null : dels[4];
-			idate = null;
-			size = 0;
-			is3 = 0;
-			is4 = 0;
-			is5 = 0;
-			extension = null;
+				check(dels[3] != null, "Invalid value for del field: %s", nr);
+			} else {
+				check(false, "Invalid record type");
+			}
 		} else {
-			groupid = null;
-			artifactid = null;
-			version = null;
-			classifier = null;
-			packaging = null;
-			idate = null;
-			size = 0;
-			is3 = 0;
-			is4 = 0;
-			is5 = 0;
-			extension = null;
+			check(u == null && i == null && del == null && sha == null && n == null && d == null,
+					"u, i, del, sha, n, d / m: " + nr);
+
+			check((allGroups == null) == (allGroupsList == null), "Invalid all groups doc: %s", nr);
+			check((rootGroups == null) == (rootGroupsList == null), "Invalid root groups doc: %s", nr);
+			check((descriptor == null) == (idxinfo == null), "Invalid description/idxinfo doc: %s", nr);
+
+			if (descriptor != null) {
+				check(allGroups == null && rootGroups == null, "%s", nr);
+				check(Arrays.equals(descriptor, NEXUS_INDEX), "NexusIndex: %s", nr);
+			} else if (allGroups != null) {
+				check(rootGroups == null && descriptor == null, "%s", nr);
+				check(Arrays.equals(allGroups, ALL_GROUPS), "allGroups: %s", nr);
+			} else if (rootGroups != null) {
+				check(allGroups == null && descriptor == null, "null m: " + nr);
+				check(Arrays.equals(rootGroups, ROOT_GROUPS), "rootGroups: %s", nr);
+			} else {
+				check(false, "Invalid record type");
+			}
 		}
+	}
+
+	private static byte[][] split(byte[] value, int length) {
+		byte[][] res = new byte[length][];
+
+		int prev = 0;
+		int index = 0;
+		for (int i = 0; i < value.length; i++) {
+			if (value[i] == BAR) {
+				res[index] = Arrays.copyOfRange(value, prev, i);
+				index++;
+				prev = i + 1;
+			}
+		}
+
+		res[index] = Arrays.copyOfRange(value, prev, value.length);
+
+		return res;
 	}
 
 	/**
@@ -167,28 +141,65 @@ public class MavenRecord {
 	 * @return The relative path of this artifact
 	 */
 	public static String getPath(String gid, String aid, String ver, String classifier, String ext) {
-		classifier = isMain(classifier) ? "" : "-" + classifier;
+		classifier = isMain(classifier.getBytes()) ? "" : "-" + classifier;
 
 		return gid.replace('.', '/') + "/" + aid + "/" + ver + "/" + aid + "-" + ver + classifier + "." + ext;
 	}
 
-	private static boolean isMain(String classifier) {
+	private static boolean isMain(byte[] classifier) {
 		return classifier == null;
 	}
 
-	private static int checkDigit(String s) {
-		check(s.matches("[0-9]"), "Invalid digit: %s", s);
-		return Integer.parseInt(s);
+	private static boolean isDigit(byte d) {
+		return d >= '0' || d <= '9';
 	}
 
-	private static long checkSignedLong(String s) {
-		check(s.matches("-?[0-9]+"), "Invalid signed long: %s", s);
-		return Long.parseLong(s);
+	private static boolean isDate(byte[] s) {
+		if (s.length != 13) {
+			return false;
+		}
+
+		for (int i = 0; i < 13; i++) {
+			if (!isDigit(s[i]))
+				return false;
+		}
+
+		return true;
 	}
 
-	private static Date checkDate(String s) {
-		check(s.matches("[0-9]{13}"), "Invalid date: %s", s);
-		return new Date(Long.parseLong(s) / 1000);
+	private static int checkDigit(byte[] s) {
+		check(s.length == 1 && isDigit(s[0]), "Invalid digit: %s", s);
+		return s[0] - '0';
+	}
+
+	private static long checkSignedLong(byte[] s) {
+		long res = 0;
+		boolean neg = false;
+		int i = 0;
+		int len = s.length;
+		if (s[0] == '-') {
+			neg = true;
+			i++;
+		}
+
+		while (i < len) {
+			byte d = s[i++];
+
+			if (!isDigit(d)) {
+				check(false, "Not a digit: %s", new String(s));
+			}
+
+			int digit = d - '0';
+			res *= 10;
+			res -= digit;
+			i++;
+		}
+
+		return neg ? res : -res;
+	}
+
+	private static void checkDate(byte[] s) {
+		check(isDate(s), "Invalid date: %s", s);
 	}
 
 	private static void check(boolean cond, String message, Object... args) {
