@@ -1,12 +1,11 @@
 
-# MavenDS: A Dataset and Analysis Framework for the Maven Repository
-
-# MavenFS: Everything you wanted to know about the Maven Repository
-
-# MavenFS: The Maven Repository on a silver platter
+# MavenDS: The Maven Repository on a Silver Platter
 
 ## Introduction
 
+*MavenDS* is a dataset and analysis framework for the Maven Central Repository.
+*MavenDS* is filesystem.
+In short, with *MavenDS*: Everything you wanted to know about the Maven Repository.
 
     ant nexusindex
 
