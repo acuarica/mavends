@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Formatter;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -53,6 +54,22 @@ public class BuildMavenInode {
 
 			return f.toString();
 		}
+	}
+
+	public static byte[] compress(byte[] data) throws IOException {
+		Deflater deflater = new Deflater();
+		deflater.setInput(data);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+		deflater.finish();
+		byte[] buffer = new byte[1024];
+		while (!deflater.finished()) {
+			int count = deflater.deflate(buffer); // returns the generated
+													// code... index
+			outputStream.write(buffer, 0, count);
+		}
+		outputStream.close();
+		byte[] output = outputStream.toByteArray();
+		return output;
 	}
 
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException,

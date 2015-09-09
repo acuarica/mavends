@@ -58,6 +58,12 @@
 		</exec>
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
+	<target name="checknexusindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
+		<java classname="ch.usi.inf.mavends.CheckNexusIndex" classpath="${build}">
+			<classpath refid="lib" />
+			<arg value="--nexusindex=${nexusindex.path}" />
+		</java>
+	</target>
 	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />
 		<exec executable="sqlite3" input="${resources}/mavenindex.sql">
