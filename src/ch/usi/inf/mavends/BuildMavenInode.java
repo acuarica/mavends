@@ -111,9 +111,10 @@ public class BuildMavenInode {
 						}
 
 						byte[] data = stream.toByteArray();
+						byte[] cdata = compress(data);
 
 						String sha1 = byteArray2Hex(md.digest(data));
-						ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, data);
+						ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
 					}
 				} catch (IOException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);
