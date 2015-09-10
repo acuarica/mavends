@@ -81,6 +81,20 @@
 			<arg value=".read ${sql}/mavenindex.sql" />
 			<arg value="-cmd" />
 			<arg value=".import ${out}/nexus-us.csv artifact" />
+			<arg value="-cmd" />
+			<arg value=".nullvalue ''" />
+			<arg value="-cmd" />
+			<arg value=".import ${out}/nexus-dels.csv del" />
+			<arg value="-cmd" />
+			<arg value=".import ${out}/nexus-desc.csv descriptor" />
+			<arg value="-cmd" />
+			<arg value=".import ${out}/nexus-all.csv allgroups" />
+			<arg value="-cmd" />
+			<arg value=".import ${out}/nexus-root.csv rootgroups" />
+			<arg value="-cmd" />
+			<arg value="update artifact set classifier = null where classifier = ''" />
+			<arg value="-cmd" />
+			<arg value="update del set classifier = null where classifier = ''" />
 			<arg value="${mavenindex.path}" />
 		</exec>
 	</target>

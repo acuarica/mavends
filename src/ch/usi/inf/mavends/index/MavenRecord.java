@@ -42,31 +42,31 @@ public final class MavenRecord implements NexusConstants {
 			checkDate(m);
 
 			check(descriptor == null && idxinfo == null && allGroups == null && allGroupsList == null
-					&& rootGroups == null && rootGroupsList == null, "Descriptor/all groups/root groups doc: %s");
+					&& rootGroups == null && rootGroupsList == null, nr, "Descriptor/all groups/root groups doc");
 
 			if (u != null) {
 				artCount++;
 
-				check(del == null && i != null, "u and i: %s", nr);
+				check(del == null && i != null, nr, "u and i");
 
 				byte[][] us = split(u, 5);
 
-				check(us[3] != null, "Invalid value for u field: %s", nr);
+				check(us[3] != null, nr, "Invalid value for u field");
 
 				byte[] classifier = Arrays.equals(us[3], NA) ? null : us[3];
 
-				check((us[4] == null) == isMain(classifier), "Expected NA/Main classifier");
+				check((us[4] == null) == isMain(classifier), nr, "Expected NA/Main classifier");
 
 				byte[][] is = split(i, 7);
-				check(is.length == 7, "Invalid i: %s", nr);
+				check(is.length == 7, nr, "Invalid i");
 
 				byte[] packaging = is[0];
 
-				check(isMain(classifier) || Arrays.equals(us[4], packaging), "us4 and is0: %s", nr);
+				check(isMain(classifier) || Arrays.equals(us[4], packaging), nr, "us4 and is0");
 
 				checkDate(is[1]);
 				long size = checkSignedLong(is[2]);
-				check(size >= -1, "size-1: %s", nr);
+				check(size >= -1, nr, "size-1");
 
 				checkDigit(is[3]);
 				checkDigit(is[4]);
@@ -75,47 +75,46 @@ public final class MavenRecord implements NexusConstants {
 				byte[] extension = is[6];
 
 				if (Arrays.equals(packaging, NULL)) {
-					check(isMain(classifier) && size == -1 && Arrays.equals(extension, POM), "size-1=pom: %s", nr);
+					check(isMain(classifier) && size == -1 && Arrays.equals(extension, POM), nr, "size-1=pom");
 				}
 
 				if (size == -1) {
-					check(Arrays.equals(extension, POM), "size-1=pom: %s", nr);
+					check(Arrays.equals(extension, POM), nr, "size-1=pom");
 				}
-
 			} else if (del != null) {
 				delCount++;
 
-				check(u == null && i == null && sha == null && n == null && d == null, "u and m: %s", nr);
+				check(u == null && i == null && sha == null && n == null && d == null, nr, "u and m");
 
 				byte[][] dels = split(del, 5);
 
-				check(dels[3] != null, "Invalid value for del field: %s", nr);
+				check(dels[3] != null, nr, "Invalid value for del field: %s");
 			} else {
-				check(false, "Invalid record type");
+				check(false, nr, "Invalid record type");
 			}
 		} else {
-			check(u == null && i == null && del == null && sha == null && n == null && d == null,
-					"u, i, del, sha, n, d / m: " + nr);
+			check(u == null && i == null && del == null && sha == null && n == null && d == null, nr,
+					"u, i, del, sha, n, d / m");
 
-			check((allGroups == null) == (allGroupsList == null), "Invalid all groups doc: %s", nr);
-			check((rootGroups == null) == (rootGroupsList == null), "Invalid root groups doc: %s", nr);
-			check((descriptor == null) == (idxinfo == null), "Invalid description/idxinfo doc: %s", nr);
+			check((allGroups == null) == (allGroupsList == null), nr, "Invalid all groups doc");
+			check((rootGroups == null) == (rootGroupsList == null), nr, "Invalid root groups doc");
+			check((descriptor == null) == (idxinfo == null), nr, "Invalid description/idxinfo doc");
 
 			if (descriptor != null) {
 				descriptorCount++;
 
-				check(allGroups == null && rootGroups == null, "%s", nr);
-				check(Arrays.equals(descriptor, NEXUS_INDEX), "NexusIndex: %s", nr);
+				check(allGroups == null && rootGroups == null, nr, "all/root");
+				check(Arrays.equals(descriptor, NEXUS_INDEX), nr, "NexusIndex");
 			} else if (allGroups != null) {
 				allGroupsCount++;
 
-				check(rootGroups == null && descriptor == null, "%s", nr);
-				check(Arrays.equals(allGroups, ALL_GROUPS), "allGroups: %s", nr);
+				check(rootGroups == null && descriptor == null, nr, "root/desc");
+				check(Arrays.equals(allGroups, ALL_GROUPS), nr, "allGroups");
 			} else if (rootGroups != null) {
 				rootGroupsCount++;
 
-				check(allGroups == null && descriptor == null, "null m: " + nr);
-				check(Arrays.equals(rootGroups, ROOT_GROUPS), "rootGroups: %s", nr);
+				check(allGroups == null && descriptor == null, nr, "null m");
+				check(Arrays.equals(rootGroups, ROOT_GROUPS), nr, "rootGroups");
 			} else {
 				check(false, "Invalid record type");
 			}
@@ -221,6 +220,12 @@ public final class MavenRecord implements NexusConstants {
 	private static void check(boolean cond, String message, Object... args) {
 		if (!cond) {
 			throw new RuntimeException(String.format(message, args));
+		}
+	}
+
+	private static void check(boolean cond, NexusRecord nr, String message) {
+		if (!cond) {
+			throw new RuntimeException(message + ": " + nr);
 		}
 	}
 }

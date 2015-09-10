@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import ch.usi.inf.mavends.index.MavenRecord;
@@ -36,17 +37,48 @@ public class ExportNexusIndex implements NexusConstants {
 
 	}
 
+	private static ArrayList<byte[]> split(byte[] value) {
+		ArrayList<byte[]> res = new ArrayList<byte[]>(128);
+
+		int prev = 0;
+		for (int i = 0; i < value.length; i++) {
+			if (value[i] == BAR) {
+				res.add(Arrays.copyOfRange(value, prev, i));
+				prev = i + 1;
+			}
+		}
+
+		res.add(Arrays.copyOfRange(value, prev, value.length));
+
+		return res;
+	}
+
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
 			IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
 		try (FileOutputStream ufos = new FileOutputStream(ar.out + "/nexus-us.csv");
-				BufferedOutputStream uos = new BufferedOutputStream(ufos, BUFFER_SIZE);
 				FileOutputStream delfos = new FileOutputStream(ar.out + "/nexus-dels.csv");
-				BufferedOutputStream delos = new BufferedOutputStream(delfos, BUFFER_SIZE);
 				FileOutputStream descfos = new FileOutputStream(ar.out + "/nexus-desc.csv");
+				FileOutputStream allfos = new FileOutputStream(ar.out + "/nexus-all.csv");
+				FileOutputStream rootfos = new FileOutputStream(ar.out + "/nexus-root.csv");
+				BufferedOutputStream uos = new BufferedOutputStream(ufos, BUFFER_SIZE);
+				BufferedOutputStream delos = new BufferedOutputStream(delfos, BUFFER_SIZE);
 				BufferedOutputStream descos = new BufferedOutputStream(descfos, BUFFER_SIZE);
+				BufferedOutputStream allos = new BufferedOutputStream(allfos, BUFFER_SIZE);
+				BufferedOutputStream rootos = new BufferedOutputStream(rootfos, BUFFER_SIZE);
 				NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
+
+			try (FileOutputStream hfos = new FileOutputStream(ar.out + "/nexus-header.csv");
+					BufferedOutputStream hos = new BufferedOutputStream(hfos, BUFFER_SIZE)) {
+				log.info("Header byte: %d", ni.headb);
+				log.info("Creation Date: %s", ni.creationDate);
+
+				hos.write((ni.headb + "").getBytes());
+				hos.write(BAR);
+				hos.write(ni.creationDate.toString().getBytes());
+				hos.write(CRLF);
+			}
 
 			while (ni.hasNext()) {
 				NexusRecord nr = ni.next();
@@ -87,6 +119,12 @@ public class ExportNexusIndex implements NexusConstants {
 					uos.write(BAR);
 					uos.write(size);
 					uos.write(BAR);
+					uos.write(is[3]);
+					uos.write(BAR);
+					uos.write(is[4]);
+					uos.write(BAR);
+					uos.write(is[5]);
+					uos.write(BAR);
 					uos.write(extension);
 					uos.write(BAR);
 					uos.write(mdate);
@@ -116,14 +154,26 @@ public class ExportNexusIndex implements NexusConstants {
 					delos.write(CRLF);
 				} else if ((descriptor = nr.get(DESCRIPTOR)) != null) {
 					byte[] idxinfo = nr.get(IDXINFO);
-					
+
 					descos.write(descriptor);
 					descos.write(BAR);
 					descos.write(idxinfo);
 					descos.write(CRLF);
-
 				} else if (nr.get(ALL_GROUPS) != null) {
+
+					byte[] allGroupsList = nr.get(ALL_GROUPS_LIST);
+
+					for (byte[] groupid : split(allGroupsList)) {
+						allos.write(groupid);
+						allos.write(CRLF);
+					}
 				} else if (nr.get(ROOT_GROUPS) != null) {
+					byte[] rootGroupsList = nr.get(ROOT_GROUPS_LIST);
+
+					for (byte[] groupid : split(rootGroupsList)) {
+						rootos.write(groupid);
+						rootos.write(CRLF);
+					}
 				}
 
 			}
