@@ -1,7 +1,9 @@
 package ch.usi.inf.mavends;
 
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.util.Log;
@@ -38,8 +40,9 @@ public class BuildUriList {
 		out.format("\tout=%s\n", path);
 	}
 
-	public static void main(String[] args) throws Exception {
-		Args ar = ArgsParser.parse(args, Args.class);
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
+			FileNotFoundException, ClassNotFoundException, SQLException {
+		Args ar = ArgsParser.parse(args, new Args());
 
 		try (Db db = new Db(ar.mavenIndexPath); PrintStream out = new PrintStream(ar.uriListPath)) {
 			ResultSet rs = db

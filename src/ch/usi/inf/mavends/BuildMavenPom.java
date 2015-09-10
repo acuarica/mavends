@@ -38,9 +38,9 @@ public class BuildMavenPom {
 
 	}
 
-	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
-			IllegalArgumentException, ClassNotFoundException, SQLException {
-		Args ar = ArgsParser.parse(args, Args.class);
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
+			ClassNotFoundException, SQLException {
+		Args ar = ArgsParser.parse(args, new Args());
 
 		try (Db dbi = new Db(ar.mavenIndexPath);
 				ResultSet rs = dbi
