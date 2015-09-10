@@ -35,12 +35,8 @@ public class CheckNexusIndex {
 
 			while (nip.hasNext()) {
 				nrecs++;
-				
-				NexusRecord nr = nip.next();
 
-				// if (nrecs % 100000 == 0) {
-				// log.info("ndocs: %,d", nrecs);
-				// }
+				NexusRecord nr = nip.next();
 
 				MavenRecord.check(nr);
 			}

@@ -11,25 +11,12 @@ import java.util.Arrays;
  */
 public class NexusRecord {
 
-	private static class Entry {
-		public Entry(byte[] key, byte[] value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		public final byte[] key;
-		public final byte[] value;
-	}
-
-//	 private final byte[][] keys;
-//	 private final byte[][] values;
-
-	private final Entry[] values;
+	private final byte[][] keys;
+	private final byte[][] values;
 
 	public NexusRecord(int fieldCount) {
-//		 keys = new byte[fieldCount][];
-//		 values = new byte[fieldCount][];
-		values = new Entry[fieldCount];
+		keys = new byte[fieldCount][];
+		values = new byte[fieldCount][];
 	}
 
 	/**
@@ -40,15 +27,9 @@ public class NexusRecord {
 	 * @return The associated value to the given key.
 	 */
 	public byte[] get(byte[] key) {
-//		 for (int i = 0; i < keys.length; i++) {
-//		 if (Arrays.equals(key, keys[i])) {
-//		 return values[i];
-//		 }
-//		 }
-
-		for (int i = 0; i < values.length; i++) {
-			if (Arrays.equals(key, values[i].key)) {
-				return values[i].value;
+		for (int i = 0; i < keys.length; i++) {
+			if (Arrays.equals(key, keys[i])) {
+				return values[i];
 			}
 		}
 
@@ -64,17 +45,16 @@ public class NexusRecord {
 	 *            The value associated to the given key.
 	 */
 	public void put(int index, byte[] key, byte[] value) {
-//		 keys[index] = key;
-//		 values[index] = value;
-		values[index] = new Entry(key, value);
+		keys[index] = key;
+		values[index] = value;
 	}
 
 	@Override
 	public String toString() {
 		String res = "";
-//		for (Entry entry : values) {
-//			res += new String(entry.key) + "=" + new String(entry.value) + " ";
-//		}
+		for (int i = 0; i < keys.length; i++) {
+			res += new String(keys[i]) + "=" + new String(values[i]) + " ";
+		}
 
 		return res;
 	}
