@@ -44,6 +44,8 @@ public class ExportNexusIndex implements NexusConstants {
 				BufferedOutputStream uos = new BufferedOutputStream(ufos, BUFFER_SIZE);
 				FileOutputStream delfos = new FileOutputStream(ar.out + "/nexus-dels.csv");
 				BufferedOutputStream delos = new BufferedOutputStream(delfos, BUFFER_SIZE);
+				FileOutputStream descfos = new FileOutputStream(ar.out + "/nexus-desc.csv");
+				BufferedOutputStream descos = new BufferedOutputStream(descfos, BUFFER_SIZE);
 				NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
 
 			while (ni.hasNext()) {
@@ -113,6 +115,12 @@ public class ExportNexusIndex implements NexusConstants {
 					delos.write(mdate);
 					delos.write(CRLF);
 				} else if ((descriptor = nr.get(DESCRIPTOR)) != null) {
+					byte[] idxinfo = nr.get(IDXINFO);
+					
+					descos.write(descriptor);
+					descos.write(BAR);
+					descos.write(idxinfo);
+					descos.write(CRLF);
 
 				} else if (nr.get(ALL_GROUPS) != null) {
 				} else if (nr.get(ROOT_GROUPS) != null) {
