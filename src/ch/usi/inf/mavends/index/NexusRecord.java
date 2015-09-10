@@ -21,15 +21,15 @@ public class NexusRecord {
 		public final byte[] value;
 	}
 
-	 private final byte[][] keys;
-	 private final byte[][] values;
+//	 private final byte[][] keys;
+//	 private final byte[][] values;
 
-	//private final Entry[] values;
+	private final Entry[] values;
 
 	public NexusRecord(int fieldCount) {
-		 keys = new byte[fieldCount][];
-		 values = new byte[fieldCount][];
-	//	values = new Entry[fieldCount];
+//		 keys = new byte[fieldCount][];
+//		 values = new byte[fieldCount][];
+		values = new Entry[fieldCount];
 	}
 
 	/**
@@ -40,17 +40,17 @@ public class NexusRecord {
 	 * @return The associated value to the given key.
 	 */
 	public byte[] get(byte[] key) {
-		 for (int i = 0; i < keys.length; i++) {
-		 if (Arrays.equals(key, keys[i])) {
-		 return values[i];
-		 }
-		 }
+//		 for (int i = 0; i < keys.length; i++) {
+//		 if (Arrays.equals(key, keys[i])) {
+//		 return values[i];
+//		 }
+//		 }
 
-//		for (int i = 0; i < values.length; i++) {
-//			if (Arrays.equals(key, values[i].key)) {
-//				return values[i].value;
-//			}
-//		}
+		for (int i = 0; i < values.length; i++) {
+			if (Arrays.equals(key, values[i].key)) {
+				return values[i].value;
+			}
+		}
 
 		return null;
 	}
@@ -64,9 +64,9 @@ public class NexusRecord {
 	 *            The value associated to the given key.
 	 */
 	public void put(int index, byte[] key, byte[] value) {
-		 keys[index] = key;
-		 values[index] = value;
-//		values[index] = new Entry(key, value);
+//		 keys[index] = key;
+//		 values[index] = value;
+		values[index] = new Entry(key, value);
 	}
 
 	@Override
