@@ -27,6 +27,9 @@ public class Db implements AutoCloseable {
 	public Db(String dbPath) throws SQLException {
 		conn = new SQLiteConnection(null, dbPath);
 		execute("pragma journal_mode=off");
+		execute("pragma synchronous=off");
+		execute("pragma locking_mode=exclusive");
+
 		conn.setAutoCommit(false);
 	}
 
