@@ -28,13 +28,23 @@ public class CheckNexusIndex {
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
-		try (NexusIndex nip = new NexusIndex(ar.nexusIndex)) {
-			while (nip.hasNext()) {
-				NexusRecord nr = nip.next();
-				MavenRecord.check(nr);
+		try (NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
+			log.info("Header byte: %d", ni.headb);
+			log.info("Creation Date: %s", ni.creationDate);
+
+			MavenRecord mr = new MavenRecord();
+
+			while (ni.hasNext()) {
+				NexusRecord nr = ni.next();
+				mr.check(nr);
 			}
 
-			log.info("Number of Records: %,d", nip.nrecs);
+			log.info("Number of Records: %,d", ni.recordCount);
+			log.info("Number of Artifacts: %,d", mr.artCount);
+			log.info("Number of Deleted Artifacts: %,d", mr.delCount);
+			log.info("Number of DESCRIPTOR: %,d", mr.descriptorCount);
+			log.info("Number of allGroups: %,d", mr.allGroupsCount);
+			log.info("Number of rootGroups: %,d", mr.rootGroupsCount);
 		}
 	}
 }

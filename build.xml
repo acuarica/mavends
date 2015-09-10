@@ -12,6 +12,7 @@
 	<property name="nexusindexgz.url" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
+	<property name="artscsv.path" location="${out}/artifact.csv" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
 	<property name="query-dev" value="select coorid from artifact_jar where rootgroup = 'es'" />
 	<property name="query-test" value="select coorid from artifact_jar where rootgroup = 'net'" />
@@ -45,7 +46,7 @@
 			<classpath refid="lib" />
 		</javac>
 	</target>
-	<target name="nexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index.">
+	<target name="fetchnexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index.">
 		<exec executable="aria2c">
 			<arg value="--dir=/" />
 			<arg value="--max-concurrent-downloads=16" />
@@ -64,17 +65,23 @@
 			<arg value="--nexusindex=${nexusindex.path}" />
 		</java>
 	</target>
-	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
-		<delete file="${mavenindex.path}" />
-		<exec executable="sqlite3" input="${sql}/mavenindex.sql">
-			<arg value="-bail" />
-			<arg value="${mavenindex.path}" />
-		</exec>
-		<java classname="ch.usi.inf.mavends.PopulateMavenIndex" classpath="${build}">
+	<target name="exportnexusindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
+		<java classname="ch.usi.inf.mavends.ExportNexusIndex" classpath="${build}">
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
-			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--artscsv=${artscsv.path}" />
 		</java>
+	</target>
+	<target name="importmavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
+		<delete file="${mavenindex.path}" />
+		<exec executable="sqlite3">
+			<arg value="-bail" />
+			<arg value="-cmd" />
+			<arg value=".read ${sql}/mavenindex.sql" />
+			<arg value="-cmd" />
+			<arg value=".import ${artscsv.path} artifact" />
+			<arg value="${mavenindex.path}" />
+		</exec>
 	</target>
 	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Date;
 
 /**
  * Iterator interface to parse a Nexus Maven Repository Index.
@@ -17,11 +18,11 @@ public class NexusIndex implements AutoCloseable {
 	private FileChannel fc;
 	private MappedByteBuffer mbb;
 
-	public final byte headb;
+	public final int headb;
 
-	public final long headl;
+	public final Date creationDate;
 
-	public long nrecs = 0;
+	public long recordCount;
 
 	/**
 	 * Creates a new parser with the specified path. The indexPath must be a
@@ -37,7 +38,7 @@ public class NexusIndex implements AutoCloseable {
 		mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
 
 		headb = mbb.get();
-		headl = mbb.getLong();
+		creationDate = new Date(mbb.getLong());
 	}
 
 	public boolean hasNext() {
@@ -45,7 +46,7 @@ public class NexusIndex implements AutoCloseable {
 	}
 
 	public NexusRecord next() {
-		nrecs++;
+		recordCount++;
 
 		int fieldCount = mbb.getInt();
 		NexusRecord nr = new NexusRecord(fieldCount);

@@ -1,6 +1,4 @@
 
---pragma page_size=8192;
-
 --
 -- Contains all artifacts and its classifiers (e.g., 'sources' or 'javadoc').
 -- Along each column is the original Nexus field 
@@ -9,8 +7,7 @@
 -- almost a primary key, because the classifier field is the only one
 -- of those fields that can be null.
 --
-create table artifact (
-  coorid        integer       primary key,  -- Autoincrement, rowid alias. 
+create table artifact ( 
   groupid       varchar(128)  not null,     -- Group name ( u[0] )
   artifactid    varchar(128)  not null,     -- Artifact ID ( u[1] )
   version       varchar(64)   not null,     -- Version ( u[2] )
@@ -19,18 +16,8 @@ create table artifact (
   idate         date          not null,     -- ( i[1] )
   size          integer       not null,     -- ( i[2] )
   extension     varchar(64)   not null,     -- Artifact file extension. ( i[6] )
-  mdate         date          not null      -- m
+  mdate         date          not null      -- mdate
 );
-
---
--- Header index properties.
--- This table should contain only 1 row.
---
-create table header (
-  headb        varchar(32)  not null,
-  creationdate date         not null
-);
-
 
 --
 -- Adds to the artifact table the rootgroup (using the groupid) and
@@ -41,6 +28,7 @@ drop view if exists artifact_view;
 
 create view artifact_view as
   select
+    rowid as coorid,
     substr(groupid || '.', 1, instr(groupid || '.', '.') - 1) as rootgroup,
     groupid || ':' || artifactid || '@' || version ||  ifnull('/' || classifier, '') || '.' || extension as id,
     replace(groupid, '.', '/') || '/' || artifactid || '/' || version || '/' || artifactid || '-' || version || ifnull('-' || classifier, '') || '.' || extension as path,

@@ -10,13 +10,19 @@ import java.util.Arrays;
  */
 public final class MavenRecord implements NexusConstants {
 
+	public long artCount = 0;
+	public long delCount = 0;
+	public long descriptorCount = 0;
+	public long allGroupsCount = 0;
+	public long rootGroupsCount = 0;
+
 	/**
 	 * It checks if all invariants for a MavenRecord hold from the NexusRecord.
 	 * 
 	 * @param nr
 	 *            The NexusRecord taken from the Nexus Index.
 	 */
-	public static void check(NexusRecord nr) {
+	public void check(NexusRecord nr) {
 		byte[] m = nr.get(M);
 		byte[] u = nr.get(U);
 		byte[] i = nr.get(I);
@@ -39,6 +45,8 @@ public final class MavenRecord implements NexusConstants {
 					&& rootGroups == null && rootGroupsList == null, "Descriptor/all groups/root groups doc: %s");
 
 			if (u != null) {
+				artCount++;
+
 				check(del == null && i != null, "u and i: %s", nr);
 
 				byte[][] us = split(u, 5);
@@ -75,6 +83,8 @@ public final class MavenRecord implements NexusConstants {
 				}
 
 			} else if (del != null) {
+				delCount++;
+
 				check(u == null && i == null && sha == null && n == null && d == null, "u and m: %s", nr);
 
 				byte[][] dels = split(del, 5);
@@ -92,12 +102,18 @@ public final class MavenRecord implements NexusConstants {
 			check((descriptor == null) == (idxinfo == null), "Invalid description/idxinfo doc: %s", nr);
 
 			if (descriptor != null) {
+				descriptorCount++;
+
 				check(allGroups == null && rootGroups == null, "%s", nr);
 				check(Arrays.equals(descriptor, NEXUS_INDEX), "NexusIndex: %s", nr);
 			} else if (allGroups != null) {
+				allGroupsCount++;
+
 				check(rootGroups == null && descriptor == null, "%s", nr);
 				check(Arrays.equals(allGroups, ALL_GROUPS), "allGroups: %s", nr);
 			} else if (rootGroups != null) {
+				rootGroupsCount++;
+
 				check(allGroups == null && descriptor == null, "null m: " + nr);
 				check(Arrays.equals(rootGroups, ROOT_GROUPS), "rootGroups: %s", nr);
 			} else {
