@@ -8,7 +8,7 @@ import java.util.Arrays;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class MavenRecord implements NexusConstants {
+public final class MavenRecord implements NexusConstants {
 
 	/**
 	 * It checks if all invariants for a MavenRecord hold from the NexusRecord.
@@ -106,7 +106,7 @@ public class MavenRecord implements NexusConstants {
 		}
 	}
 
-	private static byte[][] split(byte[] value, int length) {
+	public static byte[][] split(byte[] value, int length) {
 		byte[][] res = new byte[length][];
 
 		int prev = 0;

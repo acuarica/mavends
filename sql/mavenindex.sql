@@ -16,15 +16,14 @@ create table artifact (
   packaging     varchar(64)   not null,     -- i[0] == u[4] if not null
   idate         date          not null,     -- ( i[1] )
   size          integer       not null,     -- ( i[2] )
-  is3           integer       not null,     -- ( i[3] )
-  is4           integer       not null,     -- ( i[4] )
-  is5           integer       not null,     -- ( i[5] )
+--  is3           integer       not null,     -- ( i[3] )
+--  is4           integer       not null,     -- ( i[4] )
+--  is5           integer       not null,     -- ( i[5] )
   extension     varchar(64)   not null,     -- Artifact file extension. ( i[6] )
-  mdate         date          not null,     -- m
-  sha           varchar(128),               -- SHA1 hash (optional) ( 1 )
-  artifactname  text,                       -- Artifact title ( n )
-  artifactdesc  text,                       -- Artifact description ( d )
-  unique (groupid, artifactid, version, classifier, packaging)
+  mdate         date          not null--,     -- m
+--  sha           varchar(128)--,               -- SHA1 hash (optional) ( 1 )
+--  artifactname  text,                       -- Artifact title ( n )
+--  artifactdesc  text                       -- Artifact description ( d )
 );
 
 --
@@ -37,8 +36,7 @@ create table del (
   version       varchar(64)   not null,     -- Version ( u[2] )
   classifier    varchar(64),                -- Secondary artifacts (e.g., 'sources' or 'javadoc'). ( u[3] )
   packaging     varchar(64),                -- i[0] == u[4] if not null
-  mdate         date          not null,     -- Modified date
-  unique (groupid, artifactid, version, classifier, packaging)
+  mdate         date          not null     -- Modified date
 );
 
 --

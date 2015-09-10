@@ -1,10 +1,9 @@
 package ch.usi.inf.mavends;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import ch.usi.inf.mavends.index.MavenRecord;
-import ch.usi.inf.mavends.index.NexusIndexParser;
+import ch.usi.inf.mavends.index.NexusIndex;
 import ch.usi.inf.mavends.index.NexusRecord;
 import ch.usi.inf.mavends.util.Log;
 import ch.usi.inf.mavends.util.args.Arg;
@@ -22,26 +21,20 @@ public class CheckNexusIndex {
 	public static class Args {
 
 		@Arg(key = "nexusindex", name = "Nexus Index", desc = "Specifies the Nexus Index file (input path).")
-		public String nexusIndexPath;
+		public String nexusIndex;
 
 	}
 
-	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
-			IllegalArgumentException, ClassNotFoundException, SQLException, IOException {
-		Args ar = ArgsParser.parse(args, Args.class);
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException {
+		Args ar = ArgsParser.parse(args, new Args());
 
-		try (NexusIndexParser nip = new NexusIndexParser(ar.nexusIndexPath)) {
-			long nrecs = 0;
-
+		try (NexusIndex nip = new NexusIndex(ar.nexusIndex)) {
 			while (nip.hasNext()) {
-				nrecs++;
-
 				NexusRecord nr = nip.next();
-
 				MavenRecord.check(nr);
 			}
 
-			log.info("Number of Records: %,d", nrecs);
+			log.info("Number of Records: %,d", nip.nrecs);
 		}
 	}
 }

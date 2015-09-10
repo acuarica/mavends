@@ -29,20 +29,8 @@ public class ArgsParser {
 
 	}
 
-	private static <T> void show(T ar) throws InstantiationException,
+	private static <T> void showField(T ar, String name, Field f) throws IllegalArgumentException,
 			IllegalAccessException {
-
-		for (Field f : ar.getClass().getFields()) {
-			Arg arg = f.getAnnotation(Arg.class);
-
-			if (arg != null) {
-				showField(ar, arg.name(), f);
-			}
-		}
-	}
-
-	private static <T> void showField(T ar, String name, Field f)
-			throws IllegalArgumentException, IllegalAccessException {
 		if (f.getType() == String[].class) {
 			String parts[] = (String[]) f.get(ar);
 
@@ -56,8 +44,18 @@ public class ArgsParser {
 		}
 	}
 
-	private static <T> String getUsage(Class<T> cls)
-			throws InstantiationException, IllegalAccessException {
+	private static <T> void show(T ar) throws IllegalArgumentException, IllegalAccessException {
+
+		for (Field f : ar.getClass().getFields()) {
+			Arg arg = f.getAnnotation(Arg.class);
+
+			if (arg != null) {
+				showField(ar, arg.name(), f);
+			}
+		}
+	}
+
+	private static <T> String getUsage(Class<T> cls) {
 
 		String usage = "Usage:\n";
 		for (Field f : cls.getFields()) {
@@ -82,8 +80,8 @@ public class ArgsParser {
 		}
 	}
 
-	private static <T> void setField(T result, Field f, String value)
-			throws IllegalArgumentException, IllegalAccessException {
+	private static <T> void setField(T result, Field f, String value) throws IllegalArgumentException,
+			IllegalAccessException {
 		if (f.getType() == String[].class) {
 			String parts[] = value.split(",");
 			f.set(result, parts);
@@ -94,9 +92,8 @@ public class ArgsParser {
 		}
 	}
 
-	private static <T> void set(String[] args, Arg arg, T result, Field f)
-			throws IllegalArgumentException, IllegalAccessException,
-			ArgumentMissingException {
+	private static <T> void set(String[] args, Arg arg, T result, Field f) throws IllegalArgumentException,
+			IllegalAccessException, ArgumentMissingException {
 		for (int i = 0; i < args.length; i++) {
 			String value = match(arg, args[i]);
 			if (value != null) {
@@ -108,31 +105,24 @@ public class ArgsParser {
 		throw new ArgumentMissingException();
 	}
 
-	private static <T> T internalParse(String[] args, Class<T> cls)
-			throws InstantiationException, IllegalAccessException,
-			IllegalArgumentException, ArgumentMissingException {
-		T result = cls.newInstance();
-
-		for (Field f : cls.getFields()) {
+	private static <T> void internalParse(String[] args, T ar) throws IllegalArgumentException, IllegalAccessException,
+			ArgumentMissingException {
+		for (Field f : ar.getClass().getFields()) {
 			Arg arg = f.getAnnotation(Arg.class);
 
 			if (arg != null) {
-				set(args, arg, result, f);
+				set(args, arg, ar, f);
 			}
 		}
-
-		return result;
 	}
 
-	public static <T> T parse(String[] args, Class<T> cls)
-			throws InstantiationException, IllegalAccessException,
-			IllegalArgumentException {
+	public static <T> T parse(String[] args, T ar) throws IllegalArgumentException, IllegalAccessException {
 		try {
-			T ar = internalParse(args, cls);
+			internalParse(args, ar);
 			show(ar);
 			return ar;
 		} catch (ArgumentMissingException e) {
-			String usage = getUsage(cls);
+			String usage = getUsage(ar.getClass());
 			System.out.println(usage);
 
 			System.exit(1);

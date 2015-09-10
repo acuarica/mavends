@@ -11,7 +11,7 @@ import java.nio.channels.FileChannel;
  * @author Luis Mastrangelo
  *
  */
-public class NexusIndexParser implements AutoCloseable {
+public class NexusIndex implements AutoCloseable {
 
 	private RandomAccessFile raf;
 	private FileChannel fc;
@@ -21,6 +21,8 @@ public class NexusIndexParser implements AutoCloseable {
 
 	public final long headl;
 
+	public long nrecs = 0;
+
 	/**
 	 * Creates a new parser with the specified path. The indexPath must be a
 	 * valid Nexus Index.
@@ -29,7 +31,7 @@ public class NexusIndexParser implements AutoCloseable {
 	 *            Path to the Nexus Index to parse.
 	 * @throws IOException
 	 */
-	public NexusIndexParser(String indexPath) throws IOException {
+	public NexusIndex(String indexPath) throws IOException {
 		raf = new RandomAccessFile(indexPath, "r");
 		fc = raf.getChannel();
 		mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
@@ -43,6 +45,8 @@ public class NexusIndexParser implements AutoCloseable {
 	}
 
 	public NexusRecord next() {
+		nrecs++;
+
 		int fieldCount = mbb.getInt();
 		NexusRecord nr = new NexusRecord(fieldCount);
 
