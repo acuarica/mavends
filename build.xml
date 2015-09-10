@@ -76,12 +76,15 @@
 		<delete file="${mavenindex.path}" />
 		<exec executable="sqlite3">
 			<arg value="-bail" />
+			<arg value="-echo" />
 			<arg value="-cmd" />
 			<arg value=".read ${sql}/mavenindex.sql" />
 			<arg value="-cmd" />
 			<arg value=".import ${out}/nexus-us.csv artifact" />
 			<arg value="${mavenindex.path}" />
 		</exec>
+	</target>
+	<target name="mavenindex" depends="checknexusindex,exportnexusindex,importmavenindex">
 	</target>
 	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">
