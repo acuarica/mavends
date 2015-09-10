@@ -1,4 +1,6 @@
 
+--pragma page_size=8192;
+
 --
 -- Contains all artifacts and its classifiers (e.g., 'sources' or 'javadoc').
 -- Along each column is the original Nexus field 

@@ -33,8 +33,8 @@ public class PopulateMavenIndex implements NexusConstants {
 
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException,
-			ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
+			IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
 		try (Db db = new Db(ar.mavenIndex); NexusIndex nip = new NexusIndex(ar.nexusIndex)) {

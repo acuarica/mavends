@@ -68,7 +68,6 @@
 		<delete file="${mavenindex.path}" />
 		<exec executable="sqlite3" input="${sql}/mavenindex.sql">
 			<arg value="-bail" />
-			<arg value="-echo" />
 			<arg value="${mavenindex.path}" />
 		</exec>
 		<java classname="ch.usi.inf.mavends.PopulateMavenIndex" classpath="${build}">

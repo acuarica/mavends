@@ -4,6 +4,9 @@
 
 ## Introduction
 
+the Maven Central Repository became the most used JVM repository.
+Because not only java code, but scala groovy go and each JVM language can deploy to maven.
+
 *MavenDS* is a dataset and analysis framework for the Maven Central Repository.
 *MavenDS* resembles a filesystem to hold every Maven Central artifact.
 In short, *Everything you wanted to know about the Maven Repository* is possible with *MavenDS*.
@@ -21,7 +24,13 @@ Instead they are used by other targets.
 
 ### Fetching Nexus Index
 
+To download the nexus index, run the following command:
+
     ant nexusindex
+
+### Check Nexus Index
+
+    ant checknexusindex
 
     ant mavenindex
 

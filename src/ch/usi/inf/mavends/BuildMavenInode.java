@@ -72,8 +72,8 @@ public class BuildMavenInode {
 		return output;
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
-			ClassNotFoundException, SQLException, NoSuchAlgorithmException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
+			NoSuchAlgorithmException {
 		Args ar = ArgsParser.parse(args, new Args());
 
 		try (Db dbi = new Db(ar.mavenIndexPath);

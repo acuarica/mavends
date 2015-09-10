@@ -1,10 +1,10 @@
 package ch.usi.inf.mavends.util.db;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.sqlite.SQLiteConnection;
 
 /**
  * JDBC SQLite connection wrapper.
@@ -17,18 +17,16 @@ public class Db implements AutoCloseable {
 	/**
 	 * 
 	 */
-	public final Connection conn;
+	public final SQLiteConnection conn;
 
 	/**
 	 * 
 	 * @param dbPath
-	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	public Db(String dbPath) throws ClassNotFoundException, SQLException {
-		Class.forName("org.sqlite.JDBC");
-
-		conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+	public Db(String dbPath) throws SQLException {
+		conn = new SQLiteConnection(null, dbPath);
+		execute("pragma journal_mode=off");
 		conn.setAutoCommit(false);
 	}
 
