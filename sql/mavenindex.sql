@@ -1,5 +1,14 @@
 
 --
+-- Header index properties.
+-- This table should contain only 1 row.
+--
+create table header (
+  headb        int   not null,
+  creationdate date  not null
+);
+
+--
 -- Contains all artifacts (with classifiers, e.g., 'sources' or 'javadoc').
 -- Along each column is the original Nexus field 
 -- that this column was taken from.

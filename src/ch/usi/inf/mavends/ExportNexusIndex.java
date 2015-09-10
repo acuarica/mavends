@@ -1,9 +1,9 @@
 package ch.usi.inf.mavends;
 
 import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -53,8 +53,8 @@ public class ExportNexusIndex implements NexusConstants {
 		return res;
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
-			IOException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
+			FileNotFoundException, IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
 		try (FileOutputStream ufos = new FileOutputStream(ar.out + "/nexus-us.csv");

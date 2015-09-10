@@ -80,9 +80,9 @@
 			<arg value="-cmd" />
 			<arg value=".read ${sql}/mavenindex.sql" />
 			<arg value="-cmd" />
-			<arg value=".import ${out}/nexus-us.csv artifact" />
+			<arg value=".import ${out}/nexus-header.csv header" />
 			<arg value="-cmd" />
-			<arg value=".nullvalue ''" />
+			<arg value=".import ${out}/nexus-us.csv artifact" />
 			<arg value="-cmd" />
 			<arg value=".import ${out}/nexus-dels.csv del" />
 			<arg value="-cmd" />

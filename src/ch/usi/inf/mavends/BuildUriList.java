@@ -41,7 +41,7 @@ public class BuildUriList {
 	}
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
-			FileNotFoundException, SQLException  {
+			FileNotFoundException, SQLException {
 		Args ar = ArgsParser.parse(args, new Args());
 
 		try (Db db = new Db(ar.mavenIndexPath); PrintStream out = new PrintStream(ar.uriListPath)) {

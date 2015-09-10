@@ -110,7 +110,7 @@ public class BuildMavenInode {
 
 						byte[] cdata = ze.getName().endsWith(".class") ? compress(data) : null;
 
-						ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
+					//	ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
 					}
 				} catch (IOException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);
