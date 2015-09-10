@@ -69,7 +69,7 @@
 		<java classname="ch.usi.inf.mavends.ExportNexusIndex" classpath="${build}">
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
-			<arg value="--artscsv=${artscsv.path}" />
+			<arg value="--out=${out}" />
 		</java>
 	</target>
 	<target name="importmavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
@@ -79,7 +79,7 @@
 			<arg value="-cmd" />
 			<arg value=".read ${sql}/mavenindex.sql" />
 			<arg value="-cmd" />
-			<arg value=".import ${artscsv.path} artifact" />
+			<arg value=".import ${out}/nexus-us.csv artifact" />
 			<arg value="${mavenindex.path}" />
 		</exec>
 	</target>

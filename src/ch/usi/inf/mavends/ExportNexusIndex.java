@@ -21,6 +21,7 @@ import ch.usi.inf.mavends.util.args.ArgsParser;
  */
 public class ExportNexusIndex implements NexusConstants {
 
+	private static final int BUFFER_SIZE = 1024 * 16;
 	private static final byte[] CRLF = "\n".getBytes();
 
 	private static final Log log = new Log(System.out);
@@ -30,8 +31,8 @@ public class ExportNexusIndex implements NexusConstants {
 		@Arg(key = "nexusindex", name = "Nexus Index", desc = "Specifies the input path of the Nexus Index file.")
 		public String nexusIndex;
 
-		@Arg(key = "artscsv", name = "Artifacts CSV file", desc = "Specifies the output path of the Maven Index DB file.")
-		public String artsCsv;
+		@Arg(key = "out", name = "Output directory", desc = "Specifies the output path of the Maven Index DB file.")
+		public String out;
 
 	}
 
@@ -39,14 +40,18 @@ public class ExportNexusIndex implements NexusConstants {
 			IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
-		try (FileOutputStream fos = new FileOutputStream(ar.artsCsv);
-				BufferedOutputStream bos = new BufferedOutputStream(fos, 1024 * 16);
+		try (FileOutputStream ufos = new FileOutputStream(ar.out + "/nexus-us.csv");
+				BufferedOutputStream uos = new BufferedOutputStream(ufos, BUFFER_SIZE);
+				FileOutputStream delfos = new FileOutputStream(ar.out + "/nexus-dels.csv");
+				BufferedOutputStream delos = new BufferedOutputStream(delfos, BUFFER_SIZE);
 				NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
 
 			while (ni.hasNext()) {
 				NexusRecord nr = ni.next();
 
 				byte[] u;
+				byte[] del;
+				byte[] descriptor;
 
 				if ((u = nr.get(U)) != null) {
 					byte[] mdate = nr.get(M);
@@ -66,25 +71,53 @@ public class ExportNexusIndex implements NexusConstants {
 					byte[] size = is[2];
 					byte[] extension = is[6];
 
-					bos.write(groupid);
-					bos.write(BAR);
-					bos.write(artifactid);
-					bos.write(BAR);
-					bos.write(version);
-					bos.write(BAR);
-					bos.write(classifier);
-					bos.write(BAR);
-					bos.write(packaging);
-					bos.write(BAR);
-					bos.write(idate);
-					bos.write(BAR);
-					bos.write(size);
-					bos.write(BAR);
-					bos.write(extension);
-					bos.write(BAR);
-					bos.write(mdate);
-					bos.write(CRLF);
+					uos.write(groupid);
+					uos.write(BAR);
+					uos.write(artifactid);
+					uos.write(BAR);
+					uos.write(version);
+					uos.write(BAR);
+					uos.write(classifier);
+					uos.write(BAR);
+					uos.write(packaging);
+					uos.write(BAR);
+					uos.write(idate);
+					uos.write(BAR);
+					uos.write(size);
+					uos.write(BAR);
+					uos.write(extension);
+					uos.write(BAR);
+					uos.write(mdate);
+					uos.write(CRLF);
+				} else if ((del = nr.get(DEL)) != null) {
+					byte[] mdate = nr.get(M);
+
+					byte[][] dels = MavenRecord.split(del, 5);
+
+					byte[] groupid = dels[0];
+					byte[] artifactid = dels[1];
+					byte[] version = dels[2];
+					byte[] classifier = Arrays.equals(dels[3], NA) ? new byte[0] : dels[3];
+					byte[] packaging = dels[4] == null ? new byte[0] : dels[4];
+
+					delos.write(groupid);
+					delos.write(BAR);
+					delos.write(artifactid);
+					delos.write(BAR);
+					delos.write(version);
+					delos.write(BAR);
+					delos.write(classifier);
+					delos.write(BAR);
+					delos.write(packaging);
+					delos.write(BAR);
+					delos.write(mdate);
+					delos.write(CRLF);
+				} else if ((descriptor = nr.get(DESCRIPTOR)) != null) {
+
+				} else if (nr.get(ALL_GROUPS) != null) {
+				} else if (nr.get(ROOT_GROUPS) != null) {
 				}
+
 			}
 
 			log.info("Number of Records: %,d", ni.recordCount);
