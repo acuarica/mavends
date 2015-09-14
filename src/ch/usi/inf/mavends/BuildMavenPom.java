@@ -52,20 +52,10 @@ public class BuildMavenPom extends NexusConstants {
 				String path = MavenRecord.getPath(groupid, artifactid, version, null, "pom");
 
 				try {
-					// System.out.println(ar.repoDir + "/" + path);
 					List<PomDependency> deps = DepsManager.extractDeps(ar.repoDir + "/" + path);
 
 					for (PomDependency dep : deps) {
-
-						byte[][] values = new byte[7][];
-						int i = 0;
-						for (String value : new String[] { groupid, artifactid, version, dep.groupId, dep.artifactId,
-								dep.version, dep.scope }) {
-							values[i] = value == null ? new byte[0] : value.getBytes();
-							i++;
-						}
-
-						write(os, values);
+						write(os, groupid, artifactid, version, dep.groupId, dep.artifactId, dep.version, dep.scope);
 					}
 				} catch (SAXException | IOException | ParserConfigurationException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);

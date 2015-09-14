@@ -55,4 +55,13 @@ public abstract class NexusConstants {
 		}
 		os.write(CRLF);
 	}
+
+	public static void write(OutputStream os, Object... args) throws IOException {
+		byte[][] values = new byte[args.length][];
+		for (int i = 0; i < args.length; i++) {
+			values[i] = args[i] == null ? new byte[0] : args[i].toString().getBytes();
+		}
+
+		write(os, values);
+	}
 }
