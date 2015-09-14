@@ -12,7 +12,7 @@ import ch.usi.inf.mavends.util.Log;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 
-public class BuildUriList implements NexusConstants {
+public class BuildUriList extends NexusConstants {
 
 	private static final Log log = new Log(System.out);
 

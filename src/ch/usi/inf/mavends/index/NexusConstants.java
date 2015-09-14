@@ -1,25 +1,11 @@
 package ch.usi.inf.mavends.index;
 
-public interface NexusConstants {
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-	public static final byte[] ALL_GROUPS = "allGroups".getBytes();
-	public static final byte[] ALL_GROUPS_LIST = "allGroupsList".getBytes();
-	public static final byte[] ROOT_GROUPS = "rootGroups".getBytes();
-	public static final byte[] ROOT_GROUPS_LIST = "rootGroupsList".getBytes();
-	public static final byte[] DESCRIPTOR = "DESCRIPTOR".getBytes();
-	public static final byte[] IDXINFO = "IDXINFO".getBytes();
-	public static final byte[] NEXUS_INDEX = "NexusIndex".getBytes();
-	public static final byte[] SHA = "1".getBytes();
-	public static final byte[] M = "m".getBytes();
-	public static final byte[] U = "u".getBytes();
-	public static final byte[] I = "i".getBytes();
-	public static final byte[] DEL = "del".getBytes();
-	public static final byte[] N = "n".getBytes();
-	public static final byte[] D = "d".getBytes();
-	public static final byte[] NA = "NA".getBytes();
-
-	public static final byte[] NULL = "null".getBytes();
-	public static final byte[] POM = "pom".getBytes();
+public abstract class NexusConstants {
 
 	public static final byte BAR = "|".getBytes()[0];
 
@@ -27,4 +13,46 @@ public interface NexusConstants {
 
 	public static final int BUFFER_SIZE = 1024 * 16;
 
+	public static byte[][] split(byte[] value, int length) {
+		byte[][] res = new byte[length][];
+
+		int prev = 0;
+		int index = 0;
+		for (int i = 0; i < value.length; i++) {
+			if (value[i] == BAR) {
+				res[index] = Arrays.copyOfRange(value, prev, i);
+				index++;
+				prev = i + 1;
+			}
+		}
+
+		res[index] = Arrays.copyOfRange(value, prev, value.length);
+
+		return res;
+	}
+
+	public static ArrayList<byte[]> split(byte[] value) {
+		ArrayList<byte[]> res = new ArrayList<byte[]>(128);
+
+		int prev = 0;
+		for (int i = 0; i < value.length; i++) {
+			if (value[i] == BAR) {
+				res.add(Arrays.copyOfRange(value, prev, i));
+				prev = i + 1;
+			}
+		}
+
+		res.add(Arrays.copyOfRange(value, prev, value.length));
+
+		return res;
+	}
+
+	public static void write(OutputStream os, byte[]... args) throws IOException {
+		os.write(args[0]);
+		for (int i = 1; i < args.length; i++) {
+			os.write(BAR);
+			os.write(args[i]);
+		}
+		os.write(CRLF);
+	}
 }

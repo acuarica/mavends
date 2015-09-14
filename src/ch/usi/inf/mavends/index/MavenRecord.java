@@ -9,7 +9,26 @@ import java.util.Arrays;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public final class MavenRecord implements NexusConstants {
+public final class MavenRecord extends NexusConstants {
+
+	private static final byte[] ALL_GROUPS = "allGroups".getBytes();
+	private static final byte[] ALL_GROUPS_LIST = "allGroupsList".getBytes();
+	private static final byte[] ROOT_GROUPS = "rootGroups".getBytes();
+	private static final byte[] ROOT_GROUPS_LIST = "rootGroupsList".getBytes();
+	private static final byte[] DESCRIPTOR = "DESCRIPTOR".getBytes();
+	private static final byte[] IDXINFO = "IDXINFO".getBytes();
+	private static final byte[] NEXUS_INDEX = "NexusIndex".getBytes();
+	private static final byte[] SHA = "1".getBytes();
+	private static final byte[] M = "m".getBytes();
+	private static final byte[] U = "u".getBytes();
+	private static final byte[] I = "i".getBytes();
+	private static final byte[] DEL = "del".getBytes();
+	private static final byte[] N = "n".getBytes();
+	private static final byte[] D = "d".getBytes();
+	private static final byte[] NA = "NA".getBytes();
+
+	private static final byte[] NULL = "null".getBytes();
+	private static final byte[] POM = "pom".getBytes();
 
 	public static long artCount = 0;
 	public static long delCount = 0;
@@ -184,24 +203,6 @@ public final class MavenRecord implements NexusConstants {
 			is5 = null;
 			extension = null;
 		}
-	}
-
-	public static byte[][] split(byte[] value, int length) {
-		byte[][] res = new byte[length][];
-
-		int prev = 0;
-		int index = 0;
-		for (int i = 0; i < value.length; i++) {
-			if (value[i] == BAR) {
-				res[index] = Arrays.copyOfRange(value, prev, i);
-				index++;
-				prev = i + 1;
-			}
-		}
-
-		res[index] = Arrays.copyOfRange(value, prev, value.length);
-
-		return res;
 	}
 
 	/**

@@ -4,10 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.NexusConstants;
@@ -22,7 +19,7 @@ import ch.usi.inf.mavends.util.args.ArgsParser;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class ExportNexusIndex implements NexusConstants {
+public class ExportNexusIndex extends NexusConstants {
 
 	private static final Log log = new Log(System.out);
 
@@ -34,31 +31,6 @@ public class ExportNexusIndex implements NexusConstants {
 		@Arg(key = "out", name = "Output directory", desc = "Specifies the output path of the Maven Index DB file.")
 		public String out;
 
-	}
-
-	private static ArrayList<byte[]> split(byte[] value) {
-		ArrayList<byte[]> res = new ArrayList<byte[]>(128);
-
-		int prev = 0;
-		for (int i = 0; i < value.length; i++) {
-			if (value[i] == BAR) {
-				res.add(Arrays.copyOfRange(value, prev, i));
-				prev = i + 1;
-			}
-		}
-
-		res.add(Arrays.copyOfRange(value, prev, value.length));
-
-		return res;
-	}
-
-	private static void write(OutputStream os, byte[]... args) throws IOException {
-		os.write(args[0]);
-		for (int i = 1; i < args.length; i++) {
-			os.write(BAR);
-			os.write(args[i]);
-		}
-		os.write(CRLF);
 	}
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,

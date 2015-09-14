@@ -2,13 +2,16 @@ package ch.usi.inf.mavends.analysis;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -23,9 +26,16 @@ public class DepsManager {
 		final List<PomDependency> deps = new ArrayList<PomDependency>();
 
 		File f = new File(pomPath);
-		spf.newSAXParser().parse(f, new DefaultHandler() {
+		SAXParser p = spf.newSAXParser();
+
+		p.parse(f, new DefaultHandler() {
 			private PomDependency dep;
 			private String value;
+
+			@Override
+			public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
+				return new InputSource(new StringReader(""));
+			}
 
 			@Override
 			public void startElement(String uri, String localName, String qName, Attributes attributes)
