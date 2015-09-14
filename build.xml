@@ -123,7 +123,6 @@
 	<target name="urilist" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
 		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}" input="${select.path}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--urilist=${urilist.path}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>

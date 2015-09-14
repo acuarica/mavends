@@ -18,9 +18,6 @@ public class BuildUriList implements NexusConstants {
 
 	public static class Args {
 
-		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index DB.")
-		public String mavenIndex;
-
 		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
 		public String uriList;
 
@@ -29,7 +26,7 @@ public class BuildUriList implements NexusConstants {
 
 	}
 
-	public static void emit(String path, String[] mirrors, BufferedOutputStream os) throws IOException {
+	private static void emit(String path, String[] mirrors, BufferedOutputStream os) throws IOException {
 		for (String mirror : mirrors) {
 			os.write(mirror.getBytes());
 			os.write("/".getBytes());
