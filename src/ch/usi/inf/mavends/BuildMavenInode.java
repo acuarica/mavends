@@ -113,7 +113,8 @@ public class BuildMavenInode extends NexusConstants {
 						String sha1 = byteArray2Hex(md.digest(data));
 						byte[] cdata = compress(data);
 
-						try (FileOutputStream shaf = new FileOutputStream(ar.inode + "/" + sha1)) {
+						try (BufferedOutputStream shaf = new BufferedOutputStream(new FileOutputStream(ar.inode + "/"
+								+ sha1))) {
 							shaf.write(cdata);
 						}
 
