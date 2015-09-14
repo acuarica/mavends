@@ -4,15 +4,13 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import ch.usi.inf.mavends.util.db.Inserter;
-
 public class ExtractVisitor extends ClassVisitor {
 
 //	private final String coorid;
 //	private final Inserter callsite;
 	String className;
 
-	public ExtractVisitor(String coorid, Inserter callsite) {
+	public ExtractVisitor(String coorid) {
 		super(Opcodes.ASM5);
 //		this.coorid = coorid;
 //		this.callsite = callsite;

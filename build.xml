@@ -32,7 +32,7 @@
 			<set name="select.path" value="${out}/selectarts-@{conf}.csv" />
 			<set name="urilist.path" value="${out}/uri-@{conf}.list" />
 			<set name="sessionlist.path" value="${out}/session-@{conf}.list" />
-			<set name="maveninode.path" value="${out}/maveninode-@{conf}.sqlite3" />
+			<set name="maveninode.path" value="${out}/maveninode-@{conf}.csv" />
 			<set name="mavenpom.path" value="${out}/mavenpom-@{conf}.csv" />
 		</sequential>
 	</macrodef>
@@ -140,17 +140,9 @@
 		</exec>
 	</target>
 	<target name="maveninode" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${maveninode.path}" />
-		<exec executable="sqlite3" input="${sql}/maveninode.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${maveninode.path}" />
-		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}" input="out/list.es.csv">
+		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}" input="${select.path}">
 			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${select.query}" />
 			<arg value="--maveninode=${maveninode.path}" />
 		</java>
 	</target>
@@ -162,6 +154,12 @@
 		</java>
 	</target>
 	<target name="mavenfs">
+		<delete file="${maveninode.path}" />
+		<exec executable="sqlite3" input="${sql}/maveninode.sql">
+			<arg value="-bail" />
+			<arg value="-echo" />
+			<arg value="${maveninode.path}" />
+		</exec>
 		<delete file="${mavenpom.path}" />
 		<exec executable="sqlite3" input="${sql}/mavenpom.sql">
 			<arg value="-bail" />
