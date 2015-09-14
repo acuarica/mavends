@@ -13,6 +13,8 @@
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
+	<property name="pomurilist.path" location="${out}/pomuri.list" />
+	<property name="pomsessionlist.path" location="${out}/pomsession.list" />
 	<property name="repo" location="${cache}/repo" />
 	<macrodef name="set">
 		<attribute name="name" />
@@ -26,7 +28,7 @@
 		<attribute name="conf" />
 		<attribute name="where" />
 		<sequential>
-			<set name="select.query" value="select coorid, path from artifact_jar where @{where}" />
+			<set name="select.query" value="select coorid, groupid, artifactid, version, classifier, extension, path from artifact_jar where @{where}" />
 			<set name="select.path" value="${out}/selectarts-@{conf}.csv" />
 			<set name="urilist.path" value="${out}/uri-@{conf}.list" />
 			<set name="sessionlist.path" value="${out}/session-@{conf}.list" />

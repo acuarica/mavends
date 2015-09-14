@@ -221,7 +221,7 @@ public final class MavenRecord implements NexusConstants {
 	 * @return The relative path of this artifact
 	 */
 	public static String getPath(String gid, String aid, String ver, String classifier, String ext) {
-		classifier = isMain(classifier.getBytes()) ? "" : "-" + classifier;
+		classifier = classifier == null ? "" : "-" + classifier;
 
 		return gid.replace('.', '/') + "/" + aid + "/" + ver + "/" + aid + "-" + ver + classifier + "." + ext;
 	}

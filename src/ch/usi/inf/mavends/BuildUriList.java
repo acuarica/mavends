@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import ch.usi.inf.mavends.index.MavenRecord;
 import ch.usi.inf.mavends.index.NexusConstants;
 import ch.usi.inf.mavends.util.Log;
 import ch.usi.inf.mavends.util.args.Arg;
@@ -28,7 +29,7 @@ public class BuildUriList implements NexusConstants {
 
 	}
 
-	private static void emitFetchFile(String path, String[] mirrors, BufferedOutputStream os) throws IOException {
+	public static void emit(String path, String[] mirrors, BufferedOutputStream os) throws IOException {
 		for (String mirror : mirrors) {
 			os.write(mirror.getBytes());
 			os.write("/".getBytes());
@@ -45,16 +46,27 @@ public class BuildUriList implements NexusConstants {
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
-		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+		final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-		try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(ar.uriList), BUFFER_SIZE)) {
+		try (final BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(ar.uriList), BUFFER_SIZE)) {
 			int n = 0;
 
 			String line;
 			while ((line = stdin.readLine()) != null) {
-				String path = line.split("\\|")[1];
+				final String[] parts = line.split("\\|");
+				final String groupid = parts[1];
+				final String artifactid = parts[2];
+				final String version = parts[3];
+				final String classifier = parts[4].equals("") ? null : parts[4];
+				final String extension = parts[5];
+
 				n++;
-				emitFetchFile(path, ar.mirrors, os);
+				emit(MavenRecord.getPath(groupid, artifactid, version, classifier, extension), ar.mirrors, os);
+
+				if (classifier == null) {
+					n++;
+					emit(MavenRecord.getPath(groupid, artifactid, version, classifier, "pom"), ar.mirrors, os);
+				}
 			}
 
 			log.info("No. emitted fetch files: %,d", n);
