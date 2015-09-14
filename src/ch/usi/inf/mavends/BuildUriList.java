@@ -1,74 +1,60 @@
 package ch.usi.inf.mavends;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
-import ch.usi.inf.mavends.index.MavenRecord;
+import ch.usi.inf.mavends.index.NexusConstants;
 import ch.usi.inf.mavends.util.Log;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
-import ch.usi.inf.mavends.util.db.Db;
 
-public class BuildUriList {
+public class BuildUriList implements NexusConstants {
 
 	private static final Log log = new Log(System.out);
 
 	public static class Args {
 
 		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index DB.")
-		public String mavenIndexPath;
+		public String mavenIndex;
 
 		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
-		public String uriListPath;
-
-		@Arg(key = "query", name = "Filter query", desc = "Specifies the SQL filter query of artifacts to download.")
-		public String query;
+		public String uriList;
 
 		@Arg(key = "mirrors", name = "mirrors", desc = "Comma separated list of mirrors.")
 		public String[] mirrors;
 
 	}
 
-	private static void emitFetchFile(String path, String[] mirrors, PrintStream out) {
+	private static void emitFetchFile(String path, String[] mirrors, BufferedOutputStream os) throws IOException {
 		for (String mirror : mirrors) {
-			out.format("%s/%s\t", mirror, path);
+			os.write(mirror.getBytes());
+			os.write("/".getBytes());
+			os.write(path.getBytes());
+			os.write("\t".getBytes());
 		}
 
-		out.println();
-		out.format("\tout=%s\n", path);
+		os.write(CRLF);
+		os.write("\tout=".getBytes());
+		os.write(path.getBytes());
+		os.write(CRLF);
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
-			FileNotFoundException, SQLException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
-		try (Db db = new Db(ar.mavenIndexPath); PrintStream out = new PrintStream(ar.uriListPath)) {
-			ResultSet rs = db
-					.select("select a.groupid as groupid, a.artifactid as artifactid, a.version as version, a.classifier as classifier, a.extension as extension from ("
-							+ ar.query + ") t inner join artifact a on a.coorid = t.coorid");
+		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
+		try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(ar.uriList), BUFFER_SIZE)) {
 			int n = 0;
-			while (rs.next()) {
-				String groupid = rs.getString("groupid");
-				String artifactid = rs.getString("artifactid");
-				String version = rs.getString("version");
-				String classifier = rs.getString("classifier");
-				String extension = rs.getString("extension");
 
-				String path = MavenRecord.getPath(groupid, artifactid, version, classifier, extension);
-
+			String line;
+			while ((line = stdin.readLine()) != null) {
+				String path = line.split("\\|")[1];
 				n++;
-				emitFetchFile(path, ar.mirrors, out);
-
-				if (classifier == null) {
-					n++;
-
-					path = MavenRecord.getPath(groupid, artifactid, version, null, "pom");
-
-					emitFetchFile(path, ar.mirrors, out);
-				}
+				emitFetchFile(path, ar.mirrors, os);
 			}
 
 			log.info("No. emitted fetch files: %,d", n);

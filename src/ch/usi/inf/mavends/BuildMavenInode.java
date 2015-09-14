@@ -17,7 +17,6 @@ import ch.usi.inf.mavends.util.Log;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
-import ch.usi.inf.mavends.util.db.Inserter;
 
 public class BuildMavenInode {
 
@@ -73,55 +72,63 @@ public class BuildMavenInode {
 	}
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
-			NoSuchAlgorithmException {
+			NoSuchAlgorithmException, IOException {
 		Args ar = ArgsParser.parse(args, new Args());
 
-		try (Db dbi = new Db(ar.mavenIndexPath);
-				ResultSet rs = dbi
-						.select("select coorid, (select path from artifact_view a where a.coorid = t.coorid) as path from ("
-								+ ar.query + ") t");
-				Db db = new Db(ar.mavenInodePath)) {
+		MessageDigest md = MessageDigest.getInstance("SHA-1");
+		byte[] buffer = new byte[8192];
+		ByteArrayOutputStream stream = new ByteArrayOutputStream(4096);
 
-			MessageDigest md = MessageDigest.getInstance("SHA-1");
-			byte[] buffer = new byte[8192];
-			ByteArrayOutputStream stream = new ByteArrayOutputStream(4096);
+		long total = 0;
+		try (Db dbi = new Db(ar.mavenIndexPath); ResultSet rs = dbi.select(ar.query);
+		// Db db = new Db(ar.mavenInodePath)
+		) {
+			// Inserter ins = db
+			// .createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
+
 
 			int n = 0;
 			while (rs.next()) {
-				String coorid = rs.getString("coorid");
+				n++;
+
+				// String coorid = rs.getString("coorid");
 				String path = rs.getString("path");
 
-				try (Inserter ins = db
-						.createInserter("insert into file (coorid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
-						FileInputStream fis = new FileInputStream(ar.repoDir + "/" + path);
+				try (FileInputStream fis = new FileInputStream(ar.repoDir + "/" + path);
 						BufferedInputStream bis = new BufferedInputStream(fis);
 						ZipInputStream zip = new ZipInputStream(bis)) {
 
-					ZipEntry ze = zip.getNextEntry();
+					ZipEntry ze;
 					while ((ze = zip.getNextEntry()) != null) {
-						stream.reset();
-						int len = 0;
-						while ((len = zip.read(buffer)) > 0) {
-							stream.write(buffer, 0, len);
-						}
 
-						byte[] data = stream.toByteArray();
-						String sha1 = byteArray2Hex(md.digest(data));
+						int size = (int) ze.getSize();
 
-						byte[] cdata = ze.getName().endsWith(".class") ? compress(data) : null;
+							stream.reset();
+							int len = 0;
+							while ((len = zip.read(buffer)) > 0) {
+								stream.write(buffer, 0, len);
+							}
 
-					//	ins.insert(coorid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
+							byte[] data = stream.toByteArray();
+
+						// String sha1 =null;// byteArray2Hex(md.digest(data));
+
+						// byte[] cdata = ze.getName().endsWith(".class") ?
+						// compress(data) : null;
+
+						// ins.insert(coorid, ze.getName(), ze.getSize(),
+						// ze.getCompressedSize(), ze.getCrc(), sha1, data);
+						zip.closeEntry();
 					}
 				} catch (IOException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);
 				}
 
-				db.conn.commit();
-
-				n++;
+				// db.conn.commit();
 			}
 
 			log.info("No. jar files: %d", n);
+			log.info("Total size: %,d", total);
 		}
 	}
 }

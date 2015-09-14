@@ -23,4 +23,8 @@ public interface NexusConstants {
 
 	public static final byte BAR = "|".getBytes()[0];
 
+	public static final byte[] CRLF = "\n".getBytes();
+
+	public static final int BUFFER_SIZE = 1024 * 16;
+
 }

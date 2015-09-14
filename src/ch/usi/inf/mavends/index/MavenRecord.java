@@ -1,5 +1,6 @@
 package ch.usi.inf.mavends.index;
 
+import java.text.ParseException;
 import java.util.Arrays;
 
 /**
@@ -10,33 +11,62 @@ import java.util.Arrays;
  */
 public final class MavenRecord implements NexusConstants {
 
-	public long artCount = 0;
-	public long delCount = 0;
-	public long descriptorCount = 0;
-	public long allGroupsCount = 0;
-	public long rootGroupsCount = 0;
+	public static long artCount = 0;
+	public static long delCount = 0;
+	public static long descriptorCount = 0;
+	public static long allGroupsCount = 0;
+	public static long rootGroupsCount = 0;
+
+	public final byte[] m;
+	public final byte[] u;
+	public final byte[] i;
+	public final byte[] del;
+	public final byte[] sha;
+	public final byte[] n;
+	public final byte[] d;
+
+	public final byte[] descriptor;
+	public final byte[] idxinfo;
+	public final byte[] allGroups;
+	public final byte[] allGroupsList;
+	public final byte[] rootGroups;
+	public final byte[] rootGroupsList;
+
+	public final byte[] groupid;
+	public final byte[] artifactid;
+	public final byte[] version;
+	public final byte[] classifier;
+	public final byte[] packaging;
+
+	public final byte[] idate;
+	public final byte[] size;
+	public final byte[] is3;
+	public final byte[] is4;
+	public final byte[] is5;
+	public final byte[] extension;
 
 	/**
 	 * It checks if all invariants for a MavenRecord hold from the NexusRecord.
 	 * 
 	 * @param nr
 	 *            The NexusRecord taken from the Nexus Index.
+	 * @throws ParseException
 	 */
-	public void check(NexusRecord nr) {
-		byte[] m = nr.get(M);
-		byte[] u = nr.get(U);
-		byte[] i = nr.get(I);
-		byte[] del = nr.get(DEL);
-		byte[] sha = nr.get(SHA);
-		byte[] n = nr.get(N);
-		byte[] d = nr.get(D);
+	public MavenRecord(NexusRecord nr) throws ParseException {
+		m = nr.get(M);
+		u = nr.get(U);
+		i = nr.get(I);
+		del = nr.get(DEL);
+		sha = nr.get(SHA);
+		n = nr.get(N);
+		d = nr.get(D);
 
-		byte[] descriptor = nr.get(DESCRIPTOR);
-		byte[] idxinfo = nr.get(IDXINFO);
-		byte[] allGroups = nr.get(ALL_GROUPS);
-		byte[] allGroupsList = nr.get(ALL_GROUPS_LIST);
-		byte[] rootGroups = nr.get(ROOT_GROUPS);
-		byte[] rootGroupsList = nr.get(ROOT_GROUPS_LIST);
+		descriptor = nr.get(DESCRIPTOR);
+		idxinfo = nr.get(IDXINFO);
+		allGroups = nr.get(ALL_GROUPS);
+		allGroupsList = nr.get(ALL_GROUPS_LIST);
+		rootGroups = nr.get(ROOT_GROUPS);
+		rootGroupsList = nr.get(ROOT_GROUPS_LIST);
 
 		if (m != null) {
 			checkDate(m);
@@ -53,20 +83,29 @@ public final class MavenRecord implements NexusConstants {
 
 				check(us[3] != null, nr, "Invalid value for u field");
 
-				byte[] classifier = Arrays.equals(us[3], NA) ? null : us[3];
+				groupid = us[0];
+				artifactid = us[1];
+				version = us[2];
+				classifier = Arrays.equals(us[3], NA) ? null : us[3];
 
 				check((us[4] == null) == isMain(classifier), nr, "Expected NA/Main classifier");
 
 				byte[][] is = split(i, 7);
 				check(is.length == 7, nr, "Invalid i");
 
-				byte[] packaging = is[0];
+				packaging = is[0];
+				idate = is[1];
+				size = is[2];
+				is3 = is[3];
+				is4 = is[4];
+				is5 = is[5];
+				extension = is[6];
 
 				check(isMain(classifier) || Arrays.equals(us[4], packaging), nr, "us4 and is0");
 
 				checkDate(is[1]);
-				long size = checkSignedLong(is[2]);
-				check(size >= -1, nr, "size-1");
+				long lsize = checkSignedLong(size);
+				check(lsize >= -1, nr, "size-1");
 
 				checkDigit(is[3]);
 				checkDigit(is[4]);
@@ -75,10 +114,10 @@ public final class MavenRecord implements NexusConstants {
 				byte[] extension = is[6];
 
 				if (Arrays.equals(packaging, NULL)) {
-					check(isMain(classifier) && size == -1 && Arrays.equals(extension, POM), nr, "size-1=pom");
+					check(isMain(classifier) && lsize == -1 && Arrays.equals(extension, POM), nr, "size-1=pom");
 				}
 
-				if (size == -1) {
+				if (lsize == -1) {
 					check(Arrays.equals(extension, POM), nr, "size-1=pom");
 				}
 			} else if (del != null) {
@@ -89,8 +128,21 @@ public final class MavenRecord implements NexusConstants {
 				byte[][] dels = split(del, 5);
 
 				check(dels[3] != null, nr, "Invalid value for del field: %s");
+
+				groupid = dels[0];
+				artifactid = dels[1];
+				version = dels[2];
+				classifier = Arrays.equals(dels[3], NA) ? new byte[0] : dels[3];
+				packaging = dels[4] == null ? null : dels[4];
+
+				idate = null;
+				size = null;
+				is3 = null;
+				is4 = null;
+				is5 = null;
+				extension = null;
 			} else {
-				check(false, nr, "Invalid record type");
+				throw new ParseException("Invalid record type: " + nr, 0);
 			}
 		} else {
 			check(u == null && i == null && del == null && sha == null && n == null && d == null, nr,
@@ -118,6 +170,19 @@ public final class MavenRecord implements NexusConstants {
 			} else {
 				check(false, "Invalid record type");
 			}
+
+			groupid = null;
+			artifactid = null;
+			version = null;
+			classifier = null;
+			packaging = null;
+
+			idate = null;
+			size = null;
+			is3 = null;
+			is4 = null;
+			is5 = null;
+			extension = null;
 		}
 	}
 
@@ -182,12 +247,12 @@ public final class MavenRecord implements NexusConstants {
 		return true;
 	}
 
-	private static int checkDigit(byte[] s) {
+	private static int checkDigit(byte[] s) throws ParseException {
 		check(s.length == 1 && isDigit(s[0]), "Invalid digit: %s", s);
 		return s[0] - '0';
 	}
 
-	private static long checkSignedLong(byte[] s) {
+	private static long checkSignedLong(byte[] s) throws ParseException {
 		long res = 0;
 		boolean neg = false;
 		int i = 0;
@@ -213,19 +278,19 @@ public final class MavenRecord implements NexusConstants {
 		return neg ? res : -res;
 	}
 
-	private static void checkDate(byte[] s) {
+	private static void checkDate(byte[] s) throws ParseException {
 		check(isDate(s), "Invalid date: %s", s);
 	}
 
-	private static void check(boolean cond, String message, Object... args) {
+	private static void check(boolean cond, String message, Object... args) throws ParseException {
 		if (!cond) {
-			throw new RuntimeException(String.format(message, args));
+			throw new ParseException(String.format(message, args), 0);
 		}
 	}
 
-	private static void check(boolean cond, NexusRecord nr, String message) {
+	private static void check(boolean cond, NexusRecord nr, String message) throws ParseException {
 		if (!cond) {
-			throw new RuntimeException(message + ": " + nr);
+			throw new ParseException(message + ": " + nr, 0);
 		}
 	}
 }

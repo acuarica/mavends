@@ -1,5 +1,5 @@
 <project name="MavenDS" basedir="." default="-compile">
-	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '-' are executed internally by other targets. To fetch the Nexus Index and Maven Artifact *aria2* (http://aria2.sourceforge.net/) is used.</description>
+	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '.' are executed internally by other targets. To fetch the Nexus Index and Maven Artifact *aria2* (http://aria2.sourceforge.net/) is used.</description>
 	<property name="src" location="src" />
 	<property name="sql" location="sql" />
 	<property name="lib" location="lib" />
@@ -12,21 +12,40 @@
 	<property name="nexusindexgz.url" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
-	<property name="artscsv.path" location="${out}/artifact.csv" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
-	<property name="query-dev" value="select coorid from artifact_jar where rootgroup = 'es'" />
-	<property name="query-test" value="select coorid from artifact_jar where rootgroup = 'net'" />
-	<property name="query-stage" value="select coorid from artifact_jar where rootgroup = 'com'" />
-	<property name="query-prod" value="select coorid from artifact_jar" />
-	<property name="urilist.path" location="${out}/uri.list" />
-	<property name="sessionlist.path" location="${out}/session.list" />
 	<property name="repo" location="${cache}/repo" />
-	<property name="maveninode-dev.path" location="${out}/maveninode-dev.sqlite3" />
-	<property name="maveninode-test.path" location="${out}/maveninode-test.sqlite3" />
-	<property name="maveninode-prod.path" location="${out}/maveninode-prod.sqlite3" />
-	<property name="mavenpom-dev.path" location="${out}/mavenpom-dev.sqlite3" />
-	<property name="mavenpom-test.path" location="${out}/mavenpom-test.sqlite3" />
-	<property name="mavenpom-prod.path" location="${out}/mavenpom-prod.sqlite3" />
+	<macrodef name="set">
+		<attribute name="name" />
+		<attribute name="value" />
+		<sequential>
+			<echo message="@{name}=@{value}" />
+			<property name="@{name}" value="@{value}" />
+		</sequential>
+	</macrodef>
+	<macrodef name="setup">
+		<attribute name="conf" />
+		<attribute name="where" />
+		<sequential>
+			<set name="select.query" value="select coorid, path from artifact_jar where @{where}" />
+			<set name="select.path" value="${out}/selectarts-@{conf}.csv" />
+			<set name="urilist.path" value="${out}/uri-@{conf}.list" />
+			<set name="sessionlist.path" value="${out}/session-@{conf}.list" />
+			<set name="maveninode.path" value="${out}/maveninode-@{conf}.sqlite3" />
+			<set name="mavenpom.path" value="${out}/mavenpom-@{conf}.sqlite3" />
+		</sequential>
+	</macrodef>
+	<target name="dev">
+		<setup conf="dev" where="rootgroup = 'es'" />
+	</target>
+	<target name="test">
+		<setup conf="test" where="rootgroup = 'net'" />
+	</target>
+	<target name="stage">
+		<setup conf="stage" where="rootgroup = 'com'" />
+	</target>
+	<target name="prod">
+		<setup conf="prod" where="1" />
+	</target>
 	<path id="lib">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
@@ -46,7 +65,7 @@
 			<classpath refid="lib" />
 		</javac>
 	</target>
-	<target name="fetchnexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index.">
+	<target name="nexusindex" depends="-mkcachedir" description="Fetches and uncompresses the Nexus Maven Repository Index.">
 		<exec executable="aria2c">
 			<arg value="--dir=/" />
 			<arg value="--max-concurrent-downloads=16" />
@@ -59,24 +78,15 @@
 		</exec>
 		<gunzip src="${nexusindexgz.path}" dest="${nexusindex.path}" />
 	</target>
-	<target name="checknexusindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
-		<java classname="ch.usi.inf.mavends.CheckNexusIndex" classpath="${build}">
-			<classpath refid="lib" />
-			<arg value="--nexusindex=${nexusindex.path}" />
-		</java>
-	</target>
-	<target name="exportnexusindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
+	<target name="mavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
 		<java classname="ch.usi.inf.mavends.ExportNexusIndex" classpath="${build}">
 			<classpath refid="lib" />
 			<arg value="--nexusindex=${nexusindex.path}" />
 			<arg value="--out=${out}" />
 		</java>
-	</target>
-	<target name="importmavenindex" depends="-compile,-mkoutdir" description="Creates and populates the Maven Index DB from the Nexus Index.">
 		<delete file="${mavenindex.path}" />
 		<exec executable="sqlite3">
 			<arg value="-bail" />
-			<arg value="-echo" />
 			<arg value="-cmd" />
 			<arg value=".read ${sql}/mavenindex.sql" />
 			<arg value="-cmd" />
@@ -98,41 +108,21 @@
 			<arg value="${mavenindex.path}" />
 		</exec>
 	</target>
-	<target name="mavenindex" depends="checknexusindex,exportnexusindex,importmavenindex">
+	<target name="selectarts">
+		<exec executable="sqlite3">
+			<arg value="-bail" />
+			<arg value="-cmd" />
+			<arg value=".output ${select.path}" />
+			<arg value="-cmd" />
+			<arg value="${select.query}" />
+			<arg value="${mavenindex.path}" />
+		</exec>
 	</target>
-	<target name="urilist-dev" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
-		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">
+	<target name="urilist" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
+		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}" input="${select.path}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-dev}" />
-			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
-		</java>
-	</target>
-	<target name="urilist-test" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
-		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-test}" />
-			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
-		</java>
-	</target>
-	<target name="urilist-stage" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
-		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-stage}" />
-			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
-		</java>
-	</target>
-	<target name="urilist-prod" depends="-compile,-mkoutdir" description="Builds the list of artifacts to download configuration.">
-		<java classname="ch.usi.inf.mavends.BuildUriList" classpath="${build}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--urilist=${urilist.path}" />
-			<arg value="--query=${query-prod}" />
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
@@ -148,52 +138,22 @@
 			<arg value="--deferred-input=true" />
 		</exec>
 	</target>
-	<target name="maveninode-dev" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${maveninode-dev.path}" />
+	<target name="maveninode" depends="-compile" description="Extract the dependency information from POM files.">
+		<delete file="${maveninode.path}" />
 		<exec executable="sqlite3" input="${sql}/maveninode.sql">
 			<arg value="-bail" />
 			<arg value="-echo" />
-			<arg value="${maveninode-dev.path}" />
+			<arg value="${maveninode.path}" />
 		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}">
+		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}" input="out/list.es.csv">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-dev}" />
-			<arg value="--maveninode=${maveninode-dev.path}" />
+			<arg value="--query=${select.query}" />
+			<arg value="--maveninode=${maveninode.path}" />
 		</java>
 	</target>
-	<target name="maveninode-test" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${maveninode-test.path}" />
-		<exec executable="sqlite3" input="${sql}/maveninode.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${maveninode-test.path}" />
-		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-test}" />
-			<arg value="--maveninode=${maveninode-test.path}" />
-		</java>
-	</target>
-	<target name="maveninode-prod" depends="-compile" description="Extract the dependency information from POM files.">
-		<delete file="${maveninode-prod.path}" />
-		<exec executable="sqlite3" input="${sql}/maveninode.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${maveninode-prod.path}" />
-		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-prod}" />
-			<arg value="--maveninode=${maveninode-prod.path}" />
-		</java>
-	</target>
-	<target name="mavenpom-dev" depends="-compile" description="Extract the information from POM files.">
+	<target name="mavenpom" depends="-compile" description="Extract the information from POM files.">
 		<delete file="${mavenpom-dev.path}" />
 		<exec executable="sqlite3" input="${sql}/mavenpom.sql">
 			<arg value="-bail" />
@@ -208,37 +168,7 @@
 			<arg value="--mavenpom=${mavenpom-dev.path}" />
 		</java>
 	</target>
-	<target name="mavenpom-test" depends="-compile" description="Extract the information from POM files.">
-		<delete file="${mavenpom-test.path}" />
-		<exec executable="sqlite3" input="${sql}/mavenpom.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${mavenpom-test.path}" />
-		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenPom" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-test}" />
-			<arg value="--mavenpom=${mavenpom-test.path}" />
-		</java>
-	</target>
-	<target name="mavenpom-prod" depends="-compile" description="Extract the information from POM files.">
-		<delete file="${mavenpom-prod.path}" />
-		<exec executable="sqlite3" input="${sql}/mavenpom.sql">
-			<arg value="-bail" />
-			<arg value="-echo" />
-			<arg value="${mavenpom-prod.path}" />
-		</exec>
-		<java classname="ch.usi.inf.mavends.BuildMavenPom" classpath="${build}:${resources}">
-			<classpath refid="lib" />
-			<arg value="--mavenindex=${mavenindex.path}" />
-			<arg value="--repo=${repo}" />
-			<arg value="--query=${query-prod}" />
-			<arg value="--mavenpom=${mavenpom-prod.path}" />
-		</java>
-	</target>
-	<target name="clean" description="Removes the *build* directory.">
+	<target name="clean" description="Removes the compilation directory, e.g., *build*.">
 		<delete dir="${build}" />
 	</target>
 </project>
