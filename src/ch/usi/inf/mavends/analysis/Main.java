@@ -1,7 +1,7 @@
 package ch.usi.inf.mavends.analysis;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.zip.InflaterInputStream;
@@ -38,7 +38,6 @@ public final class Main {
 			final ResultSet rs = dbi.select(ar.query);
 
 			int n = 0;
-			long total = 0;
 			while (rs.next()) {
 				final long coordid = rs.getLong("coordid");
 
@@ -50,11 +49,8 @@ public final class Main {
 					final String filename = fs.getString("filename");
 
 					if (filename.endsWith(".class")) {
-						final byte[] cdata = fs.getBytes("cdata");
-						total += cdata.length;
-
-						ByteArrayInputStream bais = new ByteArrayInputStream(cdata);
-						InflaterInputStream iis = new InflaterInputStream(bais);
+						final InputStream cdata = fs.getBinaryStream("cdata");
+						final InflaterInputStream iis = new InflaterInputStream(cdata);
 
 						ClassReader cr = new ClassReader(iis);
 						StatsVisitor v = new StatsVisitor();
@@ -64,7 +60,6 @@ public final class Main {
 			}
 
 			log.info("No. jar files: %d", n);
-			log.info("Total: %,d", total);
 			log.info("No classes: %,d", StatsVisitor.noclasses);
 			log.info("No methods: %,d", StatsVisitor.nomethods);
 			log.info("No callsites: %,d", StatsVisitor.nocallsites);
