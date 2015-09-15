@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends.analysis;
+package ch.usi.inf.mavends.pom;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,21 +15,19 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import ch.usi.inf.mavends.index.PomDependency;
+final class DepsParser {
 
-public class DepsManager {
-
-	public static List<PomDependency> extractDeps(String pomPath) throws SAXException, IOException,
+	public static List<Dependency> extractDeps(String pomPath) throws SAXException, IOException,
 			ParserConfigurationException {
 		SAXParserFactory spf = SAXParserFactory.newInstance();
 
-		final List<PomDependency> deps = new ArrayList<PomDependency>();
+		final List<Dependency> deps = new ArrayList<Dependency>();
 
 		File f = new File(pomPath);
 		SAXParser p = spf.newSAXParser();
 
 		p.parse(f, new DefaultHandler() {
-			private PomDependency dep;
+			private Dependency dep;
 			private String value;
 
 			@Override
@@ -41,7 +39,7 @@ public class DepsManager {
 			public void startElement(String uri, String localName, String qName, Attributes attributes)
 					throws SAXException {
 				if (qName.equals("dependency")) {
-					dep = new PomDependency();
+					dep = new Dependency();
 				}
 			}
 

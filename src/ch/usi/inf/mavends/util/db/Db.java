@@ -17,7 +17,7 @@ public class Db implements AutoCloseable {
 	/**
 	 * 
 	 */
-	public final SQLiteConnection conn;
+	private final SQLiteConnection conn;
 
 	/**
 	 * 
@@ -26,10 +26,6 @@ public class Db implements AutoCloseable {
 	 */
 	public Db(String dbPath) throws SQLException {
 		conn = new SQLiteConnection(null, dbPath);
-		execute("pragma journal_mode=off");
-		execute("pragma synchronous=off");
-		execute("pragma locking_mode=exclusive");
-
 		conn.setAutoCommit(false);
 	}
 
@@ -69,5 +65,14 @@ public class Db implements AutoCloseable {
 	@Override
 	public void close() throws SQLException {
 		conn.close();
+	}
+
+	/**
+	 * Commits the current transaction.
+	 * 
+	 * @throws SQLException
+	 */
+	public void commit() throws SQLException {
+		conn.commit();
 	}
 }

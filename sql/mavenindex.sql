@@ -16,19 +16,24 @@ create table header (
 -- almost a primary key, because the classifier field is the only one
 -- of those fields that can be null.
 --
-create table artifact ( 
-  groupid    varchar(128) not null, -- Group name ( u[0] )
-  artifactid varchar(128) not null, -- Artifact ID ( u[1] )
-  version    varchar(64)  not null, -- Version ( u[2] )
-  classifier varchar(64),           -- Secondary artifacts, e.g., 'sources'.
-  packaging  varchar(64)  not null, -- i[0] == u[4] if not null
-  idate      date         not null, -- ( i[1] )
-  size       int          not null, -- ( i[2] )
-  is3        int          not null, -- ( i[3] )
-  is4        int          not null, -- ( i[4] )
-  is5        int          not null, -- ( i[5] )
-  extension  varchar(64)  not null, -- Artifact file extension. ( i[6] )
-  mdate      date         not null  -- Modified date
+create table artifact (
+  coordid      integer      primary key, -- Rowid alias
+  groupid      varchar(128) not null,    -- Group name ( u[0] )
+  artifactid   varchar(128) not null,    -- Artifact ID ( u[1] )
+  version      varchar(64)  not null,    -- Version ( u[2] )
+  classifier   varchar(64),              -- Secondary artifacts, e.g., 'sources'.
+  packaging    varchar(64)  not null,    -- i[0] == u[4] if not null
+  idate        date         not null,    -- ( i[1] )
+  size         int          not null,    -- ( i[2] )
+  is3          int          not null,    -- ( i[3] )
+  is4          int          not null,    -- ( i[4] )
+  is5          int          not null,    -- ( i[5] )
+  extension    varchar(64)  not null,    -- Artifact file extension. ( i[6] )
+  mdate        date         not null,    -- Modified date
+  sha1         varchar(40),              -- SHA-1
+  artifactname text,                     -- Artifact name
+  artifactdesc text,                     -- Artifact description
+  unique (groupid, artifactid, version, classifier, packaging)
 );
 
 ---
@@ -50,8 +55,7 @@ create table del (
 --
 create table descriptor (
   DESCRIPTOR   varchar(255) not null,
-  IDXINFO      varchar(255) not null,
-  version      varchar(255) not null
+  IDXINFO      varchar(255) not null
 );
 
 --

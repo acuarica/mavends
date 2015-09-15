@@ -12,17 +12,15 @@ import java.util.Date;
  * @author Luis Mastrangelo
  *
  */
-public class NexusIndex implements AutoCloseable {
+final class NexusIndex implements AutoCloseable {
 
-	private RandomAccessFile raf;
-	private FileChannel fc;
-	private MappedByteBuffer mbb;
+	private final RandomAccessFile raf;
+	private final FileChannel fc;
+	private final MappedByteBuffer mbb;
 
 	public final int headb;
 
 	public final Date creationDate;
-
-	public long recordCount;
 
 	/**
 	 * Creates a new parser with the specified path. The indexPath must be a
@@ -46,21 +44,15 @@ public class NexusIndex implements AutoCloseable {
 	}
 
 	public NexusRecord next() {
-		recordCount++;
-
 		int fieldCount = mbb.getInt();
-		NexusRecord nr = new NexusRecord(fieldCount);
+		NexusRecord nr = new NexusRecord();
 
 		for (int i = 0; i < fieldCount; i++) {
 			mbb.get();
 
-			byte[] key = new byte[mbb.getShort()];
-			mbb.get(key);
-
-			byte[] value = new byte[mbb.getInt()];
-			mbb.get(value);
-
-			nr.put(i, key, value);
+			String key = getString(mbb.getShort());
+			String value = getString(mbb.getInt());
+			nr.put(key, value);
 		}
 
 		return nr;
@@ -70,5 +62,11 @@ public class NexusIndex implements AutoCloseable {
 	public void close() throws IOException {
 		fc.close();
 		raf.close();
+	}
+
+	private String getString(int length) {
+		byte[] buffer = new byte[length];
+		mbb.get(buffer);
+		return new String(buffer);
 	}
 }

@@ -34,7 +34,7 @@ public class Inserter implements AutoCloseable {
 			stmt.setObject(i + 1, values[i]);
 		}
 
-	//	stmt.executeUpdate();
+		stmt.executeUpdate();
 	}
 
 	@Override

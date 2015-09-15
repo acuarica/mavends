@@ -15,13 +15,11 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import ch.usi.inf.mavends.index.MavenRecord;
-import ch.usi.inf.mavends.index.NexusConstants;
-import ch.usi.inf.mavends.util.Log;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
+import ch.usi.inf.mavends.util.log.Log;
 
-public class BuildMavenInode extends NexusConstants {
+public class BuildMavenInode  {
 
 	private static final Log log = new Log(System.out);
 
@@ -80,7 +78,7 @@ public class BuildMavenInode extends NexusConstants {
 
 		final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-		try (final BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(ar.mavenInode), BUFFER_SIZE)) {
+		try (final BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(ar.mavenInode))) {
 
 			long total = 0;
 
@@ -95,7 +93,7 @@ public class BuildMavenInode extends NexusConstants {
 				final String extension = parts[5];
 
 				n++;
-				final String path = MavenRecord.getPath(groupid, artifactid, version, classifier, extension);
+				final String path = NexusConstants.getPath(groupid, artifactid, version, classifier, extension);
 
 				try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(ar.repoDir + "/" + path));
 						ZipInputStream zip = new ZipInputStream(bis)) {
@@ -118,8 +116,8 @@ public class BuildMavenInode extends NexusConstants {
 							shaf.write(cdata);
 						}
 
-						write(os, groupid, artifactid, version, ze.getName(), ze.getSize(), ze.getCompressedSize(),
-								ze.getCrc(), sha1);
+//						write(os, groupid, artifactid, version, ze.getName(), ze.getSize(), ze.getCompressedSize(),
+//								ze.getCrc(), sha1);
 					}
 				} catch (IOException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);

@@ -2,7 +2,7 @@ package ch.usi.inf.mavends.util.args;
 
 import java.lang.reflect.Field;
 
-import ch.usi.inf.mavends.util.Log;
+import ch.usi.inf.mavends.util.log.Log;
 
 /**
  * The ArgsParser class provides a way to parser command-line arguments.
@@ -13,21 +13,6 @@ import ch.usi.inf.mavends.util.Log;
 public class ArgsParser {
 
 	private static final Log log = new Log(System.out);
-
-	/**
-	 * Exception internally thrown when some argument is misssing.
-	 * 
-	 * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
-	 *
-	 */
-	private static class ArgumentMissingException extends Exception {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5053354343992245633L;
-
-	}
 
 	private static <T> void showField(T ar, String name, Field f) throws IllegalArgumentException,
 			IllegalAccessException {
