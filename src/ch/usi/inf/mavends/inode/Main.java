@@ -85,6 +85,8 @@ public final class Main {
 				}
 			}
 
+			db.commit();
+
 			log.info("No. jar files: %d", n);
 		}
 	}
