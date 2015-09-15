@@ -10,7 +10,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import ch.usi.inf.mavends.NexusConstants;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
@@ -23,7 +22,7 @@ public final class Main {
 
 	public static class Args {
 
-		@Arg(key = "mavenindex", name = "Maven Pom path", desc = "Specifies the path of the output file.")
+		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index DB.")
 		public String mavenIndex;
 
 		@Arg(key = "repo", name = "Maven Repo", desc = "Specifies the path of the Maven repository.")
@@ -39,31 +38,30 @@ public final class Main {
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
 			FileNotFoundException, IOException, SQLException {
-		Args ar = ArgsParser.parse(args, new Args());
+		final Args ar = ArgsParser.parse(args, new Args());
 
-		try (Db dbi = new Db(ar.mavenIndex); Db db = new Db(ar.mavenPom)) {
-			ResultSet rs = dbi.select(ar.query);
+		try (final Db dbi = new Db(ar.mavenIndex); final Db db = new Db(ar.mavenPom)) {
+			final ResultSet rs = dbi.select(ar.query);
 
 			int n = 0;
 
-			Inserter ins = db
+			final Inserter ins = db
 					.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?,?,?,?,?,?,?)");
 
 			while (rs.next()) {
 				final String groupid = rs.getString("groupid");
 				final String artifactid = rs.getString("artifactid");
 				final String version = rs.getString("version");
-
-				String path = NexusConstants.getPath(groupid, artifactid, version, null, "pom");
+				final String pompath = rs.getString("pompath");
 
 				try {
-					List<Dependency> deps = DepsParser.extractDeps(ar.repoDir + "/" + path);
+					final List<Dependency> deps = DepsParser.extractDeps(ar.repoDir + "/" + pompath);
 
-					for (Dependency dep : deps) {
+					for (final Dependency dep : deps) {
 						ins.insert(groupid, artifactid, version, dep.groupId, dep.artifactId, dep.version, dep.scope);
 					}
 				} catch (SAXException | IOException | ParserConfigurationException e) {
-					log.info("Exception in %s (# %d): %s", path, n, e);
+					log.info("Exception in %s (# %d): %s", pompath, n, e);
 				}
 
 				n++;

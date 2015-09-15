@@ -79,10 +79,10 @@ create table rootgroups (
 -- 
 create view artifact_view as
   select
-    rowid as coorid,
     substr(groupid || '.', 1, instr(groupid || '.', '.') - 1) as rootgroup,
     groupid || ':' || artifactid || '@' || version ||  ifnull('/' || classifier, '') || '.' || extension as id,
     replace(groupid, '.', '/') || '/' || artifactid || '/' || version || '/' || artifactid || '-' || version || ifnull('-' || classifier, '') || '.' || extension as path,
+    replace(groupid, '.', '/') || '/' || artifactid || '/' || version || '/' || artifactid || '-' || version || '.' || 'pom' as pompath,
     * 
   from artifact;
 

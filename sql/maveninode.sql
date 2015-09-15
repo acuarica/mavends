@@ -12,11 +12,14 @@ create table inode (
   unique (sha1) on conflict ignore
 );
 
+--
+--
+--
 create table ifile (
-  coorid      int           not null,  -- 
+  coordid     int           not null,  -- 
   filename    varchar(255)  not null,  -- 
   inodeid     int           not null,  -- 
-  primary key (coorid, filename) on conflict ignore
+  primary key (coordid, filename) on conflict ignore
 ) without rowid;
 
 
@@ -24,7 +27,7 @@ create table ifile (
 --
 --
 create view file as
-  select f.coorid, f.filename, n.originalsize, n.compressedsize, 
+  select f.coordid, f.filename, n.originalsize, n.compressedsize, 
     n.crc32, n.sha1, n.data
   from ifile f
   inner join inode n on n.inodeid = f.inodeid;
@@ -43,9 +46,9 @@ begin
       new.sha1, 
       new.data;
   
-  insert into ifile (coorid, filename, inodeid) 
+  insert into ifile (coordid, filename, inodeid) 
     select 
-      new.coorid, 
+      new.coordid, 
       new.filename,
       (select n.inodeid from inode n where n.sha1 = new.sha1);
 end;

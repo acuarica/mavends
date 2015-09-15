@@ -14,23 +14,15 @@
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
 	<property name="repo" location="${cache}/repo" />
-	<macrodef name="set">
-		<attribute name="name" />
-		<attribute name="value" />
-		<sequential>
-			<echo message="@{name}=@{value}" />
-			<property name="@{name}" value="@{value}" />
-		</sequential>
-	</macrodef>
 	<macrodef name="setup">
 		<attribute name="conf" />
 		<attribute name="where" />
 		<sequential>
-			<set name="select.query" value="select coorid, groupid, artifactid, version, classifier, extension, path from artifact_jar where @{where}" />
-			<set name="urilist.path" value="${out}/uri-@{conf}.list" />
-			<set name="sessionlist.path" value="${out}/session-@{conf}.list" />
-			<set name="mavenpom.path" value="${out}/mavenpom-@{conf}.csv" />
-			<set name="maveninode.path" value="${out}/maveninode-@{conf}.csv" />
+			<property name="select.query" value="select coordid, groupid, artifactid, version, path, pompath from artifact_jar where @{where}" />
+			<property name="urilist.path" location="${out}/uri-@{conf}.list" />
+			<property name="sessionlist.path" location="${out}/session-@{conf}.list" />
+			<property name="mavenpom.path" location="${out}/mavenpom-@{conf}.sqlite3" />
+			<property name="maveninode.path" location="${out}/maveninode-@{conf}.sqlite3" />
 		</sequential>
 	</macrodef>
 	<macrodef name="db">
@@ -91,7 +83,7 @@
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
 	</target>
-	<target name="urilist" depends="-compile" description="Builds the list of artifacts to download configuration.">
+	<target name="urilist" depends="-compile" description="Builds the list of artifacts to download configuration." if="select.query">
 		<java classname="ch.usi.inf.mavends.uri.Main" classpath="${build}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
@@ -100,7 +92,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="fetcharts" description="Fetches all artifacts specified by the URI list in with *aria2*.">
+	<target name="fetcharts" description="Fetches all artifacts specified by the URI list in with *aria2*." if="select.query">
 		<exec executable="aria2c">
 			<arg value="--dir=${repo}" />
 			<arg value="--max-concurrent-downloads=16" />
@@ -112,7 +104,7 @@
 			<arg value="--deferred-input=true" />
 		</exec>
 	</target>
-	<target name="mavenpom" depends="-compile" description="Extract the information from POM files.">
+	<target name="mavenpom" depends="-compile" description="Extract the information from POM files." if="select.query">
 		<db file="${mavenpom.path}" sql="${sql}/mavenpom.sql" />
 		<java classname="ch.usi.inf.mavends.pom.Main" classpath="${build}">
 			<classpath refid="lib" />
@@ -122,11 +114,13 @@
 			<arg value="--mavenpom=${mavenpom.path}" />
 		</java>
 	</target>
-	<target name="maveninode" depends="-compile" description="Extract the dependency information from POM files.">
-		<java classname="ch.usi.inf.mavends.BuildMavenInode" classpath="${build}" input="${select.path}">
+	<target name="maveninode" depends="-compile" description="Extract the dependency information from POM files." if="select.query">
+		<db file="${maveninode.path}" sql="${sql}/maveninode.sql" />
+		<java classname="ch.usi.inf.mavends.inode.Main" classpath="${build}">
 			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
-			<arg value="--inode=${inode}" />
+			<arg value="--query=${select.query}" />
 			<arg value="--maveninode=${maveninode.path}" />
 		</java>
 	</target>

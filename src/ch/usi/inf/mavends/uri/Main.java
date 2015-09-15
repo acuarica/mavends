@@ -5,7 +5,6 @@ import java.io.PrintStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import ch.usi.inf.mavends.NexusConstants;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
@@ -43,27 +42,20 @@ public final class Main {
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException,
 			SQLException {
-		Args ar = ArgsParser.parse(args, new Args());
+		final Args ar = ArgsParser.parse(args, new Args());
 
-		try (Db db = new Db(ar.mavenIndex); PrintStream out = new PrintStream(ar.uriList)) {
+		try (final Db db = new Db(ar.mavenIndex); final PrintStream out = new PrintStream(ar.uriList)) {
 			ResultSet rs = db.select(ar.query);
 
 			int n = 0;
 
 			while (rs.next()) {
-				final String groupid = rs.getString("groupid");
-				final String artifactid = rs.getString("artifactid");
-				final String version = rs.getString("version");
-				final String classifier = rs.getString("classifier");
-				final String extension = rs.getString("extension");
+				final String path = rs.getString("path");
+				final String pompath = rs.getString("pompath");
 
-				n++;
-				emit(NexusConstants.getPath(groupid, artifactid, version, classifier, extension), ar.mirrors, out);
-
-				if (classifier == null) {
-					n++;
-					emit(NexusConstants.getPath(groupid, artifactid, version, classifier, "pom"), ar.mirrors, out);
-				}
+				n += 2;
+				emit(path, ar.mirrors, out);
+				emit(pompath, ar.mirrors, out);
 			}
 
 			log.info("No. emitted fetch files: %,d", n);

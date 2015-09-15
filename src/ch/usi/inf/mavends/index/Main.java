@@ -32,18 +32,18 @@ public class Main {
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
 			FileNotFoundException, IOException, ParseException, SQLException {
-		Args ar = ArgsParser.parse(args, new Args());
+		final Args ar = ArgsParser.parse(args, new Args());
 
-		try (Db db = new Db(ar.mavenIndex); NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
-			Inserter headerins = db
+		try (final Db db = new Db(ar.mavenIndex); final NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
+			final Inserter headerins = db
 					.createInserter("insert into header (headb, creationdate) values (?, date(?/1000, 'unixepoch' ))");
-			Inserter artins = db
+			final Inserter artins = db
 					.createInserter("insert into artifact (groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, mdate, sha1, artifactname, artifactdesc) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ), ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			Inserter delins = db
+			final Inserter delins = db
 					.createInserter("insert into del (groupid, artifactid, version, classifier, packaging, mdate) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ))");
-			Inserter descins = db.createInserter("insert into descriptor (descriptor, idxinfo) values (?, ?)");
-			Inserter allins = db.createInserter("insert into allgroups (groupid) values (?)");
-			Inserter rootins = db.createInserter("insert into rootgroups (groupid) values (?)");
+			final Inserter descins = db.createInserter("insert into descriptor (descriptor, idxinfo) values (?, ?)");
+			final Inserter allins = db.createInserter("insert into allgroups (groupid) values (?)");
+			final Inserter rootins = db.createInserter("insert into rootgroups (groupid) values (?)");
 
 			log.info("Inserting header...");
 			headerins.insert(ni.headb, ni.creationDate);

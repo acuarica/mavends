@@ -1,6 +1,7 @@
 package ch.usi.inf.mavends.pom;
 
 final class Dependency {
+	
 	public String groupId;
 	public String artifactId;
 	public String version;
