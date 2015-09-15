@@ -1,7 +1,12 @@
 package ch.usi.inf.mavends.analysis;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.zip.InflaterInputStream;
+
+import org.objectweb.asm.ClassReader;
 
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
@@ -25,14 +30,15 @@ public final class Main {
 
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
+			IOException {
 		final Args ar = ArgsParser.parse(args, new Args());
 
 		try (final Db dbi = new Db(ar.mavenIndex); final Db db = new Db(ar.mavenInode)) {
 			final ResultSet rs = dbi.select(ar.query);
 
 			int n = 0;
-long total=0;
+			long total = 0;
 			while (rs.next()) {
 				final long coordid = rs.getLong("coordid");
 
@@ -42,17 +48,28 @@ long total=0;
 
 				while (fs.next()) {
 					final String filename = fs.getString("filename");
-					final byte[] data = fs.getBytes("data");
-					total += data.length;
 
-					// ins.insert(coordid, ze.getName(), ze.getSize(),
-					// ze.getCompressedSize(), ze.getCrc(), sha1,
-					// cdata);
+					if (filename.endsWith(".class")) {
+						final byte[] cdata = fs.getBytes("cdata");
+						total += cdata.length;
+
+						ByteArrayInputStream bais = new ByteArrayInputStream(cdata);
+						InflaterInputStream iis = new InflaterInputStream(bais);
+
+						ClassReader cr = new ClassReader(iis);
+						StatsVisitor v = new StatsVisitor();
+						cr.accept(v, 0);
+					}
 				}
 			}
 
 			log.info("No. jar files: %d", n);
 			log.info("Total: %,d", total);
+			log.info("No classes: %,d", StatsVisitor.noclasses);
+			log.info("No methods: %,d", StatsVisitor.nomethods);
+			log.info("No callsites: %,d", StatsVisitor.nocallsites);
+			log.info("No field uses: %,d", StatsVisitor.nofielduses);
+			log.info("No literal: %,d", StatsVisitor.noliteral);
 		}
 	}
 }

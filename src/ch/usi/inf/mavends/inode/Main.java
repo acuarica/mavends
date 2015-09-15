@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -43,7 +44,6 @@ public final class Main {
 
 		final MessageDigest md = MessageDigest.getInstance("SHA-1");
 		final byte[] buffer = new byte[8192];
-		final ByteArrayOutputStream stream = new ByteArrayOutputStream(4096);
 
 		try (final Db dbi = new Db(ar.mavenIndex); final Db db = new Db(ar.mavenInode)) {
 			final ResultSet rs = dbi.select(ar.query);
@@ -51,7 +51,7 @@ public final class Main {
 			int n = 0;
 
 			final Inserter ins = db
-					.createInserter("insert into file (coordid, filename, originalsize, compressedsize, crc32, sha1, data) values (?,?,?,?,?,?,?)");
+					.createInserter("insert into file (coordid, filename, originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?,?,?)");
 
 			while (rs.next()) {
 				final String coordid = rs.getString("coordid");
@@ -64,18 +64,21 @@ public final class Main {
 
 					ZipEntry ze;
 					while ((ze = zip.getNextEntry()) != null) {
-						stream.reset();
 						int len = 0;
+						final ByteArrayOutputStream cdata = new ByteArrayOutputStream(1024);
+						final DeflaterOutputStream dos = new DeflaterOutputStream(cdata);
+
 						while ((len = zip.read(buffer)) > 0) {
-							stream.write(buffer, 0, len);
+							md.update(buffer, 0, len);
+							dos.write(buffer, 0, len);
 						}
 
-						byte[] data = stream.toByteArray();
-						String sha1 = Helper.byteArray2Hex(md.digest(data));
-						byte[] cdata = Helper.compress(data);
+						dos.finish();
+
+						final String sha1 = Helper.byteArray2Hex(md.digest());
 
 						ins.insert(coordid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1,
-								cdata);
+								cdata.toByteArray());
 					}
 
 					db.commit();

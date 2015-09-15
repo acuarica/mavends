@@ -8,7 +8,7 @@ create table inode (
   compressedsize  int           not null,     -- 
   crc32           int           not null,     -- 
   sha1            varchar(40)   not null,     -- 
-  data            blob,                       --
+  cdata           blob,                       --
   unique (sha1) on conflict ignore
 );
 
@@ -22,13 +22,17 @@ create table ifile (
   primary key (coordid, filename) on conflict ignore
 ) without rowid;
 
+--
+--
+--
+create index ifile_coordid on ifile (coordid);
 
 --
 --
 --
 create view file as
   select f.coordid, f.filename, n.originalsize, n.compressedsize, 
-    n.crc32, n.sha1, n.data
+    n.crc32, n.sha1, n.cdata
   from ifile f
   inner join inode n on n.inodeid = f.inodeid;
 
@@ -38,13 +42,13 @@ create view file as
 create trigger file_insert
 instead of insert on file
 begin
-  insert into inode (originalsize, compressedsize, crc32, sha1, data) 
+  insert into inode (originalsize, compressedsize, crc32, sha1, cdata) 
     select 
       new.originalsize, 
       new.compressedsize, 
       new.crc32, 
       new.sha1, 
-      new.data;
+      new.cdata;
   
   insert into ifile (coordid, filename, inodeid) 
     select 
