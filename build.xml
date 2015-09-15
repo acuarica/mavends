@@ -124,13 +124,20 @@
 			<arg value="--maveninode=${maveninode.path}" />
 		</java>
 	</target>
-	<target name="analysis" depends="-compile" description="Extract the dependency information from POM files." if="select.query">
+	<target name="analysis" depends="-compile" description="Extract the dependency information from POM files." if="mavenvisitor">
 		<java classname="ch.usi.inf.mavends.analysis.Main" classpath="${build}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--query=${select.query}" />
 			<arg value="--maveninode=${maveninode.path}" />
+			<arg value="--mavenvisitor=ch.usi.inf.mavends.analysis.visitors.${mavenvisitor}" />
 		</java>
+	</target>
+	<target name="stats">
+		<property name="mavenvisitor" value="StatsVisitor" />
+	</target>
+	<target name="unsafe">
+		<property name="mavenvisitor" value="UnsafeVisitor" />
 	</target>
 	<target name="clean" description="Removes the compilation directory, e.g., *build*.">
 		<delete dir="${build}" />
