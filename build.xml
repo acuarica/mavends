@@ -18,7 +18,7 @@
 		<attribute name="conf" />
 		<attribute name="where" />
 		<sequential>
-			<property name="select.query" value="select coordid, groupid, artifactid, version, path, pompath from artifact_jar where @{where}" />
+			<property name="select.query" value="select * from artifact_jar where @{where}" />
 			<property name="urilist.path" location="${out}/uri-@{conf}.list" />
 			<property name="sessionlist.path" location="${out}/session-@{conf}.list" />
 			<property name="mavenpom.path" location="${out}/mavenpom-@{conf}.sqlite3" />
@@ -120,6 +120,14 @@
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />
+			<arg value="--query=${select.query}" />
+			<arg value="--maveninode=${maveninode.path}" />
+		</java>
+	</target>
+	<target name="analysis" depends="-compile" description="Extract the dependency information from POM files." if="select.query">
+		<java classname="ch.usi.inf.mavends.analysis.Main" classpath="${build}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--query=${select.query}" />
 			<arg value="--maveninode=${maveninode.path}" />
 		</java>

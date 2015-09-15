@@ -17,8 +17,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 final class DepsParser {
 
-	public static List<Dependency> extractDeps(String pomPath) throws SAXException, IOException,
-			ParserConfigurationException {
+	static List<Dependency> extractDeps(String pomPath) throws SAXException, IOException, ParserConfigurationException {
 		SAXParserFactory spf = SAXParserFactory.newInstance();
 
 		final List<Dependency> deps = new ArrayList<Dependency>();

@@ -1,4 +1,4 @@
-package ch.usi.inf.mavends;
+package ch.usi.inf.mavends.analysis;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;

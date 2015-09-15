@@ -1,7 +1,6 @@
 package ch.usi.inf.mavends.uri;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -16,35 +15,25 @@ public final class Main {
 
 	public static final class Args {
 
-		@Arg(key = "mavenindex", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
+		@Arg(key = "mavenindex", name = "Maven Index", desc = "Specifies the output uri list file (*aria2* format).")
 		public String mavenIndex;
 
-		@Arg(key = "urilist", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
+		@Arg(key = "urilist", name = "URI List", desc = "Specifies the output uri list file (*aria2* format).")
 		public String uriList;
 
-		@Arg(key = "query", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
+		@Arg(key = "query", name = "Query Filter", desc = "Specifies the output uri list file (*aria2* format).")
 		public String query;
 
-		@Arg(key = "mirrors", name = "mirrors", desc = "Comma separated list of mirrors.")
+		@Arg(key = "mirrors", name = "Mirrors", desc = "Comma separated list of mirrors.")
 		public String[] mirrors;
 
-	}
-
-	private static void emit(String path, String[] mirrors, PrintStream os) throws IOException {
-		for (String mirror : mirrors) {
-			os.format("%s/%s\t", mirror, path);
-		}
-
-		os.println();
-		os.format("\tout=%s", path);
-		os.println();
 	}
 
 	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException,
 			SQLException {
 		final Args ar = ArgsParser.parse(args, new Args());
 
-		try (final Db db = new Db(ar.mavenIndex); final PrintStream out = new PrintStream(ar.uriList)) {
+		try (final Db db = new Db(ar.mavenIndex); final UriList uri = new UriList(ar.uriList, ar.mirrors)) {
 			ResultSet rs = db.select(ar.query);
 
 			int n = 0;
@@ -54,8 +43,8 @@ public final class Main {
 				final String pompath = rs.getString("pompath");
 
 				n += 2;
-				emit(path, ar.mirrors, out);
-				emit(pompath, ar.mirrors, out);
+				uri.emit(path);
+				uri.emit(pompath);
 			}
 
 			log.info("No. emitted fetch files: %,d", n);

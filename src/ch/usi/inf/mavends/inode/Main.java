@@ -8,8 +8,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Formatter;
-import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -66,7 +64,6 @@ public final class Main {
 
 					ZipEntry ze;
 					while ((ze = zip.getNextEntry()) != null) {
-
 						stream.reset();
 						int len = 0;
 						while ((len = zip.read(buffer)) > 0) {
@@ -74,52 +71,21 @@ public final class Main {
 						}
 
 						byte[] data = stream.toByteArray();
-						String sha1 = byteArray2Hex(md.digest(data));
-						byte[] cdata = compress(data);
+						String sha1 = Helper.byteArray2Hex(md.digest(data));
+						byte[] cdata = Helper.compress(data);
 
 						ins.insert(coordid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1,
 								cdata);
 					}
+
+					db.commit();
+
 				} catch (IOException e) {
 					log.info("Exception in %s (# %d): %s", path, n, e);
 				}
 			}
 
-			db.commit();
-
 			log.info("No. jar files: %d", n);
 		}
-	}
-
-	/**
-	 * Return the String representation of the hash byte array.
-	 * 
-	 * @param hash
-	 *            The byte array to transform.
-	 * @return The hexadecimal String representation of hash.
-	 */
-	private static String byteArray2Hex(byte[] hash) {
-		try (Formatter f = new Formatter()) {
-			for (byte b : hash) {
-				f.format("%02x", b);
-			}
-
-			return f.toString();
-		}
-	}
-
-	private static byte[] compress(byte[] data) throws IOException {
-		Deflater deflater = new Deflater();
-		deflater.setInput(data);
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
-		deflater.finish();
-		byte[] buffer = new byte[1024];
-		while (!deflater.finished()) {
-			int count = deflater.deflate(buffer);
-			outputStream.write(buffer, 0, count);
-		}
-		outputStream.close();
-		byte[] output = outputStream.toByteArray();
-		return output;
 	}
 }

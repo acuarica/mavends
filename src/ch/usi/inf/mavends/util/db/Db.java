@@ -1,5 +1,6 @@
 package ch.usi.inf.mavends.util.db;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -43,12 +44,18 @@ public class Db implements AutoCloseable {
 	/**
 	 * 
 	 * @param sql
+	 * @param values
 	 * @return
 	 * @throws SQLException
 	 */
-	public ResultSet select(String sql) throws SQLException {
-		Statement stmt = conn.createStatement();
-		ResultSet rs = stmt.executeQuery(sql);
+	public ResultSet select(String sql, Object... values) throws SQLException {
+		PreparedStatement stmt = conn.prepareStatement(sql);
+
+		for (int i = 0; i < values.length; i++) {
+			stmt.setObject(i + 1, values[i]);
+		}
+
+		ResultSet rs = stmt.executeQuery();
 		return rs;
 	}
 
