@@ -64,21 +64,39 @@ public final class Main {
 
 					ZipEntry ze;
 					while ((ze = zip.getNextEntry()) != null) {
-						int len = 0;
-						final ByteArrayOutputStream cdata = new ByteArrayOutputStream(1024);
-						final DeflaterOutputStream dos = new DeflaterOutputStream(cdata);
-
-						while ((len = zip.read(buffer)) > 0) {
-							md.update(buffer, 0, len);
-							dos.write(buffer, 0, len);
+						if (ze.isDirectory()) {
+							continue;
 						}
 
-						dos.finish();
+						final String filename = ze.getName();
+
+						final byte[] cdata;
+
+						int len = 0;
+
+						if (filename.endsWith(".class")) {
+							final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
+							final DeflaterOutputStream dos = new DeflaterOutputStream(baos);
+
+							while ((len = zip.read(buffer)) > 0) {
+								md.update(buffer, 0, len);
+								dos.write(buffer, 0, len);
+							}
+
+							dos.finish();
+
+							cdata = baos.toByteArray();
+						} else {
+							while ((len = zip.read(buffer)) > 0) {
+								md.update(buffer, 0, len);
+							}
+
+							cdata = null;
+						}
 
 						final String sha1 = Helper.byteArray2Hex(md.digest());
 
-						ins.insert(coordid, ze.getName(), ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1,
-								cdata.toByteArray());
+						ins.insert(coordid, filename, ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
 					}
 
 					db.commit();
