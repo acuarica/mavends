@@ -12,7 +12,7 @@ import java.sql.SQLException;
  */
 public class Inserter implements AutoCloseable {
 
-	public final PreparedStatement stmt;
+	private final PreparedStatement stmt;
 
 	/**
 	 * 
