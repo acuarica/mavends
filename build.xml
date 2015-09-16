@@ -29,25 +29,25 @@
 		<attribute name="file" />
 		<attribute name="sql" />
 		<sequential>
+			<echo message="Executing @{sql} on @{file}" />
 			<delete file="@{file}" />
 			<exec executable="sqlite3" input="@{sql}">
 				<arg value="-bail" />
-				<arg value="-echo" />
 				<arg value="@{file}" />
 			</exec>
 		</sequential>
 	</macrodef>
-	<target name="dev">
-		<setup conf="dev" where="rootgroup = 'es'" />
+	<target name="es">
+		<setup conf="es" where="rootgroup = 'es'" />
 	</target>
-	<target name="test">
-		<setup conf="test" where="rootgroup = 'net'" />
+	<target name="net">
+		<setup conf="net" where="rootgroup = 'net'" />
 	</target>
-	<target name="stage">
-		<setup conf="stage" where="rootgroup = 'com'" />
+	<target name="com">
+		<setup conf="com" where="rootgroup = 'com'" />
 	</target>
-	<target name="prod">
-		<setup conf="prod" where="1" />
+	<target name="all">
+		<setup conf="all" where="1" />
 	</target>
 	<path id="lib">
 		<fileset dir="${lib}">

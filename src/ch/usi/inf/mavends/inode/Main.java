@@ -1,16 +1,12 @@
 package ch.usi.inf.mavends.inode;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
@@ -38,75 +34,79 @@ public final class Main {
 
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
-			NoSuchAlgorithmException, IOException, SQLException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, SQLException,
+			NoSuchAlgorithmException, InterruptedException, IOException {
 		final Args ar = ArgsParser.parse(args, new Args());
 
-		final MessageDigest md = MessageDigest.getInstance("SHA-1");
-		final byte[] buffer = new byte[8192];
+		int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 
-		try (final Db dbi = new Db(ar.mavenIndex); final Db db = new Db(ar.mavenInode)) {
-			final ResultSet rs = dbi.select(ar.query);
+		log.info("Number of processors: %d", numberOfProcessors);
+		InodeWorker[] ws = new InodeWorker[numberOfProcessors];
 
-			int n = 0;
+		for (int i = 0; i < ws.length; i++) {
+			ws[i] = new InodeWorker(ar.repoDir);
+		}
 
-			final Inserter ins = db
-					.createInserter("insert into file (coordid, filename, originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?,?,?)");
+		try (final Db db = new Db(ar.mavenIndex)) {
+			final ResultSet rs = db.select(ar.query);
 
+			int numberOfZipFiles = 0;
 			while (rs.next()) {
-				final String coordid = rs.getString("coordid");
+				final long coordid = rs.getLong("coordid");
 				final String path = rs.getString("path");
 
-				n++;
-
-				try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(ar.repoDir + "/" + path));
-						ZipInputStream zip = new ZipInputStream(bis)) {
-
-					ZipEntry ze;
-					while ((ze = zip.getNextEntry()) != null) {
-						if (ze.isDirectory()) {
-							continue;
-						}
-
-						final String filename = ze.getName();
-
-						final byte[] cdata;
-
-						int len = 0;
-
-						if (filename.endsWith(".class")) {
-							final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
-							final DeflaterOutputStream dos = new DeflaterOutputStream(baos);
-
-							while ((len = zip.read(buffer)) > 0) {
-								md.update(buffer, 0, len);
-								dos.write(buffer, 0, len);
-							}
-
-							dos.finish();
-
-							cdata = baos.toByteArray();
-						} else {
-							while ((len = zip.read(buffer)) > 0) {
-								md.update(buffer, 0, len);
-							}
-
-							cdata = null;
-						}
-
-						final String sha1 = Helper.byteArray2Hex(md.digest());
-
-						ins.insert(coordid, filename, ze.getSize(), ze.getCompressedSize(), ze.getCrc(), sha1, cdata);
-					}
-
-					db.commit();
-
-				} catch (IOException e) {
-					log.info("Exception in %s (# %d): %s", path, n, e);
-				}
+				ws[numberOfZipFiles % ws.length].add(coordid, path);
+				numberOfZipFiles++;
 			}
 
-			log.info("No. jar files: %d", n);
+			log.info("Number of ZIP files: %,d", numberOfZipFiles);
 		}
+
+		for (final InodeWorker w : ws) {
+			log.info("Starting Worker %s with size: %,d", w, w.size());
+			w.start();
+		}
+
+		for (final InodeWorker w : ws) {
+			w.join();
+		}
+
+		//
+		// try (Db db = new Db(ar.mavenInode)) {
+		// // Inserter ins = db
+		// //
+		// .createInserter("insert into file (coordid, filename, originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?,?,?)");
+		//
+		//
+		// int items;
+		// do {
+		// items = 0;
+		//
+		// List<InodeThread.ReadyEntry> ls = new
+		// ArrayList<InodeThread.ReadyEntry>();
+		// for (InodeThread t : ts) {
+		// items += t.queue.size();
+		//
+		// synchronized (t.ready) {
+		// items += t.ready.size();
+		//
+		// Iterator<InodeThread.ReadyEntry> it = t.ready.iterator();
+		//
+		// while (it.hasNext()) {
+		// InodeThread.ReadyEntry e = it.next();
+		// ls.add(e);
+		// it.remove();
+		// }
+		// }
+		// }
+		//
+		// // for (InodeThread.ReadyEntry e : ls) {
+		// // ins.insert(e.coordid, e.filename, e.size, e.compressedSize, e.crc,
+		// e.sha1, e.cdata);
+		// // }
+		// // db.commit();
+		// } while (items > 0);
+		// }
+		System.out.println("main.end");
 	}
 }

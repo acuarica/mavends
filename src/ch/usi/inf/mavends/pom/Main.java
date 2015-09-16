@@ -64,6 +64,8 @@ public final class Main {
 					log.info("Exception in %s (# %d): %s", pompath, n, e);
 				}
 
+				db.commit();
+
 				n++;
 			}
 
