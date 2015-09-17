@@ -1,5 +1,5 @@
 <project name="MavenDS" basedir="." default="-compile">
-	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '.' are executed internally by other targets. To fetch the Nexus Index and Maven Artifact *aria2* (http://aria2.sourceforge.net/) is used.</description>
+	<description>MavenDS: A Dataset and Analysis Framework for the Maven Repository. Targets begining with '-' are executed internally by other targets. To fetch the Nexus Index and Maven Artifact *aria2* is used. Check http://aria2.sourceforge.net/ for how to install it on your platform.</description>
 	<property name="src" location="src" />
 	<property name="sql" location="sql" />
 	<property name="lib" location="lib" />
@@ -14,6 +14,11 @@
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
 	<property name="repo" location="${cache}/repo" />
+	<path id="lib">
+		<fileset dir="${lib}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
 	<macrodef name="setup">
 		<attribute name="conf" />
 		<attribute name="where" />
@@ -37,23 +42,21 @@
 			</exec>
 		</sequential>
 	</macrodef>
-	<target name="es">
+	<target name="es" description="Configuration 'dev' using artifacts from the 'es' root group.">
 		<setup conf="es" where="rootgroup = 'es'" />
 	</target>
-	<target name="net">
+	<target name="ch" description="Configuration 'dev' using artifacts from the 'ch' root group.">
+		<setup conf="ch" where="rootgroup = 'ch'" />
+	</target>
+	<target name="net" description="Configuration 'test' using artifacts from the 'net' root group.">
 		<setup conf="net" where="rootgroup = 'net'" />
 	</target>
-	<target name="com">
+	<target name="com" description="Configuration 'stage' using artifacts from the 'com' root group.">
 		<setup conf="com" where="rootgroup = 'com'" />
 	</target>
-	<target name="all">
+	<target name="all" description="Configuration 'prod' using --all-- artifacts">
 		<setup conf="all" where="1" />
 	</target>
-	<path id="lib">
-		<fileset dir="${lib}">
-			<include name="*.jar" />
-		</fileset>
-	</path>
 	<target name="-compile" description="Compiles all Java files under the src/ directory.">
 		<mkdir dir="${build}" />
 		<javac includeantruntime="false" srcdir="${src}" destdir="${build}" debug="true">
