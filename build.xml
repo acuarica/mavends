@@ -42,9 +42,6 @@
 			</exec>
 		</sequential>
 	</macrodef>
-	<target name="es" description="Configuration 'dev' using artifacts from the 'es' root group.">
-		<setup conf="es" where="rootgroup = 'es'" />
-	</target>
 	<target name="ch" description="Configuration 'dev' using artifacts from the 'ch' root group.">
 		<setup conf="ch" where="rootgroup = 'ch'" />
 	</target>
