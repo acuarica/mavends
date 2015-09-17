@@ -31,8 +31,6 @@ public class Db implements AutoCloseable {
 		pragma("journal_mode", "off");
 		pragma("synchronous", "off");
 		pragma("locking_mode", "exclusive");
-		// pragma("cache_size", 4000);
-		// pragma("threads", 8);
 
 		conn.setAutoCommit(false);
 	}

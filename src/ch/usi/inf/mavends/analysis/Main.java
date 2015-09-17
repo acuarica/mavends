@@ -63,6 +63,7 @@ public final class Main {
 							cr.accept(v, 0);
 						} catch (Exception e) {
 							log.info("Exception: %s", e);
+							e.printStackTrace();
 						}
 					}
 				}

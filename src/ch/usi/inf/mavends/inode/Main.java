@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
@@ -48,9 +46,7 @@ public final class Main {
 					.createInserter("insert into inode (originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?)");
 
 			final Inserter ifileins = db
-					.createInserter("insert into ifile (coordid, filename, inodeid) values (?,?,?)");
-
-			final Map<String, Long> shas = new HashMap<String, Long>();
+					.createInserter("insert into ifile (coordid, filename, inodeid) values (?,?,(select inodeid from inode where sha1=?))");
 
 			for (int i = 0; i < ws.length; i++) {
 				ws[i] = new InodeWorker(ar.repoDir) {
@@ -58,22 +54,9 @@ public final class Main {
 					@Override
 					void processEntry(long coordid, String filename, long size, long compressedSize, long crc,
 							String sha1, byte[] cdata) throws IOException, SQLException {
-
-						Long inodeid;
-						synchronized (shas) {
-							inodeid = shas.get(sha1);
-							if (inodeid == null) {
-								synchronized (db) {
-									inodeins.insert(size, compressedSize, crc, sha1, cdata);
-									inodeid = inodeins.lastInsertRowid();
-								}
-
-								shas.put(sha1, inodeid);
-							}
-						}
-
 						synchronized (db) {
-							ifileins.insert(coordid, filename, inodeid);
+							inodeins.insert(size, compressedSize, crc, sha1, cdata);
+							ifileins.insert(coordid, filename, sha1);
 						}
 					}
 
@@ -115,7 +98,7 @@ public final class Main {
 					items += w.size();
 				}
 
-				log.info("Remaining items to process: %,d | SHA1 files: %,d", items, shas.size());
+				log.info("Remaining ZIP files to process: %,d", items);
 			} while (items > 0);
 		}
 	}

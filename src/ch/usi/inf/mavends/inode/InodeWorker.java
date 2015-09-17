@@ -89,6 +89,10 @@ abstract class InodeWorker extends Thread {
 					dos.finish();
 
 					cdata = baos.toByteArray();
+					
+					if (cdata == null || cdata.length==0){
+						throw new RuntimeException(filename);
+					}
 				} else {
 					while ((len = zip.read(buffer)) > 0) {
 						md.update(buffer, 0, len);
