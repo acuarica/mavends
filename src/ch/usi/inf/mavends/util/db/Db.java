@@ -27,7 +27,18 @@ public class Db implements AutoCloseable {
 	 */
 	public Db(String dbPath) throws SQLException {
 		conn = new SQLiteConnection(null, dbPath);
+
+		pragma("journal_mode", "off");
+		pragma("synchronous", "off");
+		pragma("locking_mode", "exclusive");
+		// pragma("cache_size", 4000);
+		// pragma("threads", 8);
+
 		conn.setAutoCommit(false);
+	}
+
+	private void pragma(String name, Object value) throws SQLException {
+		execute(String.format("pragma %s=%s", name, value));
 	}
 
 	/**
@@ -56,6 +67,7 @@ public class Db implements AutoCloseable {
 		}
 
 		ResultSet rs = stmt.executeQuery();
+
 		return rs;
 	}
 

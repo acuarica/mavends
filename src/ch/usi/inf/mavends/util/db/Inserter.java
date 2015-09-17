@@ -2,6 +2,7 @@ package ch.usi.inf.mavends.util.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -12,7 +13,7 @@ import java.sql.SQLException;
  */
 public class Inserter implements AutoCloseable {
 
-	private final PreparedStatement stmt;
+	public final PreparedStatement stmt;
 
 	/**
 	 * 
@@ -35,6 +36,16 @@ public class Inserter implements AutoCloseable {
 		}
 
 		stmt.executeUpdate();
+	}
+
+	/**
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public long lastInsertRowid() throws SQLException {
+		final ResultSet rs = stmt.getGeneratedKeys();
+		return rs.getLong(1);
 	}
 
 	@Override

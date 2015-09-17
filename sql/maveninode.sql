@@ -39,27 +39,6 @@ create view file as
 --
 --
 --
-create trigger file_insert
-instead of insert on file
-begin
-  insert into inode (originalsize, compressedsize, crc32, sha1, cdata) 
-    select 
-      new.originalsize, 
-      new.compressedsize, 
-      new.crc32, 
-      new.sha1, 
-      new.cdata;
-  
-  insert into ifile (coordid, filename, inodeid) 
-    select 
-      new.coordid, 
-      new.filename,
-      (select n.inodeid from inode n where n.sha1 = new.sha1);
-end;
-
---
---
---
 create view stats as
   with 
     je  as (select * from file),
