@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
@@ -50,7 +50,7 @@ public final class Main {
 			final Inserter ifileins = db
 					.createInserter("insert into ifile (coordid, filename, inodeid) values (?,?,?)");
 
-			final Map<String, Long> shas = new ConcurrentHashMap<String, Long>();
+			final Map<String, Long> shas = new HashMap<String, Long>();
 
 			for (int i = 0; i < ws.length; i++) {
 				ws[i] = new InodeWorker(ar.repoDir) {
@@ -66,8 +66,9 @@ public final class Main {
 								synchronized (db) {
 									inodeins.insert(size, compressedSize, crc, sha1, cdata);
 									inodeid = inodeins.lastInsertRowid();
-									shas.put(sha1, inodeid);
 								}
+
+								shas.put(sha1, inodeid);
 							}
 						}
 
