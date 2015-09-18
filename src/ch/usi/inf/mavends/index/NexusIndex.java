@@ -18,9 +18,9 @@ final class NexusIndex implements AutoCloseable {
 	private final FileChannel fc;
 	private final MappedByteBuffer mbb;
 
-	public final int headb;
+	final int headb;
 
-	public final Date creationDate;
+	final Date creationDate;
 
 	/**
 	 * Creates a new parser with the specified path. The indexPath must be a
@@ -30,7 +30,7 @@ final class NexusIndex implements AutoCloseable {
 	 *            Path to the Nexus Index to parse.
 	 * @throws IOException
 	 */
-	public NexusIndex(String indexPath) throws IOException {
+	NexusIndex(String indexPath) throws IOException {
 		raf = new RandomAccessFile(indexPath, "r");
 		fc = raf.getChannel();
 		mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
@@ -39,11 +39,11 @@ final class NexusIndex implements AutoCloseable {
 		creationDate = new Date(mbb.getLong());
 	}
 
-	public boolean hasNext() {
+	boolean hasNext() {
 		return mbb.hasRemaining();
 	}
 
-	public NexusRecord next() {
+	NexusRecord next() {
 		int fieldCount = mbb.getInt();
 		NexusRecord nr = new NexusRecord();
 

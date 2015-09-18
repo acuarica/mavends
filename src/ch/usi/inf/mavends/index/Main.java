@@ -18,6 +18,13 @@ import ch.usi.inf.mavends.util.log.Log;
  */
 public class Main {
 
+	private static final String INSERT_HEADER = "insert into header (headb, creationdate) values (?, date(?/1000, 'unixepoch' ))";
+	private static final String INSERT_ARTIFACT = "insert into artifact (groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, mdate, sha1, artifactname, artifactdesc) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ), ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_DEL = "insert into del (groupid, artifactid, version, classifier, packaging, mdate) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ))";
+	private static final String INSERT_DESC = "insert into descriptor (descriptor, idxinfo) values (?, ?)";
+	private static final String INSERT_ALL = "insert into allgroups (groupid) values (?)";
+	private static final String INSERT_ROOT = "insert into rootgroups (groupid) values (?)";
+
 	private static final Log log = new Log(System.out);
 
 	public static class Args {
@@ -34,19 +41,16 @@ public class Main {
 			FileNotFoundException, IOException, ParseException, SQLException {
 		final Args ar = ArgsParser.parse(args, new Args());
 
-		try (final Db db = new Db(ar.mavenIndex); final NexusIndex ni = new NexusIndex(ar.nexusIndex)) {
-			final Inserter headerins = db
-					.createInserter("insert into header (headb, creationdate) values (?, date(?/1000, 'unixepoch' ))");
-			final Inserter artins = db
-					.createInserter("insert into artifact (groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, mdate, sha1, artifactname, artifactdesc) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ), ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			final Inserter delins = db
-					.createInserter("insert into del (groupid, artifactid, version, classifier, packaging, mdate) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ))");
-			final Inserter descins = db.createInserter("insert into descriptor (descriptor, idxinfo) values (?, ?)");
-			final Inserter allins = db.createInserter("insert into allgroups (groupid) values (?)");
-			final Inserter rootins = db.createInserter("insert into rootgroups (groupid) values (?)");
+		try (final NexusIndex ni = new NexusIndex(ar.nexusIndex);
+				final Db db = new Db(ar.mavenIndex);
+				final Inserter artins = db.createInserter(INSERT_ARTIFACT);
+				final Inserter delins = db.createInserter(INSERT_DEL)) {
 
 			log.info("Inserting header...");
-			headerins.insert(ni.headb, ni.creationDate);
+
+			try (final Inserter headerins = db.createInserter(INSERT_HEADER)) {
+				headerins.insert(ni.headb, ni.creationDate);
+			}
 
 			while (ni.hasNext()) {
 				NexusRecord nr = ni.next();
@@ -59,14 +63,20 @@ public class Main {
 				} else if (mr.del != null) {
 					delins.insert(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.mdate);
 				} else if (mr.descriptor != null) {
-					descins.insert(mr.descriptor, mr.idxinfo);
+					try (final Inserter descins = db.createInserter(INSERT_DESC)) {
+						descins.insert(mr.descriptor, mr.idxinfo);
+					}
 				} else if (mr.allGroupsList != null) {
-					for (String groupid : mr.allGroupsList) {
-						allins.insert(groupid);
+					try (final Inserter allins = db.createInserter(INSERT_ALL)) {
+						for (String groupid : mr.allGroupsList) {
+							allins.insert(groupid);
+						}
 					}
 				} else if (mr.rootGroupsList != null) {
-					for (String groupid : mr.rootGroupsList) {
-						rootins.insert(groupid);
+					try (final Inserter rootins = db.createInserter(INSERT_ROOT)) {
+						for (String groupid : mr.rootGroupsList) {
+							rootins.insert(groupid);
+						}
 					}
 				}
 			}

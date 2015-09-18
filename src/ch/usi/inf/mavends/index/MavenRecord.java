@@ -11,31 +11,31 @@ import java.util.Date;
  */
 final class MavenRecord {
 
-	public final Date mdate;
-	public final String u;
-	public final String i;
-	public final String del;
-	public final String sha1;
-	public final String artifactName;
-	public final String artifactDesc;
+	final Date mdate;
+	final String u;
+	final String i;
+	final String del;
+	final String sha1;
+	final String artifactName;
+	final String artifactDesc;
 
-	public final String descriptor;
-	public final String idxinfo;
-	public final String[] allGroupsList;
-	public final String[] rootGroupsList;
+	final String descriptor;
+	final String idxinfo;
+	final String[] allGroupsList;
+	final String[] rootGroupsList;
 
-	public final String groupid;
-	public final String artifactid;
-	public final String version;
-	public final String classifier;
-	public final String packaging;
+	final String groupid;
+	final String artifactid;
+	final String version;
+	final String classifier;
+	final String packaging;
 
-	public final Date idate;
-	public final long size;
-	public final int is3;
-	public final int is4;
-	public final int is5;
-	public final String extension;
+	final Date idate;
+	final long size;
+	final int is3;
+	final int is4;
+	final int is5;
+	final String extension;
 
 	/**
 	 * It checks if all invariants for a MavenRecord hold from the NexusRecord.
@@ -44,7 +44,7 @@ final class MavenRecord {
 	 *            The NexusRecord taken from the Nexus Index.
 	 * @throws ParseException
 	 */
-	public MavenRecord(NexusRecord nr) throws ParseException {
+	MavenRecord(NexusRecord nr) throws ParseException {
 		String m = nr.get("m");
 
 		i = nr.get("i");

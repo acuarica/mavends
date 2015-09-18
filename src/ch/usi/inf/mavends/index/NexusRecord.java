@@ -22,7 +22,7 @@ final class NexusRecord {
 	 *            The key to look for
 	 * @return The associated value to the given key.
 	 */
-	public String get(String key) {
+	String get(String key) {
 		return values.get(key);
 	}
 
@@ -34,7 +34,7 @@ final class NexusRecord {
 	 * @param value
 	 *            The value associated to the given key.
 	 */
-	public void put(String key, String value) {
+	void put(String key, String value) {
 		values.put(key, value);
 	}
 
