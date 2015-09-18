@@ -20,10 +20,12 @@ Thus making it, the ideal to explore new ideas on how software artifacts are use
 They need to be installed before running *MavenDS*.
 The list of tools are:
 
-- **Git** https://git-scm.com: To clone our repository.
-- **Java JDK 7** http://openjdk.java.net: To compile and run our applications.
+- **Git** https://git-scm.com/: To clone our repository.
+- **Java JDK 7** http://openjdk.java.net/: To compile and run our applications.
 - **Ant** https://ant.apache.org/: Software tool for automating software build process.
 - **Aria2** http://aria2.sourceforge.net/: Tool to automate downloads of a large amount of files.
+
+Optionally, **SQLite** http://sqlite.org/ can be installed to inspect the Maven Index and Maven POM Depedencies databases. 
 
 
 ## Repository Setup
@@ -88,6 +90,10 @@ This command will fetch the nexus index.
 ## Build Maven Index
 
     ant mavenindex
+
+This builds the maven index database. From this database artifacts can be filtered using plain SQL.
+Refer to [sql/mavenindex.sql] for more details on the tables and views of the Maven Index DB.
+  
 
 ## Selective Fetching and Analysis: Configurations
 
