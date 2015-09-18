@@ -75,7 +75,7 @@ public final class Main {
 
 			long items;
 			do {
-				Thread.sleep(5000);
+				Thread.sleep(10000);
 
 				items = 0;
 
