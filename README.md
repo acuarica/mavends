@@ -4,17 +4,38 @@
 
 ## Introduction
 
-*MavenDS* is a dataset and analysis framework for the Maven Central Repository.
-*MavenDS* resembles a filesystem to hold every Maven Central artifact.
-In short, *Everything you wanted to know about the Maven Repository* is possible with *MavenDS*.
+Ever wondered how a certain API was used?
+Or what is it its evolution?
+If you do research on mining repositories, *MavenDS* is the right tool for you. 
+*MavenDS* allows you selective download and analyse artifacts from the *Maven Central* repository http://search.maven.org/.
 
+The *Maven Central Repository* became the most used JVM repository.
+Because not only Java code, but Scala, Groovy, Go and every JVM language can deploy to Maven Central.
+Thus making it, the ideal to explore new ideas on how software artifacts are used.
 
-the Maven Central Repository became the most used JVM repository.
-Because not only java code, but scala groovy go and each JVM language can deploy to maven.
+## Requirements
+
+*MavenDS* uses external tools to function properly.
+They need to be installed before running *MavenDS*.
+The list of tools are:
+
+- *Git* https://git-scm.com: To clone our repository.
+- *Java 7* http://openjdk.java.net: To compile and run our applications.
+- *Ant* https://ant.apache.org/: Software tool for automating software build process.
+- *Aria2* 7 http://aria2.sourceforge.net/: Tool to automate downloads of a large amount of files.
+
+## Repository Setup
+
+Our tool consists of three main components: a) a Java project to download and extract information for Java archives and POM files from Maven Repository, 
+An Eclipse Java project is located at the root of the repository.
+Our tool are available online.
+
+    git clone https://bitbucket.org/acuarica/mavends.git
+
 
 ## Getting Started
 
-The build process is managed by an *Ant* script [https://ant.apache.org/].
+The build process is managed by an *Ant* script.
 You can see the list of targets by running the following command:
 
     ant -projecthelp
@@ -47,38 +68,44 @@ Main targets:
 Default target: -compile
 ```
 
-### Fetching Nexus Index
+At any point, if you want to start the experiments from scratch, you can run the following command to remove the build folder:
+
+    ant clean
+
+The first step in our workflow is to get a representative subset of artifacts to get analyzed.
+
+## Fetching Nexus Index
 
 To download the nexus index, run the following command:
 
     ant nexusindex
 
-### Check Nexus Index
+This command will fetch the nexus index.
+ 
 
-    ant checknexusindex
+## Build Maven Index
 
     ant mavenindex
 
- 
-    ant urilist-dev
+## Selective Fetching and Analysis: Configurations
 
- 
-    ant fetcharts
 
- 
-    ant maveninode-dev
+    conf-all
+    ant conf-ch
+    ant conf-com
+    ant conf-net
 
-    ant mavenpom-dev
+## Fetching Artifacts
 
- 
-    ant clean
+    ant <conf> fetcharts
+    ant <conf> urilist
 
-## Implementation
+## Maven POM Dependencies
 
-We take advantage of the following fact:
+    ant <conf> mavenpom
 
-https://www.sqlite.org/intern-v-extern-blob.html
+## Analysis
 
-To store small files in directly in the database.
-
-The files are compressed.
+    ant <conf>analysis-stats
+    
+    ant <conf> analysis-unsafe
