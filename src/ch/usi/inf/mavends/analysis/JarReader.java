@@ -5,19 +5,32 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import ch.usi.inf.mavends.util.log.Log;
 
-abstract class JarReader {
+abstract class JarReader extends Thread {
 
 	private static final Log log = new Log(System.out);
 
 	private final String repoDir;
 
-	public JarReader(String repoDir) {
+	private final ArtifactQueue queue;
+
+	public JarReader(String repoDir, ArtifactQueue queue) {
 		this.repoDir = repoDir;
+		this.queue = queue;
+	}
+
+	@Override
+	public void run() {
+		for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
+			final Artifact artifact = it.next();
+			process(artifact.path);
+			it.remove();
+		}
 	}
 
 	public void process(String path) {

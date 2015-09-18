@@ -1,10 +1,6 @@
 package ch.usi.inf.mavends.analysis;
 
-import java.io.InputStream;
 import java.sql.ResultSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -34,32 +30,26 @@ public final class Main {
 
 	}
 
-	private static class Artifact {
-		final long coordid;
-		final String path;
-
-		Artifact(long coordid, String path) {
-			this.coordid = coordid;
-			this.path = path;
-		}
-	}
-
 	public static void main(String[] args) throws Exception {
 		final Args ar = ArgsParser.parse(args, new Args());
 
 		Class<?> cls = Class.forName(ar.mavenVisitor);
 
-		final List<Artifact> queue = new LinkedList<Artifact>();
+		int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 
-		try (final Db db = new Db(ar.mavenIndex)) {
-			final ResultSet rs = db.select(ar.query);
+		final ArtifactQueue[] queues = new ArtifactQueue[numberOfProcessors];
+		for (int i = 0; i < queues.length; i++) {
+			queues[i] = new ArtifactQueue();
+		}
+
+		try (final Db db = new Db(ar.mavenIndex); final ResultSet rs = db.select(ar.query)) {
 			int n = 0;
 
 			while (rs.next()) {
 				final long coordid = rs.getLong("coordid");
 				final String path = rs.getString("path");
 
-				queue.add(new Artifact(coordid, path));
+				queues[n % queues.length].add(coordid, path);
 
 				n++;
 			}
@@ -67,40 +57,34 @@ public final class Main {
 			log.info("No. jar files: %,d", n);
 		}
 
-		new Thread() {
-			@Override
-			public void run() {
-				do {
-					try {
-						Thread.sleep(60 * 1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					log.info("Remaining Jars: %,d", queue.size());
-				} while (queue.size() > 0);
-			};
-		}.start();
-
-		try (MavenVisitor mv = (MavenVisitor) cls.newInstance()) {
-			for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
-				final Artifact artifact = it.next();
-				new JarReader(ar.repo) {
-
+		try (final MavenVisitor mv = (MavenVisitor) cls.newInstance()) {
+			for (final ArtifactQueue queue : queues) {
+				new JarReader(ar.repo, queue) {
 					@Override
-					void processEntry(String filename, byte[] classFile) {
+					synchronized void processEntry(String filename, byte[] classFile) {
 						try {
 							ClassReader cr = new ClassReader(classFile);
 							ClassVisitor v = mv.visitClass();
 							cr.accept(v, 0);
 						} catch (Exception e) {
 							log.info("Exception: %s", e);
-							// e.printStackTrace();
 						}
 					}
-				}.process(artifact.path);
-
-				it.remove();
+				}.start();
 			}
+
+			long items;
+			do {
+				Thread.sleep(5000);
+
+				items = 0;
+
+				for (final ArtifactQueue queue : queues) {
+					items += queue.size();
+				}
+
+				log.info("Remaining Jars: %,d", items);
+			} while (items > 0);
 		}
 	}
 }
