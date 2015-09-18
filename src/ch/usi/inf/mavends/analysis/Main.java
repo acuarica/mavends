@@ -2,7 +2,9 @@ package ch.usi.inf.mavends.analysis;
 
 import java.io.InputStream;
 import java.sql.ResultSet;
-import java.util.zip.InflaterInputStream;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -21,15 +23,25 @@ public final class Main {
 		@Arg(key = "mavenindex", name = "Maven Index path", desc = "Specifies the path of the Maven Index DB.")
 		public String mavenIndex;
 
+		@Arg(key = "repo", name = "Maven Inode DB path", desc = "Specifies the path of the output db file.")
+		public String repo;
+
 		@Arg(key = "query", name = "URI list", desc = "Specifies the output uri list file (*aria2* format).")
 		public String query;
-
-		@Arg(key = "maveninode", name = "Maven Inode DB path", desc = "Specifies the path of the output db file.")
-		public String mavenInode;
 
 		@Arg(key = "mavenvisitor", name = "Maven Visitor", desc = "Specifies the path of the output db file.")
 		public String mavenVisitor;
 
+	}
+
+	private static class Artifact {
+		final long coordid;
+		final String path;
+
+		Artifact(long coordid, String path) {
+			this.coordid = coordid;
+			this.path = path;
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -37,38 +49,58 @@ public final class Main {
 
 		Class<?> cls = Class.forName(ar.mavenVisitor);
 
-		try (final Db dbi = new Db(ar.mavenIndex);
-				final Db db = new Db(ar.mavenInode);
-				MavenVisitor mv = (MavenVisitor) cls.newInstance()) {
-			final ResultSet rs = dbi.select(ar.query);
+		final List<Artifact> queue = new LinkedList<Artifact>();
 
+		try (final Db db = new Db(ar.mavenIndex)) {
+			final ResultSet rs = db.select(ar.query);
 			int n = 0;
+
 			while (rs.next()) {
 				final long coordid = rs.getLong("coordid");
+				final String path = rs.getString("path");
 
-				final ResultSet fs = db.select("select * from file where coordid = ?", coordid);
+				queue.add(new Artifact(coordid, path));
 
 				n++;
+			}
 
-				while (fs.next()) {
-					final String filename = fs.getString("filename");
+			log.info("No. jar files: %d", n);
+		}
 
-					if (filename.endsWith(".class")) {
+		new Thread() {
+			@Override
+			public void run() {
+				do {
+					try {
+						Thread.sleep(60 * 1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					log.info("Remaining Jars: %,d", queue.size());
+				} while (queue.size() > 0);
+			};
+		}.start();
+
+		try (MavenVisitor mv = (MavenVisitor) cls.newInstance()) {
+			for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
+				final Artifact artifact = it.next();
+				new JarReader(ar.repo) {
+
+					@Override
+					void processEntry(String filename, byte[] classFile) {
 						try {
-							final InputStream cdata = fs.getBinaryStream("cdata");
-							final InflaterInputStream iis = new InflaterInputStream(cdata);
-
-							ClassReader cr = new ClassReader(iis);
+							ClassReader cr = new ClassReader(classFile);
 							ClassVisitor v = mv.visitClass();
 							cr.accept(v, 0);
 						} catch (Exception e) {
 							log.info("Exception: %s", e);
-							e.printStackTrace();
+							// e.printStackTrace();
 						}
 					}
-				}
+				}.process(artifact.path);
+
+				it.remove();
 			}
-			log.info("No. jar files: %d", n);
 		}
 	}
 }
