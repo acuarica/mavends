@@ -6,23 +6,25 @@
 
 Ever wondered how a certain API was used?
 Or what is it its evolution?
-If you do research on mining repositories, *MavenDS* is the right tool for you. 
-*MavenDS* allows you selective download and analyse artifacts from the *Maven Central* repository http://search.maven.org/.
+If you do research on Mining Software Repositories, *MavenDS* is the right tool for you. 
+*MavenDS* allows you selective download and analyze artifacts from the *Maven Central* repository http://search.maven.org/.
 
 The *Maven Central Repository* became the most used JVM repository.
 Because not only Java code, but Scala, Groovy, Go and every JVM language can deploy to Maven Central.
 Thus making it, the ideal to explore new ideas on how software artifacts are used.
 
+
 ## Requirements
 
-*MavenDS* uses external tools to function properly.
+*MavenDS* uses several external tools to function properly.
 They need to be installed before running *MavenDS*.
 The list of tools are:
 
-- *Git* https://git-scm.com: To clone our repository.
-- *Java 7* http://openjdk.java.net: To compile and run our applications.
-- *Ant* https://ant.apache.org/: Software tool for automating software build process.
-- *Aria2* 7 http://aria2.sourceforge.net/: Tool to automate downloads of a large amount of files.
+- **Git** https://git-scm.com: To clone our repository.
+- **Java JDK 7** http://openjdk.java.net: To compile and run our applications.
+- **Ant** https://ant.apache.org/: Software tool for automating software build process.
+- **Aria2** http://aria2.sourceforge.net/: Tool to automate downloads of a large amount of files.
+
 
 ## Repository Setup
 
@@ -64,11 +66,11 @@ Main targets:
  mavenindex       Creates and populates the Maven Index DB from the Nexus Index.
  mavenpom         Extract the information from POM files. Requires configuration.
  nexusindex       Fetches and uncompresses the Nexus Maven Repository Index.
- urilist          Builds the list of artifacts to download configuration. Requires configuration.
+ urilist          Builds the list of artifacts to download. Requires configuration.
 Default target: -compile
 ```
 
-At any point, if you want to start the experiments from scratch, you can run the following command to remove the build folder:
+At any point, if you want to start the experiments from scratch, you can run the following command to remove the build folder by running:
 
     ant clean
 
@@ -109,3 +111,5 @@ This command will fetch the nexus index.
     ant <conf>analysis-stats
     
     ant <conf> analysis-unsafe
+
+ASM

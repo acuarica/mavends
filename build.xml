@@ -95,7 +95,7 @@
 			<arg value="--mavenindex=${mavenindex.path}" />
 		</java>
 	</target>
-	<target name="urilist" depends="-compile" description="Builds the list of artifacts to download configuration. Requires configuration." if="select.query">
+	<target name="urilist" depends="-compile" description="Builds the list of artifacts to download. Requires configuration." if="select.query">
 		<java classname="ch.usi.inf.mavends.uri.Main" classpath="${build}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
