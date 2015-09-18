@@ -64,7 +64,7 @@ public final class Main {
 				n++;
 			}
 
-			log.info("No. jar files: %d", n);
+			log.info("No. jar files: %,d", n);
 		}
 
 		new Thread() {
