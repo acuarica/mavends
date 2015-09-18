@@ -1,16 +1,16 @@
 
-# MavenDS: The Maven Repository on a Silver Platter
+# MavenDS: An Analysis Framework for the Maven Repository
 
 
 ## Introduction
-
-the Maven Central Repository became the most used JVM repository.
-Because not only java code, but scala groovy go and each JVM language can deploy to maven.
 
 *MavenDS* is a dataset and analysis framework for the Maven Central Repository.
 *MavenDS* resembles a filesystem to hold every Maven Central artifact.
 In short, *Everything you wanted to know about the Maven Repository* is possible with *MavenDS*.
 
+
+the Maven Central Repository became the most used JVM repository.
+Because not only java code, but scala groovy go and each JVM language can deploy to maven.
 
 ## Getting Started
 
