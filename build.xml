@@ -1,5 +1,5 @@
 <project name="MavenDS" basedir="." default="-compile">
-	<description>MavenDS: An Analysis Framework for the Maven Repository. Targets begining with '-' are executed internally by other targets. To fetch the Nexus Index and Maven Artifacts, *aria2* is used. Check http://aria2.sourceforge.net/ for how to install *aria2* on your platform. To run targets that requires configuration, prepend the configuration target before the goal target, e.g., *ant conf-ch urilist*</description>
+	<description>MavenDS: An Analysis Framework for the Maven Repository.${line.separator}Targets begining with '-' are executed internally by other targets.${line.separator}To fetch the Nexus Index and Maven Artifacts, *aria2* is used.${line.separator}Check http://aria2.sourceforge.net/ for more details on how to install *aria2*.${line.separator}Some targets require a configuration.${line.separator}Prepend the configuration target before the goal target, e.g., *ant conf-ch urilist*.</description>
 	<property name="src" location="src" />
 	<property name="sql" location="sql" />
 	<property name="lib" location="lib" />
@@ -54,16 +54,16 @@
 			</java>
 		</sequential>
 	</macrodef>
-	<target name="conf-ch" description="Configuration 'dev' using artifacts from the 'ch' root group. Circa 500MB of JAR files.">
+	<target name="conf-ch" description="Configuration using artifacts from the 'ch' root group (~500MB).">
 		<setup conf="ch" where="rootgroup = 'ch'" />
 	</target>
-	<target name="conf-net" description="Configuration 'test' using artifacts from the 'net' root group. Circa 16GB of JAR files.">
+	<target name="conf-net" description="Configuration using artifacts from the 'net' root group (~16GB).">
 		<setup conf="net" where="rootgroup = 'net'" />
 	</target>
-	<target name="conf-com" description="Configuration 'stage' using artifacts from the 'com' root group. Circa 58GB of JAR files.">
+	<target name="conf-com" description="Configuration using artifacts from the 'com' root group (~58GB).">
 		<setup conf="com" where="rootgroup = 'com'" />
 	</target>
-	<target name="conf-all" description="Configuration 'prod' using --all-- artifacts. Circa 254GB of JAR files.">
+	<target name="conf-all" description="Configuration using --all-- artifacts. (~254GB).">
 		<setup conf="all" where="1" />
 	</target>
 	<target name="-compile" description="Compiles all Java files under the src/ directory.">
@@ -104,7 +104,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="fetcharts" description="Fetches all artifacts specified by the URI list in with *aria2*. Requires configuration." if="select.query">
+	<target name="fetcharts" description="Fetches all artifacts specified by the URI list. Requires configuration." if="select.query">
 		<exec executable="aria2c">
 			<arg value="--dir=${repo}" />
 			<arg value="--max-concurrent-downloads=16" />
