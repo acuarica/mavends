@@ -1,10 +1,10 @@
 package ch.usi.inf.mavends.analysis;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -33,9 +33,7 @@ abstract class JarReader extends Thread {
 		}
 	}
 
-	public void process(String path) {
-		final byte[] buffer = new byte[8192];
-
+	private void process(String path) {
 		try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(repoDir + "/" + path));
 				ZipInputStream zip = new ZipInputStream(bis)) {
 
@@ -47,23 +45,23 @@ abstract class JarReader extends Thread {
 					continue;
 				}
 
-				int len = 0;
+				// private final byte[] buffer = new byte[8192];
+				// int len = 0;
+				// final ByteArrayOutputStream stream = new
+				// ByteArrayOutputStream(1024);
+				// while ((len = zip.read(buffer)) > 0) {
+				// stream.write(buffer, 0, len);
+				// }
+				// final byte[] classFile = stream.toByteArray();
 
-				final ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
-
-				while ((len = zip.read(buffer)) > 0) {
-					stream.write(buffer, 0, len);
-				}
-
-				final byte[] classFile = stream.toByteArray();
-				processEntry(filename, classFile);
+				processEntry(filename, zip);
 			}
 		} catch (FileNotFoundException e) {
-			log.info("File not found: %s", e);
+			log.info("File not found: %s", e.getMessage());
 		} catch (IOException e) {
 			log.info("IO Exception: %s", e);
 		}
 	}
 
-	abstract void processEntry(String filename, byte[] classFile);
+	abstract void processEntry(String filename, InputStream classFileStream);
 }

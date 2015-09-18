@@ -1,5 +1,6 @@
 package ch.usi.inf.mavends.analysis;
 
+import java.io.InputStream;
 import java.sql.ResultSet;
 
 import org.objectweb.asm.ClassReader;
@@ -61,10 +62,10 @@ public final class Main {
 			for (final ArtifactQueue queue : queues) {
 				new JarReader(ar.repo, queue) {
 					@Override
-					synchronized void processEntry(String filename, byte[] classFile) {
+					synchronized void processEntry(String filename, InputStream classFileStream) {
 						try {
-							ClassReader cr = new ClassReader(classFile);
-							ClassVisitor v = mv.visitClass();
+							final ClassReader cr = new ClassReader(classFileStream);
+							final ClassVisitor v = mv.visitClass();
 							cr.accept(v, 0);
 						} catch (Exception e) {
 							log.info("Exception: %s", e);
@@ -75,7 +76,7 @@ public final class Main {
 
 			long items;
 			do {
-				Thread.sleep(10000);
+				Thread.sleep(30 * 1000);
 
 				items = 0;
 
