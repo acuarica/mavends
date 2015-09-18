@@ -92,8 +92,8 @@ This command will fetch the nexus index.
     ant mavenindex
 
 This builds the maven index database. From this database artifacts can be filtered using plain SQL.
-Refer to [sql/mavenindex.sql] for more details on the tables and views of the Maven Index DB.
-  
+Refer to [sql/mavenindex.sql](sql/mavenindex.sql) for more details on the tables and views of the Maven Index DB.
+
 
 ## Selective Fetching and Analysis: Configurations
 
