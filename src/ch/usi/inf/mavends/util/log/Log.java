@@ -3,13 +3,16 @@ package ch.usi.inf.mavends.util.log;
 import java.io.PrintStream;
 
 /**
- * Wrapper around a PrintStream to serve as a log.
+ * Simple wrapper around a PrintStream to serve as a log.
  * 
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
 public class Log {
 
+	/**
+	 * The PrintStream to log messages.
+	 */
 	private final PrintStream out;
 
 	/**

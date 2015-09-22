@@ -16,17 +16,20 @@ import org.sqlite.SQLiteConnection;
 public class Db implements AutoCloseable {
 
 	/**
-	 * 
+	 * The SQLiteConnection to wrap.
 	 */
 	private final SQLiteConnection conn;
 
 	/**
+	 * Creates a new connection to the specified database path.
 	 * 
 	 * @param dbPath
+	 *            The path of the database to connect. This should be a local
+	 *            file path.
 	 * @throws SQLException
 	 */
-	public Db(String dbPath) throws SQLException {
-		conn = new SQLiteConnection(null, dbPath);
+	public Db(String databasePath) throws SQLException {
+		conn = new SQLiteConnection(null, databasePath);
 
 		pragma("journal_mode", "off");
 		pragma("synchronous", "off");
@@ -35,13 +38,11 @@ public class Db implements AutoCloseable {
 		conn.setAutoCommit(false);
 	}
 
-	private void pragma(String name, Object value) throws SQLException {
-		execute(String.format("pragma %s=%s", name, value));
-	}
-
 	/**
+	 * Executes the given SQL statement to under the current connection.
 	 * 
 	 * @param sql
+	 *            The SQL statement to execute.
 	 * @throws SQLException
 	 */
 	public void execute(String sql) throws SQLException {
@@ -51,9 +52,12 @@ public class Db implements AutoCloseable {
 	}
 
 	/**
+	 * Executes a SELECT statement under the current connection.
 	 * 
 	 * @param sql
+	 *            The SELECT statement to execute.
 	 * @param values
+	 *            Additional arguments
 	 * @return
 	 * @throws SQLException
 	 */
@@ -91,5 +95,15 @@ public class Db implements AutoCloseable {
 	 */
 	public void commit() throws SQLException {
 		conn.commit();
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @param value
+	 * @throws SQLException
+	 */
+	private void pragma(String name, Object value) throws SQLException {
+		execute(String.format("pragma %s=%s", name, value));
 	}
 }

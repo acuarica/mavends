@@ -4,6 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import ch.usi.inf.mavends.analysis.Artifact;
 import ch.usi.inf.mavends.analysis.MavenVisitor;
 import ch.usi.inf.mavends.util.log.Log;
 
@@ -12,7 +13,7 @@ import ch.usi.inf.mavends.util.log.Log;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class StatsVisitor extends MavenVisitor {
+public class BytecodeStatsVisitor extends MavenVisitor {
 
 	private static final Log log = new Log(System.out);
 
@@ -23,7 +24,7 @@ public class StatsVisitor extends MavenVisitor {
 	private long constantCount = 0;
 
 	@Override
-	public ClassVisitor visitClass() {
+	public ClassVisitor visitClass(Artifact artifact) {
 		return new ClassVisitor(Opcodes.ASM5) {
 
 			@Override

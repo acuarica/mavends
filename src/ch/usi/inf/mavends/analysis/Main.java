@@ -2,9 +2,6 @@ package ch.usi.inf.mavends.analysis;
 
 import java.sql.ResultSet;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
@@ -48,8 +45,11 @@ public final class Main {
 			while (rs.next()) {
 				final long coordid = rs.getLong("coordid");
 				final String path = rs.getString("path");
+				final String groupid = rs.getString("groupid");
+				final String artifactid = rs.getString("artifactid");
+				final String version = rs.getString("version");
 
-				queues[n % queues.length].add(coordid, path);
+				queues[n % queues.length].add(coordid, groupid, artifactid, version, path);
 
 				n++;
 			}
@@ -61,11 +61,9 @@ public final class Main {
 			for (final ArtifactQueue queue : queues) {
 				new JarReader(ar.repo, queue) {
 					@Override
-					synchronized void processEntry(String filename, byte[] classFile) {
+					synchronized void processEntry(Artifact artifact, String fileName, byte[] fileData) {
 						try {
-							final ClassReader cr = new ClassReader(classFile);
-							final ClassVisitor v = mv.visitClass();
-							cr.accept(v, 0);
+							mv.visitFileEntry(artifact, fileName, fileData);
 						} catch (Exception e) {
 							log.info("Exception: %s", e);
 						}

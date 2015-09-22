@@ -1,5 +1,6 @@
 package ch.usi.inf.mavends.analysis;
 
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 
 /**
@@ -9,6 +10,18 @@ import org.objectweb.asm.ClassVisitor;
  */
 public abstract class MavenVisitor implements AutoCloseable {
 
-	public abstract ClassVisitor visitClass();
+	public ClassVisitor visitClass(Artifact artifact) {
+		return null;
+	}
 
+	public void visitFileEntry(Artifact artifact, String fileName, byte[] fileData) {
+		if (fileName.endsWith(".class")) {
+			final ClassReader cr = new ClassReader(fileData);
+			final ClassVisitor v = visitClass(artifact);
+
+			if (v != null) {
+				cr.accept(v, 0);
+			}
+		}
+	}
 }

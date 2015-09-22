@@ -1,13 +1,18 @@
 package ch.usi.inf.mavends.analysis;
 
-final class Artifact {
+public final class Artifact {
 
-	final long coordid;
-	final String path;
+	public final long coordid;
+	public final String path;
+	public final String groupid;
+	public final String artifactid;
+	public final String version;
 
-	Artifact(long coordid, String path) {
+	Artifact(long coordid, String groupid, String artifactid, String version, String path) {
 		this.coordid = coordid;
+		this.groupid = groupid;
+		this.artifactid = artifactid;
+		this.version = version;
 		this.path = path;
 	}
-
 }

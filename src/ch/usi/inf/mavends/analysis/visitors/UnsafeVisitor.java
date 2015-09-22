@@ -7,6 +7,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import ch.usi.inf.mavends.analysis.Artifact;
 import ch.usi.inf.mavends.analysis.MavenVisitor;
 
 public class UnsafeVisitor extends MavenVisitor {
@@ -15,20 +16,16 @@ public class UnsafeVisitor extends MavenVisitor {
 
 	public UnsafeVisitor() throws FileNotFoundException {
 		out = new PrintStream("out/unsafe.csv");
-		out.format("className,methodName,methodDesc,owner,name,desc\n");
+		out.format("coordid,groupid,artifactid,version,className,methodName,methodDesc,owner,name,desc\n");
 	}
 
 	@Override
-	public ClassVisitor visitClass() {
+	public ClassVisitor visitClass(Artifact artifact) {
+		final Artifact art = artifact;
+
 		return new ClassVisitor(Opcodes.ASM5) {
 
-			// private final String coorid;
 			String className;
-
-			// public UnsafeVisitor(String coorid) {
-			// super(Opcodes.ASM5);
-			// // this.coorid = coorid;
-			// }
 
 			@Override
 			public void visit(int version, int access, String name, String signature, String superName,
@@ -64,7 +61,8 @@ public class UnsafeVisitor extends MavenVisitor {
 					}
 
 					private void add(String owner, String name, String desc) {
-						out.format("%s,%s,%s,%s,%s,%s\n", className, methodName, methodDesc, owner, name, desc);
+						out.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", art.coordid, art.groupid, art.artifactid,
+								art.version, className, methodName, methodDesc, owner, name, desc);
 					}
 				};
 

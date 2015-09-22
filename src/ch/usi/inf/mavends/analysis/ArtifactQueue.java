@@ -8,8 +8,8 @@ final class ArtifactQueue implements Iterable<Artifact> {
 
 	private final List<Artifact> queue = new LinkedList<Artifact>();
 
-	void add(long coordid, String path) {
-		queue.add(new Artifact(coordid, path));
+	void add(long coordid, String groupid, String artifactid, String version, String path) {
+		queue.add(new Artifact(coordid, groupid, artifactid, version, path));
 	}
 
 	int size() {

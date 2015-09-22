@@ -17,7 +17,7 @@ abstract class JarReader extends Thread {
 
 	private final byte[] buffer = new byte[2 * 8192];
 
-	private final ByteArrayOutputStream stream = new ByteArrayOutputStream(2 * 8192);
+	private final ByteArrayOutputStream stream = new ByteArrayOutputStream(buffer.length);
 
 	private final String repoDir;
 
@@ -32,33 +32,27 @@ abstract class JarReader extends Thread {
 	public void run() {
 		for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
 			final Artifact artifact = it.next();
-			process(artifact.path);
+			process(artifact, artifact.path);
 			it.remove();
 		}
 	}
 
-	private void process(String path) {
+	private void process(Artifact artifact, String path) {
 		try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(repoDir + "/" + path));
 				ZipInputStream zip = new ZipInputStream(bis)) {
 
 			ZipEntry ze;
 			while ((ze = zip.getNextEntry()) != null) {
-				final String filename = ze.getName();
-
-				if (!filename.endsWith(".class")) {
-					continue;
-				}
-
 				int len = 0;
 
 				while ((len = zip.read(buffer)) > 0) {
 					stream.write(buffer, 0, len);
 				}
 
-				final byte[] classFile = stream.toByteArray();
+				final byte[] fileData = stream.toByteArray();
 				stream.reset();
 
-				processEntry(filename, classFile);
+				processEntry(artifact, ze.getName(), fileData);
 			}
 
 		} catch (FileNotFoundException e) {
@@ -68,5 +62,5 @@ abstract class JarReader extends Thread {
 		}
 	}
 
-	abstract void processEntry(String filename, byte[] classFile);
+	abstract void processEntry(Artifact artifact, String filename, byte[] classFile);
 }

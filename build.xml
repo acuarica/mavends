@@ -126,8 +126,11 @@
 			<arg value="--mavenpom=${mavenpom.path}" />
 		</java>
 	</target>
-	<target name="analysis-stats" depends="-compile" description="Runs Stats analysis. Requires configuration." if="select.query">
-		<analysis mavenvisitor="StatsVisitor" />
+	<target name="analysis-bytecodestats" depends="-compile" description="Runs Bytecode Stats analysis. Requires configuration." if="select.query">
+		<analysis mavenvisitor="BytecodeStatsVisitor" />
+	</target>
+	<target name="analysis-sizestats" depends="-compile" description="Runs Size Stats analysis. Requires configuration." if="select.query">
+		<analysis mavenvisitor="SizeStatsVisitor" />
 	</target>
 	<target name="analysis-unsafe" depends="-compile" description="Runs Unsafe analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="UnsafeVisitor" />
