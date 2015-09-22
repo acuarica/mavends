@@ -44,15 +44,21 @@ final class NexusIndex implements AutoCloseable {
 	}
 
 	NexusRecord next() {
-		int fieldCount = mbb.getInt();
-		NexusRecord nr = new NexusRecord();
+		final int fieldCount = mbb.getInt();
+		final NexusRecord nr = new NexusRecord(fieldCount);
 
 		for (int i = 0; i < fieldCount; i++) {
 			mbb.get();
 
-			String key = getString(mbb.getShort());
-			String value = getString(mbb.getInt());
-			nr.put(key, value);
+			int keyLen = mbb.getShort();
+			byte[] key = new byte[keyLen];
+			mbb.get(key);
+
+			int valueLen = mbb.getInt();
+			byte[] value = new byte[valueLen];
+			mbb.get(value);
+
+			nr.put(i, key, value);
 		}
 
 		return nr;
@@ -62,11 +68,5 @@ final class NexusIndex implements AutoCloseable {
 	public void close() throws IOException {
 		fc.close();
 		raf.close();
-	}
-
-	private String getString(int length) {
-		byte[] buffer = new byte[length];
-		mbb.get(buffer);
-		return new String(buffer);
 	}
 }

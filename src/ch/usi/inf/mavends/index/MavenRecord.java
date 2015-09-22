@@ -11,6 +11,20 @@ import java.util.Date;
  */
 final class MavenRecord {
 
+	private static final byte[] M = "m".getBytes();
+	private static final byte[] I = "i".getBytes();
+	private static final byte[] U = "u".getBytes();
+	private static final byte[] DEL = "del".getBytes();
+	private static final byte[] ONE = "1".getBytes();
+	private static final byte[] N = "n".getBytes();
+	private static final byte[] D = "d".getBytes();
+	private static final byte[] DESCRIPTOR = "DESCRIPTOR".getBytes();
+	private static final byte[] IDXINFO = "IDXINFO".getBytes();
+	private static final byte[] ALL_GROUPS = "allGroups".getBytes();
+	private static final byte[] ALL_GROUPS_LIST = "allGroupsList".getBytes();
+	private static final byte[] ROOT_GROUPS = "rootGroups".getBytes();
+	private static final byte[] ROOT_GROUPS_LIST = "rootGroupsList".getBytes();
+
 	final Date mdate;
 	final String u;
 	final String i;
@@ -45,21 +59,21 @@ final class MavenRecord {
 	 * @throws ParseException
 	 */
 	MavenRecord(NexusRecord nr) throws ParseException {
-		String m = nr.get("m");
+		String m = nr.get(M);
 
-		i = nr.get("i");
-		u = nr.get("u");
-		del = nr.get("del");
-		sha1 = nr.get("1");
-		artifactName = nr.get("n");
-		artifactDesc = nr.get("d");
-		descriptor = nr.get("DESCRIPTOR");
-		idxinfo = nr.get("IDXINFO");
+		i = nr.get(I);
+		u = nr.get(U);
+		del = nr.get(DEL);
+		sha1 = nr.get(ONE);
+		artifactName = nr.get(N);
+		artifactDesc = nr.get(D);
+		descriptor = nr.get(DESCRIPTOR);
+		idxinfo = nr.get(IDXINFO);
 
-		String allGroups = nr.get("allGroups");
-		String allGroupsList = nr.get("allGroupsList");
-		String rootGroups = nr.get("rootGroups");
-		String rootGroupsList = nr.get("rootGroupsList");
+		String allGroups = nr.get(ALL_GROUPS);
+		String allGroupsList = nr.get(ALL_GROUPS_LIST);
+		String rootGroups = nr.get(ROOT_GROUPS);
+		String rootGroupsList = nr.get(ROOT_GROUPS_LIST);
 
 		if (m != null) {
 			mdate = checkDate(m, nr);
@@ -147,13 +161,13 @@ final class MavenRecord {
 				this.rootGroupsList = null;
 			} else if (allGroups != null) {
 				check(rootGroups == null && descriptor == null, nr, "root/desc");
-				check(allGroups.equals("allGroups"), nr, "allGroups");
+				check(allGroups.equals(new String(ALL_GROUPS)), nr, new String(ALL_GROUPS));
 
 				this.allGroupsList = allGroupsList.split("\\|");
 				this.rootGroupsList = null;
 			} else if (rootGroups != null) {
 				check(allGroups == null && descriptor == null, nr, "null m");
-				check(rootGroups.equals("rootGroups"), nr, "rootGroups");
+				check(rootGroups.equals(new String(ROOT_GROUPS)), nr, new String(ROOT_GROUPS));
 
 				this.allGroupsList = null;
 				this.rootGroupsList = rootGroupsList.split("\\|");
