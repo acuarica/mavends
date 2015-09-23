@@ -99,9 +99,9 @@ Refer to [sql/mavenindex.sql](sql/mavenindex.sql) for more details on the tables
 
 
     conf-all
-    ant conf-ch
-    ant conf-com
-    ant conf-net
+    conf-ch
+    conf-com
+    conf-net
 
 ## Fetching Artifacts
 
@@ -122,7 +122,7 @@ ASM
 
 
 ```java
-public class StatsVisitor extends MavenVisitor {
+public class BytecodeStatsVisitor extends MavenVisitor {
 
 	private static final Log log = new Log(System.out);
 
