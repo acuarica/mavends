@@ -8,7 +8,7 @@ import java.text.ParseException;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
-import ch.usi.inf.mavends.util.db.Inserter;
+import ch.usi.inf.mavends.util.db.Statement;
 import ch.usi.inf.mavends.util.log.Log;
 
 /**
@@ -16,7 +16,7 @@ import ch.usi.inf.mavends.util.log.Log;
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
-public class Main {
+public final class Main {
 
 	private static final String INSERT_HEADER = "insert into header (headb, creationdate) values (?, date(?/1000, 'unixepoch' ))";
 	private static final String INSERT_ARTIFACT = "insert into artifact (groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, mdate, sha1, artifactname, artifactdesc) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ), ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -43,13 +43,13 @@ public class Main {
 
 		try (final NexusIndex ni = new NexusIndex(ar.nexusIndex);
 				final Db db = new Db(ar.mavenIndex);
-				final Inserter artins = db.createInserter(INSERT_ARTIFACT);
-				final Inserter delins = db.createInserter(INSERT_DEL)) {
+				final Statement artStmt = db.createStatement(INSERT_ARTIFACT);
+				final Statement delStmt = db.createStatement(INSERT_DEL)) {
 
 			log.info("Inserting header...");
 
-			try (final Inserter headerins = db.createInserter(INSERT_HEADER)) {
-				headerins.insert(ni.headb, ni.creationDate);
+			try (final Statement headerStmt = db.createStatement(INSERT_HEADER)) {
+				headerStmt.execute(ni.headb, ni.creationDate);
 			}
 
 			while (ni.hasNext()) {
@@ -57,25 +57,25 @@ public class Main {
 				MavenRecord mr = new MavenRecord(nr);
 
 				if (mr.u != null) {
-					artins.insert(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.idate,
+					artStmt.execute(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.idate,
 							mr.size, mr.is3, mr.is4, mr.is5, mr.extension, mr.mdate, mr.sha1, mr.artifactName,
 							mr.artifactDesc);
 				} else if (mr.del != null) {
-					delins.insert(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.mdate);
+					delStmt.execute(mr.groupid, mr.artifactid, mr.version, mr.classifier, mr.packaging, mr.mdate);
 				} else if (mr.descriptor != null) {
-					try (final Inserter descins = db.createInserter(INSERT_DESC)) {
-						descins.insert(mr.descriptor, mr.idxinfo);
+					try (final Statement descins = db.createStatement(INSERT_DESC)) {
+						descins.execute(mr.descriptor, mr.idxinfo);
 					}
 				} else if (mr.allGroupsList != null) {
-					try (final Inserter allins = db.createInserter(INSERT_ALL)) {
+					try (final Statement allStmt = db.createStatement(INSERT_ALL)) {
 						for (String groupid : mr.allGroupsList) {
-							allins.insert(groupid);
+							allStmt.execute(groupid);
 						}
 					}
 				} else if (mr.rootGroupsList != null) {
-					try (final Inserter rootins = db.createInserter(INSERT_ROOT)) {
+					try (final Statement rootStmt = db.createStatement(INSERT_ROOT)) {
 						for (String groupid : mr.rootGroupsList) {
-							rootins.insert(groupid);
+							rootStmt.execute(groupid);
 						}
 					}
 				}

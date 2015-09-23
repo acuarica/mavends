@@ -13,7 +13,7 @@ import org.xml.sax.SAXException;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
-import ch.usi.inf.mavends.util.db.Inserter;
+import ch.usi.inf.mavends.util.db.Statement;
 import ch.usi.inf.mavends.util.log.Log;
 
 public final class Main {
@@ -45,8 +45,8 @@ public final class Main {
 
 			int n = 0;
 
-			final Inserter ins = db
-					.createInserter("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?,?,?,?,?,?,?)");
+			final Statement ins = db
+					.createStatement("insert into dep (gid, aid, ver, dgid, daid, dver, dscope) values (?,?,?,?,?,?,?)");
 
 			while (rs.next()) {
 				final String groupid = rs.getString("groupid");
@@ -58,7 +58,7 @@ public final class Main {
 					final List<Dependency> deps = DepsParser.extractDeps(ar.repoDir + "/" + pompath);
 
 					for (final Dependency dep : deps) {
-						ins.insert(groupid, artifactid, version, dep.groupId, dep.artifactId, dep.version, dep.scope);
+						ins.execute(groupid, artifactid, version, dep.groupId, dep.artifactId, dep.version, dep.scope);
 					}
 				} catch (SAXException | IOException | ParserConfigurationException e) {
 					log.info("Exception in %s (# %d): %s", pompath, n, e);

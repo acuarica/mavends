@@ -11,7 +11,7 @@ If you do research on Mining Software Repositories, *MavenDS* is the right tool 
 
 The *Maven Central Repository* became the most used JVM repository.
 Because not only Java code, but Scala, Groovy, Go and every JVM language can deploy to Maven Central.
-Thus making it, the ideal to explore new ideas on how software artifacts are used.
+Thus making it the ideal tool to explore new ideas on how software artifacts are used.
 
 
 ## Requirements

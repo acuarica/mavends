@@ -3,7 +3,6 @@ package ch.usi.inf.mavends.util.db;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.sqlite.SQLiteConnection;
 
@@ -46,8 +45,8 @@ public class Db implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	public void execute(String sql) throws SQLException {
-		try (Statement stmt = conn.createStatement()) {
-			stmt.executeUpdate(sql);
+		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+			stmt.execute();
 		}
 	}
 
@@ -79,13 +78,8 @@ public class Db implements AutoCloseable {
 	 * @return
 	 * @throws SQLException
 	 */
-	public Inserter createInserter(String sql) throws SQLException {
-		return new Inserter(conn, sql);
-	}
-
-	@Override
-	public void close() throws SQLException {
-		conn.close();
+	public Statement createStatement(String sql) throws SQLException {
+		return new Statement(conn, sql);
 	}
 
 	/**
@@ -95,6 +89,11 @@ public class Db implements AutoCloseable {
 	 */
 	public void commit() throws SQLException {
 		conn.commit();
+	}
+
+	@Override
+	public void close() throws SQLException {
+		conn.close();
 	}
 
 	/**
