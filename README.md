@@ -76,10 +76,13 @@ At any point, if you want to start the experiments from scratch, you can run the
 
     ant clean
 
-The first step in our workflow is to get a representative subset of artifacts to get analyzed.
 
 ## Fetching Nexus Index
 
+The first step in our workflow is to get a representative subset of artifacts to get analyzed.
+To begin with, it is needed an index of all Maven artifacts.
+We get the maven index from a mirror and then uncompress it.
+This step requires an active Internet connection.
 To download the nexus index, run the following command:
 
     ant nexusindex
@@ -89,9 +92,12 @@ This command will fetch the nexus index.
 
 ## Build Maven Index
 
+Once the Nexus Index is downloaded, you need to run:
+
     ant mavenindex
 
-This builds the maven index database. From this database artifacts can be filtered using plain SQL.
+This builds the maven index database.
+From this database artifacts can be filtered using plain SQL.
 Refer to [sql/mavenindex.sql](sql/mavenindex.sql) for more details on the tables and views of the Maven Index DB.
 
 
