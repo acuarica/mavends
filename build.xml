@@ -126,6 +126,16 @@
 			<arg value="--mavenpom=${mavenpom.path}" />
 		</java>
 	</target>
+	<target name="maveninode" depends="-compile" description="Extract the dependency information from POM files." if="select.query">
+		<db file="${maveninode.path}" sql="${sql}/maveninode.sql" />
+		<java classname="ch.usi.inf.mavends.inode.Main" classpath="${build}">
+			<classpath refid="lib" />
+			<arg value="--mavenindex=${mavenindex.path}" />
+			<arg value="--repo=${repo}" />
+			<arg value="--query=${select.query}" />
+			<arg value="--maveninode=${maveninode.path}" />
+		</java>
+	</target>
 	<target name="analysis-bytecodestats" depends="-compile" description="Runs Bytecode Stats analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="BytecodeStatsVisitor" />
 	</target>

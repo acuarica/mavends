@@ -1,6 +1,7 @@
 package ch.usi.inf.mavends.analysis;
 
 import java.sql.ResultSet;
+import java.util.Date;
 
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
@@ -44,12 +45,15 @@ public final class Main {
 
 			while (rs.next()) {
 				final long coordid = rs.getLong("coordid");
-				final String path = rs.getString("path");
 				final String groupid = rs.getString("groupid");
 				final String artifactid = rs.getString("artifactid");
 				final String version = rs.getString("version");
+				final Date idate = new Date(rs.getLong("idate") * 1000);
+				final Date mdate = new Date(rs.getLong("mdate") * 1000);
+				final String path = rs.getString("path");
 
-				queues[n % queues.length].add(coordid, groupid, artifactid, version, path);
+				final Artifact art = new Artifact(coordid, groupid, artifactid, version, idate, mdate, path);
+				queues[n % queues.length].add(art);
 
 				n++;
 			}

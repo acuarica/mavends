@@ -16,13 +16,11 @@ public class UnsafeVisitor extends MavenVisitor {
 
 	public UnsafeVisitor() throws FileNotFoundException {
 		out = new PrintStream("out/unsafe.csv");
-		out.format("coordid,groupid,artifactid,version,className,methodName,methodDesc,owner,name,desc\n");
+		out.format("coordid,groupid,artifactid,version,idate,mdate,className,methodName,methodDesc,owner,name,desc\n");
 	}
 
 	@Override
-	public ClassVisitor visitClass(Artifact artifact) {
-		final Artifact art = artifact;
-
+	public ClassVisitor visitClass(final Artifact art) {
 		return new ClassVisitor(Opcodes.ASM5) {
 
 			String className;
@@ -61,8 +59,8 @@ public class UnsafeVisitor extends MavenVisitor {
 					}
 
 					private void add(String owner, String name, String desc) {
-						out.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", art.coordid, art.groupid, art.artifactid,
-								art.version, className, methodName, methodDesc, owner, name, desc);
+						out.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", art.coordid, art.groupid, art.artifactid,
+								art.version, art.idate, art.mdate, className, methodName, methodDesc, owner, name, desc);
 					}
 				};
 
