@@ -91,7 +91,7 @@ public final class Main {
 
 			long items;
 			do {
-				Thread.sleep(5000);
+				Thread.sleep(30 * 1000);
 
 				items = 0;
 				for (final InodeWorker w : ws) {
