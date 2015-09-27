@@ -19,7 +19,7 @@ import ch.usi.inf.mavends.util.log.Log;
 public final class Main {
 
 	private static final String INSERT_HEADER = "insert into header (headb, creationdate) values (?, date(?/1000, 'unixepoch' ))";
-	private static final String INSERT_ARTIFACT = "insert into artifact (groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, mdate, sha1, artifactname, artifactdesc) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ), ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_ARTIFACT = "insert into artifact (groupid, artifactid, version, classifier, packaging, idate, size, is3, is4, is5, extension, mdate, sha1, artifactname, artifactdesc) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch'), ?, ?, ?, ?, ?, date(?/1000, 'unixepoch'), ?, ?, ?)";
 	private static final String INSERT_DEL = "insert into del (groupid, artifactid, version, classifier, packaging, mdate) values (?, ?, ?, ?, ?, date(?/1000, 'unixepoch' ))";
 	private static final String INSERT_DESC = "insert into descriptor (descriptor, idxinfo) values (?, ?)";
 	private static final String INSERT_ALL = "insert into allgroups (groupid) values (?)";

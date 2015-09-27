@@ -1,6 +1,7 @@
 package ch.usi.inf.mavends.analysis;
 
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import ch.usi.inf.mavends.util.args.Arg;
@@ -31,9 +32,11 @@ public final class Main {
 	public static void main(String[] args) throws Exception {
 		final Args ar = ArgsParser.parse(args, new Args());
 
-		Class<?> cls = Class.forName(ar.mavenVisitor);
+		final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
-		int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+		final Class<?> cls = Class.forName(ar.mavenVisitor);
+
+		final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 
 		final ArtifactQueue[] queues = new ArtifactQueue[numberOfProcessors];
 		for (int i = 0; i < queues.length; i++) {
@@ -48,8 +51,8 @@ public final class Main {
 				final String groupid = rs.getString("groupid");
 				final String artifactid = rs.getString("artifactid");
 				final String version = rs.getString("version");
-				final Date idate = new Date(rs.getLong("idate") * 1000);
-				final Date mdate = new Date(rs.getLong("mdate") * 1000);
+				final Date idate = df.parse(rs.getString("idate"));
+				final Date mdate = df.parse(rs.getString("mdate"));
 				final String path = rs.getString("path");
 
 				final Artifact art = new Artifact(coordid, groupid, artifactid, version, idate, mdate, path);
