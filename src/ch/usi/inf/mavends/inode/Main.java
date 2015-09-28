@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
@@ -38,15 +40,17 @@ public final class Main {
 		final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
 
 		log.info("Number of processors: %d", numberOfProcessors);
-		InodeWorker[] ws = new InodeWorker[numberOfProcessors];
+		final InodeWorker[] ws = new InodeWorker[numberOfProcessors];
+
+		final Map<String, Long> shas = new ConcurrentHashMap<String, Long>();
 
 		try (final Db db = new Db(ar.mavenInode)) {
 
-			final Statement inodeins = db
+			final Statement inodeStmt = db
 					.createStatement("insert into inode (originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?)");
 
-			final Statement ifileins = db
-					.createStatement("insert into ifile (coordid, filename, inodeid) values (?,?,(select inodeid from inode where sha1=?))");
+			final Statement ifileStmt = db
+					.createStatement("insert into ifile (coordid, filename, inodeid) values (?,?,?)");
 
 			for (int i = 0; i < ws.length; i++) {
 				ws[i] = new InodeWorker(ar.repoDir) {
@@ -55,8 +59,14 @@ public final class Main {
 					void processEntry(long coordid, String filename, long size, long compressedSize, long crc,
 							String sha1, byte[] cdata) throws IOException, SQLException {
 						synchronized (db) {
-							inodeins.execute(size, compressedSize, crc, sha1, cdata);
-							ifileins.execute(coordid, filename, sha1);
+							Long inodeid = shas.get(sha1);
+							if (inodeid == null) {
+								inodeStmt.execute(size, compressedSize, crc, sha1, cdata);
+								inodeid = inodeStmt.lastInsertRowid();
+								shas.put(sha1, inodeid);
+							}
+
+							ifileStmt.execute(coordid, filename, inodeid);
 						}
 					}
 

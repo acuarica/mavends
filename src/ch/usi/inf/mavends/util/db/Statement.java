@@ -2,6 +2,7 @@ package ch.usi.inf.mavends.util.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -40,8 +41,8 @@ public class Statement implements AutoCloseable {
 	 * @param values
 	 *            The values that replace the '?' IN parameter placeholders.
 	 * @throws SQLException
-	 *             If a database access error occurs or this constructor is
-	 *             called on a closed Statement.
+	 *             If a database access error occurs or this method is called on
+	 *             a closed Statement.
 	 */
 	public void execute(Object... values) throws SQLException {
 		for (int i = 0; i < values.length; i++) {
@@ -49,6 +50,19 @@ public class Statement implements AutoCloseable {
 		}
 
 		stmt.executeUpdate();
+	}
+
+	/**
+	 * Retrieves the ROWID inserted of the last INSERT statement executed.
+	 * 
+	 * @return The last ROWID inserted.
+	 * @throws SQLException
+	 *             If a database access error occurs or this method is called on
+	 *             a closed Statement.
+	 */
+	public long lastInsertRowid() throws SQLException {
+		final ResultSet rs = stmt.getGeneratedKeys();
+		return rs.getLong(1);
 	}
 
 	@Override

@@ -9,7 +9,6 @@ create table inode (
   crc32           int           not null,     -- 
   sha1            varchar(40)   not null,     -- 
   cdata           blob,                       --
-  unique (sha1) on conflict ignore
 );
 
 --
@@ -21,11 +20,6 @@ create table ifile (
   inodeid     int           not null,  -- 
   primary key (coordid, filename) on conflict ignore
 ) without rowid;
-
---
---
---
-create index ifile_coordid on ifile (coordid);
 
 --
 --
