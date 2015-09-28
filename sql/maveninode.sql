@@ -8,7 +8,7 @@ create table inode (
   compressedsize  int           not null,     -- 
   crc32           int           not null,     -- 
   sha1            varchar(40)   not null,     -- 
-  cdata           blob,                       --
+  cdata           blob                        --
 );
 
 --
