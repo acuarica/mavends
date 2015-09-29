@@ -8,7 +8,8 @@ create table inode (
   compressedsize  int           not null,     -- 
   crc32           int           not null,     -- 
   sha1            varchar(40)   not null,     -- 
-  cdata           blob                        --
+  cdata           blob,                       --
+  unique (sha1) on conflict ignore
 );
 
 --
@@ -17,7 +18,8 @@ create table inode (
 create table ifile (
   coordid     int           not null,  -- 
   filename    varchar(255)  not null,  -- 
-  inodeid     int           not null,  -- 
+  inodeid     int           not null,  --
+  sha1        varchar(40)   not null,  -- 
   primary key (coordid, filename) on conflict ignore
 ) without rowid;
 

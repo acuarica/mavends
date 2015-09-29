@@ -32,7 +32,8 @@ create table artifact (
   mdate        date         not null,    -- Modified date
   sha1         varchar(40),              -- SHA-1
   artifactname text,                     -- Artifact name
-  artifactdesc text                      -- Artifact description
+  artifactdesc text,                     -- Artifact description
+  unique (groupid, artifactid, version, classifier, packaging)
 );
 
 ---

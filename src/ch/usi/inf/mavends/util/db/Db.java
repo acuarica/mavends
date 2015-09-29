@@ -20,6 +20,11 @@ public class Db implements AutoCloseable {
 	private final SQLiteConnection conn;
 
 	/**
+	 * The path of the database connection.
+	 */
+	public final String databasePath;
+
+	/**
 	 * Creates a new connection to the specified database path.
 	 * 
 	 * @param dbPath
@@ -28,6 +33,8 @@ public class Db implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	public Db(String databasePath) throws SQLException {
+		this.databasePath = databasePath;
+
 		conn = new SQLiteConnection(null, databasePath);
 
 		pragma("journal_mode", "off");

@@ -6,8 +6,6 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 import ch.usi.inf.mavends.util.Resource;
 import ch.usi.inf.mavends.util.args.Arg;
@@ -44,97 +42,82 @@ public final class Main {
 
 		log.info("Number of processors: %d", numberOfProcessors);
 		final InodeWorker[] ws = new InodeWorker[numberOfProcessors];
-		final String[] dbPaths = new String[ws.length];
 		final Db[] dbs = new Db[ws.length];
 
-		final Map<String, Long> shas = new HashMap<String, Long>();
+		for (int i = 0; i < ws.length; i++) {
+			final String dbp = ar.mavenInode + "-" + i + ".ifile.sqlite3";
 
-		try (final Db db = new Db(ar.mavenInode)) {
+			Files.deleteIfExists(Paths.get(dbp));
 
-			final Statement inodeStmt = db
+			dbs[i] = new Db(dbp);
+			final Db dbw = dbs[i];
+
+			dbw.execute(Resource.get("maveninode.sql"));
+			dbw.commit();
+
+			final Statement inodeStmt = dbw
 					.createStatement("insert into inode (originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?)");
 
-			for (int i = 0; i < ws.length; i++) {
-				dbPaths[i] = ar.mavenInode + "-" + i + ".ifile.sqlite3";
+			final Statement ifileStmt = dbw
+					.createStatement("insert into ifile (coordid, filename, inodeid, sha1) values (?,?,?,?)");
 
-				Files.deleteIfExists(Paths.get(dbPaths[i]));
+			ws[i] = new InodeWorker(ar.repoDir) {
 
-				dbs[i] = new Db(dbPaths[i]);
-				final Db dbw = dbs[i];
-
-				dbw.execute(Resource.get("maveninode.sql"));
-				dbw.commit();
-
-				final Statement ifileStmt = dbs[i]
-						.createStatement("insert into ifile (coordid, filename, inodeid) values (?,?,?)");
-
-				ws[i] = new InodeWorker(ar.repoDir) {
-
-					@Override
-					void processEntry(long coordid, String filename, long size, long compressedSize, long crc,
-							String sha1, byte[] cdata) throws IOException, SQLException {
-
-						Long inodeid;
-						synchronized (shas) {
-							inodeid = shas.get(sha1);
-							if (inodeid == null) {
-								inodeStmt.execute(size, compressedSize, crc, sha1, cdata);
-								inodeid = inodeStmt.lastInsertRowid();
-								shas.put(sha1, inodeid);
-							}
-						}
-
-						ifileStmt.execute(coordid, filename, inodeid);
-					}
-
-					@Override
-					void processJar() throws SQLException {
-						synchronized (db) {
-							db.commit();
-						}
-
-						dbw.commit();
-					}
-				};
-			}
-
-			try (final Db dbi = new Db(ar.mavenIndex)) {
-				final ResultSet rs = dbi.select(ar.query);
-
-				int numberOfZipFiles = 0;
-				while (rs.next()) {
-					final long coordid = rs.getLong("coordid");
-					final String path = rs.getString("path");
-
-					ws[numberOfZipFiles % ws.length].add(coordid, path);
-					numberOfZipFiles++;
+				@Override
+				void processEntry(long coordid, String filename, long size, long compressedSize, long crc, String sha1,
+						byte[] cdata) throws IOException, SQLException {
+					inodeStmt.execute(size, compressedSize, crc, sha1, cdata);
+					ifileStmt.execute(coordid, filename, -1, sha1);
 				}
 
-				log.info("Number of ZIP files: %,d", numberOfZipFiles);
+				@Override
+				void processJar() throws SQLException {
+					dbw.commit();
+				}
+			};
+		}
+
+		try (final Db dbi = new Db(ar.mavenIndex)) {
+			final ResultSet rs = dbi.select(ar.query);
+
+			int numberOfZipFiles = 0;
+			while (rs.next()) {
+				final long coordid = rs.getLong("coordid");
+				final String path = rs.getString("path");
+
+				ws[numberOfZipFiles % ws.length].add(coordid, path);
+				numberOfZipFiles++;
 			}
 
+			log.info("Number of ZIP files: %,d", numberOfZipFiles);
+		}
+
+		for (final InodeWorker w : ws) {
+			log.info("Starting Worker %s with size: %,d", w, w.size());
+			w.start();
+		}
+
+		long items;
+		do {
+			Thread.sleep(30 * 1000);
+
+			items = 0;
 			for (final InodeWorker w : ws) {
-				log.info("Starting Worker %s with size: %,d", w, w.size());
-				w.start();
+				items += w.size();
 			}
 
-			long items;
-			do {
-				Thread.sleep(30 * 1000);
+			log.info("Remaining ZIP files to process: %,d", items);
+		} while (items > 0);
 
-				items = 0;
-				for (final InodeWorker w : ws) {
-					items += w.size();
-				}
-
-				log.info("Remaining ZIP files to process: %,d", items);
-			} while (items > 0);
-
+		try (final Db db = new Db(ar.mavenInode)) {
 			for (int i = 0; i < ws.length; i++) {
+				log.info("Importing from worker %d", i);
+
 				dbs[i].close();
 
-				db.attach(dbPaths[i], "dbw");
-				db.execute("insert into ifile select * from dbw.ifile");
+				db.attach(dbs[i].databasePath, "dbw");
+				db.execute("insert into inode (originalsize, compressedsize, crc32, sha1, cdata) select originalsize, compressedsize, crc32, sha1, cdata from dbw.inode");
+				db.execute("insert into ifile (coordid, filename, inodeid, sha1) select coordid, filename, (select inodeid from inode where inode.sha1=sha1), sha1 from dbw.ifile");
 				db.commit();
 				db.detach("dbw");
 			}
