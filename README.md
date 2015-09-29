@@ -188,3 +188,13 @@ public class BytecodeStatsVisitor extends MavenVisitor {
 	}
 }
 ```
+
+
+
+
+
+https://www.sqlite.org/intern-v-extern-blob.html
+
+http://dl.acm.org/citation.cfm?id=2501589&CFID=539758608&CFTOKEN=73816535
+http://dl.acm.org/citation.cfm?id=2487136&CFID=539758608&CFTOKEN=73816535
+http://dl.acm.org/citation.cfm?id=2597123&CFID=539758608&CFTOKEN=73816535

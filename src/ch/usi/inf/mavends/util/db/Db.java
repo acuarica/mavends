@@ -45,8 +45,8 @@ public class Db implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	public void execute(String sql) throws SQLException {
-		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-			stmt.execute();
+		try (final java.sql.Statement stmt = conn.createStatement()) {
+			stmt.executeUpdate(sql);
 		}
 	}
 
@@ -61,13 +61,13 @@ public class Db implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	public ResultSet select(String sql, Object... values) throws SQLException {
-		PreparedStatement stmt = conn.prepareStatement(sql);
+		final PreparedStatement stmt = conn.prepareStatement(sql);
 
 		for (int i = 0; i < values.length; i++) {
 			stmt.setObject(i + 1, values[i]);
 		}
 
-		ResultSet rs = stmt.executeQuery();
+		final ResultSet rs = stmt.executeQuery();
 
 		return rs;
 	}
@@ -91,6 +91,18 @@ public class Db implements AutoCloseable {
 		conn.commit();
 	}
 
+	public void attach(String dbPath, String dbName) throws SQLException {
+		conn.setAutoCommit(true);
+		execute(String.format("attach database '%s' as %s", dbPath, dbName));
+		conn.setAutoCommit(false);
+	}
+
+	public void detach(String dbName) throws SQLException {
+		conn.setAutoCommit(true);
+		execute(String.format("detach database %s", dbName));
+		conn.setAutoCommit(false);
+	}
+
 	@Override
 	public void close() throws SQLException {
 		conn.close();
@@ -103,6 +115,7 @@ public class Db implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	private void pragma(String name, Object value) throws SQLException {
-		execute(String.format("pragma %s=%s", name, value));
+		final String sql = String.format("pragma %s=%s", name, value);
+		execute(sql);
 	}
 }

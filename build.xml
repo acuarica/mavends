@@ -128,7 +128,7 @@
 	</target>
 	<target name="maveninode" depends="-compile" description="Extract the dependency information from POM files." if="select.query">
 		<db file="${maveninode.path}" sql="${sql}/maveninode.sql" />
-		<java classname="ch.usi.inf.mavends.inode.Main" classpath="${build}">
+		<java classname="ch.usi.inf.mavends.inode.Main" classpath="${build}:${sql}">
 			<classpath refid="lib" />
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--repo=${repo}" />

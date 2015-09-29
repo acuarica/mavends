@@ -1,12 +1,15 @@
 package ch.usi.inf.mavends.inode;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+import ch.usi.inf.mavends.util.Resource;
 import ch.usi.inf.mavends.util.args.Arg;
 import ch.usi.inf.mavends.util.args.ArgsParser;
 import ch.usi.inf.mavends.util.db.Db;
@@ -41,33 +44,47 @@ public final class Main {
 
 		log.info("Number of processors: %d", numberOfProcessors);
 		final InodeWorker[] ws = new InodeWorker[numberOfProcessors];
+		final String[] dbPaths = new String[ws.length];
+		final Db[] dbs = new Db[ws.length];
 
-		final Map<String, Long> shas = new ConcurrentHashMap<String, Long>();
+		final Map<String, Long> shas = new HashMap<String, Long>();
 
 		try (final Db db = new Db(ar.mavenInode)) {
 
 			final Statement inodeStmt = db
 					.createStatement("insert into inode (originalsize, compressedsize, crc32, sha1, cdata) values (?,?,?,?,?)");
 
-			final Statement ifileStmt = db
-					.createStatement("insert into ifile (coordid, filename, inodeid) values (?,?,?)");
-
 			for (int i = 0; i < ws.length; i++) {
+				dbPaths[i] = ar.mavenInode + "-" + i + ".ifile.sqlite3";
+
+				Files.deleteIfExists(Paths.get(dbPaths[i]));
+
+				dbs[i] = new Db(dbPaths[i]);
+				final Db dbw = dbs[i];
+
+				dbw.execute(Resource.get("maveninode.sql"));
+				dbw.commit();
+
+				final Statement ifileStmt = dbs[i]
+						.createStatement("insert into ifile (coordid, filename, inodeid) values (?,?,?)");
+
 				ws[i] = new InodeWorker(ar.repoDir) {
 
 					@Override
 					void processEntry(long coordid, String filename, long size, long compressedSize, long crc,
 							String sha1, byte[] cdata) throws IOException, SQLException {
-						synchronized (db) {
-							Long inodeid = shas.get(sha1);
+
+						Long inodeid;
+						synchronized (shas) {
+							inodeid = shas.get(sha1);
 							if (inodeid == null) {
 								inodeStmt.execute(size, compressedSize, crc, sha1, cdata);
 								inodeid = inodeStmt.lastInsertRowid();
 								shas.put(sha1, inodeid);
 							}
-
-							ifileStmt.execute(coordid, filename, inodeid);
 						}
+
+						ifileStmt.execute(coordid, filename, inodeid);
 					}
 
 					@Override
@@ -75,6 +92,8 @@ public final class Main {
 						synchronized (db) {
 							db.commit();
 						}
+
+						dbw.commit();
 					}
 				};
 			}
@@ -110,6 +129,15 @@ public final class Main {
 
 				log.info("Remaining ZIP files to process: %,d", items);
 			} while (items > 0);
+
+			for (int i = 0; i < ws.length; i++) {
+				dbs[i].close();
+
+				db.attach(dbPaths[i], "dbw");
+				db.execute("insert into ifile select * from dbw.ifile");
+				db.commit();
+				db.detach("dbw");
+			}
 		}
 	}
 }
