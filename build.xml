@@ -54,16 +54,16 @@
 			</java>
 		</sequential>
 	</macrodef>
-	<target name="conf-ch" description="Configuration using artifacts from the 'ch' root group (~500MB).">
+	<target name="conf-ch" description="Configuration with artifacts from the 'ch' root group (~500MB).">
 		<setup conf="ch" where="rootgroup = 'ch'" />
 	</target>
-	<target name="conf-net" description="Configuration using artifacts from the 'net' root group (~16GB).">
+	<target name="conf-net" description="Configuration with artifacts from the 'net' root group (~16GB).">
 		<setup conf="net" where="rootgroup = 'net'" />
 	</target>
-	<target name="conf-com" description="Configuration using artifacts from the 'com' root group (~58GB).">
+	<target name="conf-com" description="Configuration with artifacts from the 'com' root group (~58GB).">
 		<setup conf="com" where="rootgroup = 'com'" />
 	</target>
-	<target name="conf-all" description="Configuration using --all-- artifacts. (~254GB).">
+	<target name="conf-all" description="Configuration with --all-- artifacts. (~254GB).">
 		<setup conf="all" where="1" />
 	</target>
 	<target name="-compile" description="Compiles all Java files under the src/ directory.">
@@ -104,7 +104,7 @@
 			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
 		</java>
 	</target>
-	<target name="fetcharts" description="Fetches all artifacts specified by the URI list. Requires configuration." if="select.query">
+	<target name="fetcharts" description="Fetches artifacts specified by the URI list. Requires configuration." if="select.query">
 		<exec executable="aria2c">
 			<arg value="--dir=${repo}" />
 			<arg value="--max-concurrent-downloads=16" />
