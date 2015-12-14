@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -56,6 +57,11 @@ public class UnsafeVisitor extends MavenVisitor {
 						if (cst instanceof String && "sun.misc.Unsafe".equals((String) cst)) {
 							add("sun.misc.Unsafe", "literal", "");
 						}
+					}
+
+					@Override
+					public void visitInvokeDynamicInsn(String arg0, String arg1, Handle arg2, Object... arg3) {
+						add("invokedynamic", arg0, arg1);
 					}
 
 					private void add(String owner, String name, String desc) {
