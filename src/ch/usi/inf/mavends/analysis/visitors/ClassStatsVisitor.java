@@ -4,8 +4,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import ch.usi.inf.mavends.analysis.Artifact;
-import ch.usi.inf.mavends.analysis.MavenVisitor;
+import ch.usi.inf.mavends.util.extract.Artifact;
+import ch.usi.inf.mavends.util.extract.MavenVisitor;
 import ch.usi.inf.mavends.util.log.Log;
 
 /**
