@@ -8,7 +8,7 @@ import java.util.Date;
 
 /**
  * Iterator interface to parse a Nexus Maven Repository Index.
- * 
+ *
  * @author Luis Mastrangelo
  *
  */
@@ -25,7 +25,7 @@ final class NexusIndex implements AutoCloseable {
 	/**
 	 * Creates a new parser with the specified path. The indexPath must be a
 	 * valid Nexus Index.
-	 * 
+	 *
 	 * @param indexPath
 	 *            Path to the Nexus Index to parse.
 	 * @throws IOException

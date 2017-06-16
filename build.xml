@@ -9,7 +9,8 @@
 	<property name="mirror.1" value="http://mirrors.ibiblio.org/maven2" />
 	<property name="mirror.2" value="http://maven.antelink.com/content/repositories/central" />
 	<property name="mirror.3" value="http://repo.jfrog.org/artifactory/simple/libs-release-bintray" />
-	<property name="nexusindexgz.url" value="${mirror.1}/.index/nexus-maven-repository-index.gz" />
+	<property name="mirror.4" value="https://repo.maven.apache.org/maven2" />
+	<property name="nexusindexgz.url" value="${mirror.4}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
