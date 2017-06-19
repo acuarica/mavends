@@ -1,6 +1,6 @@
 /cache/
 /build/
 /out/
-
 /bin/
-
+/.idea/
+/mavends.iml
