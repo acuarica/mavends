@@ -6,11 +6,11 @@
 	<property name="build" location="build" />
 	<property name="cache" location="cache" />
 	<property name="out" location="out" />
-	<property name="mirror.1" value="http://mirrors.ibiblio.org/maven2" />
-	<property name="mirror.2" value="http://maven.antelink.com/content/repositories/central" />
-	<property name="mirror.3" value="http://repo.jfrog.org/artifactory/simple/libs-release-bintray" />
-	<property name="mirror.4" value="https://repo.maven.apache.org/maven2" />
-	<property name="nexusindexgz.url" value="${mirror.4}/.index/nexus-maven-repository-index.gz" />
+	<property name="mirror.1" value="http://maven.ibiblio.org/maven2" />
+	<!--<property name="mirror.2" value="http://maven.antelink.com/content/repositories/central" />-->
+	<property name="mirror.2" value="http://repo.jfrog.org/artifactory/simple/libs-release-bintray" />
+	<property name="mirror.3" value="https://repo.maven.apache.org/maven2" />
+	<property name="nexusindexgz.url" value="${mirror.3}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
@@ -102,7 +102,7 @@
 			<arg value="--mavenindex=${mavenindex.path}" />
 			<arg value="--urilist=${urilist.path}" />
 			<arg value="--query=${select.query}" />
-			<arg value="--mirrors=${mirror.1},${mirror.2},${mirror.3}" />
+			<arg value="--mirrors=${mirror.1},${mirror.2}" />
 		</java>
 	</target>
 	<target name="fetcharts" description="Fetches artifacts specified by the URI list. Requires configuration." if="select.query">

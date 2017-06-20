@@ -1,7 +1,6 @@
 
 # MavenDS: An Analysis Framework for the Maven Repository
 
-
 ## Introduction
 
 Ever wondered how a certain API was used?
