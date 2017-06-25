@@ -46,7 +46,7 @@
 	<macrodef name="analysis">
 		<attribute name="mavenvisitor" />
 		<sequential>
-			<java classname="ch.usi.inf.mavends.analysis.Main" classpath="${build}">
+			<java classname="ch.usi.inf.mavends.util.extract.Main" classpath="${build}">
 				<classpath refid="lib" />
 				<arg value="--mavenindex=${mavenindex.path}" />
 				<arg value="--repo=${repo}" />
@@ -132,6 +132,9 @@
 	</target>
 	<target name="analysis-sizestats" depends="-compile" description="Runs Size Stats analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.SizeStatsVisitor" />
+	</target>
+	<target name="analysis-cast-stats" depends="-compile" description="Runs Cast Stats analysis. Requires configuration." if="select.query">
+		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.CastStatsVisitor" />
 	</target>
 	<target name="analysis-unsafe" depends="-compile" description="Runs Unsafe analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.UnsafeVisitor" />
