@@ -12,7 +12,7 @@ public class CastStatsVisitor extends MavenVisitor {
 	private final PrintStream out;
 
 	public CastStatsVisitor() throws FileNotFoundException {
-		out = new PrintStream("out/unsafe.csv");
+		out = new PrintStream("out/casts.csv");
 		out.format("coordid,groupid,artifactid,version,idate,mdate,className,methodName,methodDesc,owner,name,desc\n");
 	}
 
