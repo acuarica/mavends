@@ -102,29 +102,29 @@ create view artifact_jar as
 -- Quick stats of the Maven Index.
 -- Similar to http://search.maven.org/#stats.
 create view stats as
-  select 
-    (select count(*) from artifact)                                                     as gavcp,  -- Total number of artifacts and secondary artifacts (GAVCP).                               
-    (select count(*) from (select distinct groupid, artifactid, version from artifact)) as gav,    -- Total number of artifacts indexed (GAV). 
+  select
+    (select count(*) from artifact)                                                     as gavcp,  -- Total number of artifacts and secondary artifacts (GAVCP).
+    (select count(*) from (select distinct groupid, artifactid, version from artifact)) as gav,    -- Total number of artifacts indexed (GAV).
     (select count(*) from (select distinct groupid, artifactid from artifact))          as ga,     -- Total number of unique artifacts indexed (GA).
-    (select sum(size)/(1024*1024) from artifact)                                        as size;   -- Estimated size of the entire repository (in MB).             
+    (select sum(size)/(1024*1024) from artifact)                                        as size;   -- Estimated size of the entire repository (in MB).
 
--- Estimated size of the repository by 
--- packaging, extension (in MB). 
+-- Estimated size of the repository by
+-- packaging, extension (in MB).
 create view sizestats_by_packaging_extension as
-  select 
-    packaging, 
-	extension, 
-	sum(size)/(1024*1024) as size 
-  from artifact_main 
+  select
+    packaging,
+	extension,
+	sum(size)/(1024*1024) as size
+  from artifact_main
   group by packaging, extension;
 
--- Estimated size of the repository by 
+-- Estimated size of the repository by
 -- packaging, extension, rootgroup (in MB).
 create view sizestats_by_packaging_extension_rootgroup as
-  select 
-    packaging, 
-	extension, 
-	rootgroup, 
-	sum(size)/(1024*1024) as size 
-  from artifact_main 
+  select
+    packaging,
+	extension,
+	rootgroup,
+	sum(size)/(1024*1024) as size
+  from artifact_main
   group by packaging, extension, rootgroup;
