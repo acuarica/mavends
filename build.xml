@@ -22,9 +22,9 @@
 	</path>
 	<macrodef name="setup">
 		<attribute name="conf" />
-		<attribute name="where" />
+		<attribute name="query" />
 		<sequential>
-			<property name="select.query" value="select * from artifact_jar where @{where}" />
+			<property name="select.query" value="@{query}" />
 			<property name="urilist.path" location="${out}/uri-@{conf}.list" />
 			<property name="sessionlist.path" location="${out}/session-@{conf}.list" />
 			<property name="mavenpom.path" location="${out}/mavenpom-@{conf}.sqlite3" />
@@ -56,16 +56,22 @@
 		</sequential>
 	</macrodef>
 	<target name="conf-ch" description="Configuration with artifacts from the 'ch' root group (~500MB).">
-		<setup conf="ch" where="rootgroup = 'ch'" />
+		<setup conf="ch" query="select * from artifact_jar where rootgroup = 'ch'" />
 	</target>
 	<target name="conf-net" description="Configuration with artifacts from the 'net' root group (~16GB).">
-		<setup conf="net" where="rootgroup = 'net'" />
+		<setup conf="net" query="select * from artifact_jar where rootgroup = 'net'" />
+	</target>
+	<target name="conf-org" description="Configuration with artifacts from the 'org' root group (~58GB).">
+		<setup conf="org" query="select * from artifact_jar where rootgroup = 'org'" />
 	</target>
 	<target name="conf-com" description="Configuration with artifacts from the 'com' root group (~58GB).">
-		<setup conf="com" where="rootgroup = 'com'" />
+		<setup conf="com" query="select * from artifact_jar where rootgroup = 'com'" />
+	</target>
+	<target name="conf-last" description="Configuration with the last version of --all-- artifacts. (~254GB).">
+		<setup conf="last" query="select max(idate), * from artifact_jar group by groupid, artifactid" />
 	</target>
 	<target name="conf-all" description="Configuration with --all-- artifacts. (~254GB).">
-		<setup conf="all" where="1" />
+		<setup conf="all" query="select * from artifact_jar" />
 	</target>
 	<target name="-compile" description="Compiles all Java files under the src/ directory.">
 		<mkdir dir="${build}" />
@@ -127,8 +133,8 @@
 			<arg value="--mavenpom=${mavenpom.path}" />
 		</java>
 	</target>
-	<target name="analysis-classstats" depends="-compile" description="Runs Class Stats analysis. Requires configuration." if="select.query">
-		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.ClassStatsVisitor" />
+	<target name="analysis-stats" depends="-compile" description="Runs Class Stats analysis. Requires configuration." if="select.query">
+		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.StatsVisitor" />
 	</target>
 	<target name="analysis-sizestats" depends="-compile" description="Runs Size Stats analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.SizeStatsVisitor" />

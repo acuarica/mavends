@@ -119,7 +119,7 @@ Refer to [sql/mavenindex.sql](sql/mavenindex.sql) for more details on the tables
 
 ## Analysis
 
-    ant <conf>analysis-stats
+    ant <conf> analysis-stats
     
     ant <conf> analysis-unsafe
 

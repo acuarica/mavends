@@ -11,7 +11,7 @@ import java.util.zip.ZipInputStream;
 
 import ch.usi.inf.mavends.util.log.Log;
 
-abstract class JarReader extends Thread {
+abstract class JarReader /*extends Thread*/ {
 
 	private static final Log log = new Log(System.out);
 
@@ -21,23 +21,23 @@ abstract class JarReader extends Thread {
 
 	private final String repoDir;
 
-	private final ArtifactQueue queue;
+//	private final ArtifactQueue queue;
 
-	public JarReader(String repoDir, ArtifactQueue queue) {
+	public JarReader(String repoDir) {
 		this.repoDir = repoDir;
-		this.queue = queue;
+//		this.queue = queue;
 	}
 
-	@Override
-	public void run() {
-		for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
-			final Artifact artifact = it.next();
-			process(artifact, artifact.path);
-			it.remove();
-		}
-	}
+//	@Override
+//	public void run() {
+//		for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
+//			final Artifact artifact = it.next();
+//			process(artifact, artifact.path);
+//			it.remove();
+//		}
+//	}
 
-	private void process(Artifact artifact, String path) {
+	public void process(Artifact artifact, String path) {
 		try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(repoDir + "/" + path));
 				ZipInputStream zip = new ZipInputStream(bis)) {
 
@@ -56,11 +56,15 @@ abstract class JarReader extends Thread {
 			}
 
 		} catch (FileNotFoundException e) {
-			log.info("File not found: %s", e.getMessage());
+//			log.info("File not found: %s", e.getMessage());
+            processFileNotFound();
+
 		} catch (IOException e) {
 			log.info("IO Exception: %s", e);
 		}
 	}
 
 	abstract void processEntry(Artifact artifact, String filename, byte[] classFile);
+
+	abstract void processFileNotFound();
 }

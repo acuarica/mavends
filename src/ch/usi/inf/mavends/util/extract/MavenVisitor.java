@@ -10,7 +10,9 @@ import org.objectweb.asm.ClassVisitor;
  */
 public abstract class MavenVisitor implements AutoCloseable {
 
-	public ClassVisitor visitClass(Artifact artifact) {
+    public long filesNotFound;
+
+    public ClassVisitor visitClass(Artifact artifact) {
 		return null;
 	}
 

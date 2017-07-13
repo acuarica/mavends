@@ -11,7 +11,7 @@ import java.util.Date;
  * @author Luis Mastrangelo
  *
  */
-final class NexusIndex {
+final class NexusIndex implements AutoCloseable {
 
 	final int headb;
 
@@ -56,5 +56,10 @@ final class NexusIndex {
 		}
 
 		return nr;
+	}
+
+	@Override
+	public void close() throws Exception {
+		dis.close();
 	}
 }

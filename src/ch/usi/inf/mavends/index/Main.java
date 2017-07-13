@@ -12,7 +12,7 @@ import ch.usi.inf.mavends.util.db.Statement;
 import ch.usi.inf.mavends.util.log.Log;
 
 /**
- * 
+ *
  * @author Luis Mastrangelo (luis.mastrangelo@usi.ch)
  *
  */
@@ -37,8 +37,7 @@ public final class Main {
 
 	}
 
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException,
-			FileNotFoundException, IOException, ParseException, SQLException {
+	public static void main(String[] args) throws Exception {
 		final Args ar = ArgsParser.parse(args, new Args());
 
 		try (final NexusIndex ni = new NexusIndex(ar.nexusIndex);
