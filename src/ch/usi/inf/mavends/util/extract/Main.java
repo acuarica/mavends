@@ -30,20 +30,15 @@ public final class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-
 		final Args ar = ArgsParser.parse(args, new Args());
-
 		final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-
 		final Class<?> cls = Class.forName(ar.mavenVisitor);
 
-//		final int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+		try (
+				final Db db = new Db(ar.mavenIndex);
+				final ResultSet rs = db.select(ar.query);
+				final MavenVisitor mv = (MavenVisitor) cls.newInstance()) {
 
-//		final ArtifactQueue[] queues = new ArtifactQueue[numberOfProcessors];
-//		for (int i = 0; i < queues.length; i++) {
-//			queues[i] = new ArtifactQueue();
-//
-		try (final Db db = new Db(ar.mavenIndex); final ResultSet rs = db.select(ar.query); final MavenVisitor mv = (MavenVisitor) cls.newInstance() ) {
             Runtime.getRuntime().addShutdownHook(new Thread(){
                 @Override
                 public void run() {
@@ -71,7 +66,6 @@ public final class Main {
 				void processFileNotFound() {
                 	mv.filesNotFound++;
 				}
-
             };
 
 			int n = 0;
@@ -86,7 +80,6 @@ public final class Main {
 				final String path = rs.getString("path");
 
 				final Artifact art = new Artifact(coordid, groupid, artifactid, version, idate, mdate, path);
-//				queues[n % queues.length].add(art);
                 jr.process(art, art.path);
 
 				n++;
@@ -98,33 +91,5 @@ public final class Main {
 
 			log.info("No. jar files: %,d", n);
 		}
-
-//		try (final MavenVisitor mv = (MavenVisitor) cls.newInstance()) {
-//			for (final ArtifactQueue queue : queues) {
-//				new JarReader(ar.repo, queue) {
-//					@Override
-//					synchronized void processEntry(Artifact artifact, String fileName, byte[] fileData) {
-//						try {
-//							mv.visitFileEntry(artifact, fileName, fileData);
-//						} catch (Exception e) {
-//							log.info("Exception: %s", e);
-//						}
-//					}
-//				}.start();
-//			}
-//
-//			long items;
-//			do {
-//				Thread.sleep(30 * 1000);
-//
-//				items = 0;
-//
-//				for (final ArtifactQueue queue : queues) {
-//					items += queue.size();
-//				}
-//
-//				log.info("Remaining Jars: %,d", items);
-//			} while (items > 0);
-//		}
 	}
 }

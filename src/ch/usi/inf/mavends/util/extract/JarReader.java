@@ -11,7 +11,7 @@ import java.util.zip.ZipInputStream;
 
 import ch.usi.inf.mavends.util.log.Log;
 
-abstract class JarReader /*extends Thread*/ {
+abstract class JarReader {
 
 	private static final Log log = new Log(System.out);
 
@@ -21,25 +21,15 @@ abstract class JarReader /*extends Thread*/ {
 
 	private final String repoDir;
 
-//	private final ArtifactQueue queue;
-
 	public JarReader(String repoDir) {
 		this.repoDir = repoDir;
-//		this.queue = queue;
 	}
 
-//	@Override
-//	public void run() {
-//		for (Iterator<Artifact> it = queue.iterator(); it.hasNext();) {
-//			final Artifact artifact = it.next();
-//			process(artifact, artifact.path);
-//			it.remove();
-//		}
-//	}
-
 	public void process(Artifact artifact, String path) {
-		try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(repoDir + "/" + path));
-				ZipInputStream zip = new ZipInputStream(bis)) {
+		try (
+				final FileInputStream fis = new FileInputStream(repoDir + "/" + path);
+				final BufferedInputStream bis = new BufferedInputStream(fis);
+				final ZipInputStream zip = new ZipInputStream(bis)) {
 
 			ZipEntry ze;
 			while ((ze = zip.getNextEntry()) != null) {
@@ -54,11 +44,8 @@ abstract class JarReader /*extends Thread*/ {
 
 				processEntry(artifact, ze.getName(), fileData);
 			}
-
 		} catch (FileNotFoundException e) {
-//			log.info("File not found: %s", e.getMessage());
             processFileNotFound();
-
 		} catch (IOException e) {
 			log.info("IO Exception: %s", e);
 		}
