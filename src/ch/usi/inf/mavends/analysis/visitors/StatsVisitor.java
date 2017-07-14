@@ -33,10 +33,12 @@ public class StatsVisitor extends MavenVisitor {
     private long invokeDynamicCount;
     private long lookupSwitchCount;
     private long tableSwitchCount;
-    private boolean hasCheckcast;
-    private boolean hasInstanceOf;
+    private int noCheckcast;
+    private int noInstanceOf;
     private long methodsWithCheckcast;
     private long methodsWithInstanceOf;
+    private long methodsWithMoreCheckcast;
+    private long methodsWithMoreInstanceOf;
 
     @Override
 	public void visitFileEntry(Artifact artifact, String fileName, byte[] fileData) {
@@ -60,19 +62,25 @@ public class StatsVisitor extends MavenVisitor {
 					String signature, String[] exceptions) {
 
 				methodCount++;
-				hasCheckcast = false;
-				hasInstanceOf = false;
+				noCheckcast = 0;
+				noInstanceOf = 0;
 
 				MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
 
                     @Override
                     public void visitEnd() {
-                        if (hasCheckcast) {
+                        if (noCheckcast > 0) {
                             methodsWithCheckcast++;
+                            if (noCheckcast > 1) {
+                                methodsWithMoreCheckcast++;
+                            }
                         }
 
-                        if (hasInstanceOf) {
+                        if (noInstanceOf > 0) {
                             methodsWithInstanceOf++;
+                            if (noInstanceOf > 1) {
+                                methodsWithMoreInstanceOf++;
+                            }
                         }
                     }
 
@@ -80,10 +88,10 @@ public class StatsVisitor extends MavenVisitor {
                     public void visitTypeInsn(int opcode, String type) {
                         if (opcode == Opcodes.CHECKCAST) {
                             checkCastCount++;
-                            hasCheckcast = true;
+                            noCheckcast++;
                         } else if (opcode == Opcodes.INSTANCEOF) {
                             instanceOfCount++;
-                            hasInstanceOf = true;
+                            noInstanceOf++;
                         }
                     }
 
@@ -186,6 +194,8 @@ public class StatsVisitor extends MavenVisitor {
         log.info("Number of ClassCastException: %,d", classCastExceptionCount);
         log.info("Methods w/ CHECKCAST: %,d", methodsWithCheckcast);
         log.info("Methods w/ INSTANCEOF: %,d", methodsWithInstanceOf);
+        log.info("Methods w/ more than one CHECKCAST: %,d", methodsWithMoreCheckcast);
+        log.info("Methods w/ more than one INSTANCEOF: %,d", methodsWithMoreInstanceOf);
 
 		log.info("--- Error ---");
         log.info("Files not found: %,d", filesNotFound);
