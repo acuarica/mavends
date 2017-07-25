@@ -7,13 +7,13 @@
 	<property name="cache" location="cache" />
 	<property name="out" location="out" />
 	<property name="mirror.1" value="http://maven.ibiblio.org/maven2" />
-	<!--<property name="mirror.2" value="http://maven.antelink.com/content/repositories/central" />-->
 	<property name="mirror.2" value="http://repo.jfrog.org/artifactory/simple/libs-release-bintray" />
 	<property name="mirror.3" value="https://repo.maven.apache.org/maven2" />
 	<property name="nexusindexgz.url" value="${mirror.3}/.index/nexus-maven-repository-index.gz" />
 	<property name="nexusindexgz.path" location="${cache}/nexus-maven-repository-index.gz" />
 	<property name="nexusindex.path" location="${cache}/nexus-maven-repository-index" />
 	<property name="mavenindex.path" location="${out}/mavenindex.sqlite3" />
+	<property name="mavenclass.path" location="${out}/mavenclass.sqlite3" />
 	<property name="repo" location="${cache}/repo" />
 	<path id="lib">
 		<fileset dir="${lib}">
@@ -132,6 +132,13 @@
 			<arg value="--query=${select.query}" />
 			<arg value="--mavenpom=${mavenpom.path}" />
 		</java>
+	</target>
+	<target name="mavenclass" depends="-compile" description="Creates the Maven Class DB.">
+		<mkdir dir="${out}" />
+		<db file="${mavenclass.path}" sql="${sql}/mavenclass.sql" />
+	</target>
+	<target name="analysis-mavenclass" depends="-compile" description="Runs Maven Class Stats analysis. Requires configuration." if="select.query">
+		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.MavenClassVisitor" />
 	</target>
 	<target name="analysis-stats" depends="-compile" description="Runs Class Stats analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.StatsVisitor" />
