@@ -16,14 +16,21 @@ create table method (
     methodname  varchar(256),
     methoddesc  varchar(256),
     signature   varchar(256),
-    exceptions  varchar(256),
-    codetext    text
+    exceptions  varchar(256)
 );
 
-create table zero (
-    methodid integer,
-    opcode  int
+create table code (
+    opcodeindex integer primary key,
+    methodid    integer not null references method(methodid),
+    opcode      integer not null references opcode(id),
+    args        text
 );
+
+--create table type (
+--    methodid    integer,
+--    opcode      int,
+--    type        varchar(265)
+--);
 
 create table opcode (
     id   int,
@@ -238,4 +245,10 @@ insert into opcode (name, id) values ('impdep2', 0xff);
 
 create view method_view as
     select class.*, method.* from method left join class on class.classid = method.classid;
---select * from zero left join opcode on opcode.id = zero.opcode
+
+create view code_view as
+    select method.methodname, method.methoddesc, code.*, opcode.*
+    from code
+    left join opcode on opcode.id = code.opcode
+    left join method on method.methodid = code.methodid;
+

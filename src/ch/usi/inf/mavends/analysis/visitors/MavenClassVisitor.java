@@ -4,10 +4,7 @@ import ch.usi.inf.mavends.util.db.Db;
 import ch.usi.inf.mavends.util.db.Statement;
 import ch.usi.inf.mavends.util.extract.Artifact;
 import ch.usi.inf.mavends.util.extract.MavenVisitor;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.Textifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
@@ -24,13 +21,14 @@ public class MavenClassVisitor extends MavenVisitor {
 
 	private static final String INSERT_CLASS = "insert into class (version, access, classname, signature, superclass, interfaces) values (?, ?, ?, ?, ?, ?)";
     private static final String INSERT_METHOD = "insert into method (classid, access, methodname, methoddesc, signature, exceptions) values (?, ?, ?, ?, ?, ?)";
-    private static final String UPDATE_CODETEXT = "update method set codetext=? where methodid=?";
+//    private static final String UPDATE_CODETEXT = "update method set codetext=? where methodid=?";
 
 	private final Db db;
     private final Statement insertClassStmt;
     private final Statement insertMethodStmt;
-    private final Statement updateCodeTextStmt;
+//    private final Statement updateCodeTextStmt;
     private final Statement insertZeroInstStmt;
+//    private final Statement insertTypeInstStmt;
 
     private boolean hasCheckcast;
 
@@ -38,8 +36,9 @@ public class MavenClassVisitor extends MavenVisitor {
 		db = new Db("out/mavenclass.sqlite3");
 		insertClassStmt = db.createStatement(INSERT_CLASS);
         insertMethodStmt = db.createStatement(INSERT_METHOD);
-        updateCodeTextStmt = db.createStatement(UPDATE_CODETEXT);
-        insertZeroInstStmt = db.createStatement("insert into zero (methodid, opcode) values (?, ?)");
+//        updateCodeTextStmt = db.createStatement(UPDATE_CODETEXT);
+        insertZeroInstStmt = db.createStatement("insert into code (methodid, opcode, args) values (?, ?, ?)");
+//        insertTypeInstStmt = db.createStatement("insert into type (methodid, opcode, type) values (?, ?, ?)");
 	}
 
 	@Override
@@ -56,13 +55,21 @@ public class MavenClassVisitor extends MavenVisitor {
 				try {
 					insertClassStmt.execute(version, access, name, signature, superName, Arrays.toString(interfaces));
                     classId = db.lastInsertRowId();
-					db.commit();
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
 
-			@Override
+            @Override
+            public void visitEnd() {
+                try {
+                    db.commit();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
 			public MethodVisitor visitMethod(int access, final String methodName, final String methodDesc,
 					String signature, String[] exceptions) {
 
@@ -71,7 +78,6 @@ public class MavenClassVisitor extends MavenVisitor {
                 try {
                     insertMethodStmt.execute(classId, access, methodName, methodDesc, signature, Arrays.toString(exceptions));
                     methodId = db.lastInsertRowId();
-//                    db.commit();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -82,49 +88,99 @@ public class MavenClassVisitor extends MavenVisitor {
                             @Override
                             public void visitMethodEnd() {
 //                                if (hasCheckcast) {
-                                    String m = String.format("---- Method %s.%s ----", className, methodName);
-                                    StringWriter sw = new StringWriter();
-                                    print(new PrintWriter(sw));
+//                                    String m = String.format("---- Method %s.%s ----", className, methodName);
+//                                    StringWriter sw = new StringWriter();
+//                                    print(new PrintWriter(sw));
 
-                                    System.out.println(sw.toString());
-                                try {
-                                    updateCodeTextStmt.execute(sw.toString(), finalMethodId);
-                                } catch (SQLException e) {
-                                    e.printStackTrace();
-                                }
+//                                    System.out.println(sw.toString());
+//                                try {
+//                                    updateCodeTextStmt.execute(sw.toString(), finalMethodId);
+//                                } catch (SQLException e) {
+//                                    e.printStackTrace();
+//                                }
 //                                }
                             }
                         };
 
 				MethodVisitor mv = new MethodVisitor(Opcodes.ASM5) {
 
+				    @Override
+                    public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
+
+                    }
+
                     @Override
-                    public void visitInsn(int i) {
-                        try {
-                            insertZeroInstStmt.execute(finalMethodId, i);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
+                    public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+				        insert(opcode, owner, name, desc, itf);
+                    }
+
+                    @Override
+                    public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+				        insert(opcode, owner, name, desc);
+                    };
+
+                    @Override
+                    public void visitLdcInsn(Object cst) {
+                        insert(Opcodes.LDC, cst);
+                    }
+
+                    @Override
+                    public void visitIincInsn(int i, int i1) {
+                        insert(i, i1);
+                    }
+
+                    @Override
+                    public void visitMultiANewArrayInsn(String s, int i) {
+                        insert(Opcodes.MULTIANEWARRAY, s, i);
+                    }
+
+                    @Override
+                    public void visitIntInsn(int i, int i1) {
+                        insert(i, i1);
+                    }
+
+                    @Override
+                    public void visitJumpInsn(int i, Label label) {
+                        insert(i, label);
+                    }
+
+                    @Override
+                    public void visitVarInsn(int i, int i1) {
+                        insert(i, i1);
+                    }
+
+                    @Override
+                    public void visitInvokeDynamicInsn(String s, String s1, Handle handle, Object... objects) {
+                        insert(Opcodes.INVOKEDYNAMIC, s, s1, handle, objects);
+                    }
+
+                    @Override
+                    public void visitLookupSwitchInsn(Label label, int[] ints, Label[] labels) {
+                        insert(Opcodes.LOOKUPSWITCH, label, ints, labels);
+                    }
+
+                    @Override
+                    public void visitTableSwitchInsn(int i, int i1, Label label, Label... labels) {
+                        insert(Opcodes.TABLESWITCH, i, i1, label, labels);
+                    }
+
+                    @Override
+                    public void visitInsn(int opcode) {
+                        insert(opcode);
                     }
 
                     @Override
 					public void visitTypeInsn(int opcode, String type) {
-                        if (opcode == Opcodes.CHECKCAST) {
-                            hasCheckcast = true;
-                        } else if (opcode == Opcodes.INSTANCEOF) {
-						}
-					}
+                        insert(opcode, type);
+                    }
 
-					public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
-				        if ("java/lang/ClassCastException".equals(type)) {
-//                            add("ClassCastException", type, "");
+					private void insert(int opcode, Object ... values) {
+                        try {
+                            insertZeroInstStmt.execute(finalMethodId, opcode, Arrays.toString(values));
+                        } catch (SQLException e) {
+                            e.printStackTrace();
                         }
-					}
-
-					private void add(String owner, String name, String desc) {
-//						out.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n", art.coordid, art.groupid, art.artifactid,
-//								art.version, art.idate, art.mdate, className, methodName, methodDesc, owner, name, desc);
-					}
+                    }
 				};
 
 				return new TraceMethodVisitor(mv, p);
