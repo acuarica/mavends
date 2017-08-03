@@ -61,8 +61,9 @@ public class Statement implements AutoCloseable {
 	 *             a closed Statement.
 	 */
 	public long lastInsertRowid() throws SQLException {
-		final ResultSet rs = stmt.getGeneratedKeys();
-		return rs.getLong(1);
+		try (final ResultSet rs = stmt.getGeneratedKeys()) {
+			return rs.getLong(1);
+		}
 	}
 
 	@Override

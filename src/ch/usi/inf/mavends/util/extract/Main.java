@@ -54,7 +54,7 @@ public final class Main {
 
             JarReader jr = new JarReader(ar.repo) {
                 @Override
-                void processEntry(Artifact artifact, String fileName, byte[] fileData) {
+                public void processEntry(Artifact artifact, String fileName, byte[] fileData) {
                     try {
                         mv.visitFileEntry(artifact, fileName, fileData);
                     } catch (Exception e) {
@@ -63,7 +63,7 @@ public final class Main {
                 }
 
                 @Override
-				void processFileNotFound() {
+				public void processFileNotFound() {
                 	mv.filesNotFound++;
 				}
             };

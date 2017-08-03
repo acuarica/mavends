@@ -85,10 +85,10 @@ public class Db implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	public long lastInsertRowId() throws SQLException {
-		final ResultSet rs = select("select last_insert_rowid()");
-		final long rowId = rs.getLong(1);
-
-		return rowId;
+		try (final ResultSet rs = select("select last_insert_rowid()")) {
+			final long rowId = rs.getLong(1);
+			return rowId;
+		}
 	}
 
 	/**

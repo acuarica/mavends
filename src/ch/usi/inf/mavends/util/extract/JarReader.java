@@ -11,7 +11,7 @@ import java.util.zip.ZipInputStream;
 
 import ch.usi.inf.mavends.util.log.Log;
 
-abstract class JarReader {
+public abstract class JarReader {
 
 	private static final Log log = new Log(System.out);
 
@@ -51,7 +51,7 @@ abstract class JarReader {
 		}
 	}
 
-	abstract void processEntry(Artifact artifact, String filename, byte[] classFile);
+	public abstract void processEntry(Artifact artifact, String filename, byte[] classFile);
 
-	abstract void processFileNotFound();
+	public abstract void processFileNotFound();
 }

@@ -247,8 +247,8 @@ create view method_view as
     select class.*, method.* from method left join class on class.classid = method.classid;
 
 create view code_view as
-    select method.methodname, method.methoddesc, code.*, opcode.*
+    select class.classname, method.methodname, method.methoddesc, code.*, opcode.*
     from code
     left join opcode on opcode.id = code.opcode
-    left join method on method.methodid = code.methodid;
-
+    left join method on method.methodid = code.methodid
+    left join class on class.classid = method.classid;
