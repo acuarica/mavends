@@ -152,6 +152,17 @@
 	<target name="analysis-unsafe" depends="-compile" description="Runs Unsafe analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.UnsafeVisitor" />
 	</target>
+	<target name="extract-jnif" depends="-compile" description="Runs Maven Class Stats analysis. Requires configuration." if="select.query">
+		<echo message="/c echo Download Status is "/>
+
+		<!--<exec executable="/Users/luigi/work/jnif/build/testcoverage.bin">-->
+		<exec executable="sqlite3">
+			<!--<arg value="${mavenindex.path}" />-->
+			<!--<arg value="${repo}" />-->
+			<!--<arg value="${select.query}" />-->
+			<!--<arg value="${mavenclass.path}" />-->
+		</exec>
+	</target>
 	<target name="clean" description="Removes the compilation directory, e.g., *build*.">
 		<delete dir="${build}" />
 	</target>

@@ -1,4 +1,11 @@
 
+create table jar (
+    coordid integer primary key,
+    id      text not null,
+    path    text not null,
+    log     text not null
+);
+
 create table class (
     classid     integer primary key,
     version     int,
@@ -252,3 +259,4 @@ create view code_view as
     left join opcode on opcode.id = code.opcode
     left join method on method.methodid = code.methodid
     left join class on class.classid = method.classid;
+
