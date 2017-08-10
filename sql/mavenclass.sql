@@ -1,27 +1,51 @@
 
+create table cp_classname (
+       classnameid     integer primary key,
+       classname       varchar(256) not null unique on conflict ignore
+);
+
+create table cp_methoddesc (
+  methoddescid     integer primary key,
+  methoddesc       varchar(256) not null unique on conflict ignore
+);
+
+create table cp_signature (
+  signatureid     integer primary key,
+  signature       varchar(256) not null unique on conflict ignore
+);
+
+-- create table cp_methodref (
+-- );
+
 create table jar (
-    coordid integer primary key,
-    id      text not null,
-    path    text not null,
-    log     text not null
+    jarid    integer primary key,
+    coord    varchar(256) not null,
+    path     varchar(256) not null
 );
 
 create table class (
     classid     integer primary key,
-    version     int,
-    access      int,
-    classname   varchar(256),
-    signature   varchar(256),
-    superclass  varchar(256),
-    interfaces  varchar(256)
+    jarid       int not null references jar(jarid),
+    minor_version     int not null,
+    major_version     int not null,
+    access      int not null,
+    classnameid     int not null references cp_classname(classnameid),
+    signatureid       int references cp_signature(signatureid),
+    superclassid    int not null references cp_classname(classnameid)
+);
+
+create table interface (
+       classid int references class(classid),
+       interfaceid int references cp_classname(classnameid),
+       primary key (classid, interfaceid)
 );
 
 create table method (
     methodid    integer primary key,
-    classid     integer,
-    access      int,
-    methodname  varchar(256),
-    methoddesc  varchar(256),
+    classid     integer not null references class(classid),
+    access      int not null,
+    methodname  varchar(256) not null,
+    methoddescid int not null references methoddesc(methoddescid),
     signature   varchar(256),
     exceptions  varchar(256)
 );
@@ -43,6 +67,20 @@ create table opcode (
     id   int,
     name varchar(256)
 );
+
+create table class_flags (
+  id   int,
+  name varchar(256)
+);
+
+insert into class_flags (name, id) values ('public', 0x0001);
+insert into class_flags (name, id) values ('final', 0x0010);
+insert into class_flags (name, id) values ('super', 0x0020);
+insert into class_flags (name, id) values ('interface', 0x0200);
+insert into class_flags (name, id) values ('abstract', 0x0400);
+insert into class_flags (name, id) values ('synthetic', 0x1000);
+insert into class_flags (name, id) values ('annotation', 0x2000);
+insert into class_flags (name, id) values ('enum', 0x4000);
 
 insert into opcode (name, id) values ('nop', 0x00);
 insert into opcode (name, id) values ('aconst_null', 0x01);
@@ -250,13 +288,47 @@ insert into opcode (name, id) values ('breakpoint', 0xca);
 insert into opcode (name, id) values ('impdep1', 0xfe);
 insert into opcode (name, id) values ('impdep2', 0xff);
 
+create view class_view as
+  select jar.jarid, jar.coord,
+  class.classid, class.minor_version, class.major_version,
+  case when class.access & 1 then 'public ' else '' end ||
+  case when class.access & 16 then 'final ' else '' end ||
+  case when class.access & 32 then 'super ' else '' end ||
+  case when class.access & 512 then 'interface ' else '' end ||
+  case when class.access & 1024 then 'abstract ' else '' end ||
+  case when class.access & 4096 then 'synthetic ' else '' end ||
+  case when class.access & 8192 then 'annotation ' else '' end ||
+  case when class.access & 16384 then 'enum ' else '' end,
+  cp_classname.classname,
+  cp_signature.signature,
+  s.classname as superclass,
+  (select group_concat(interface) from interface_view where classid=class.classid) as interfaces
+  from class
+  left join jar on jar.jarid = class.jarid
+  left join cp_classname on cp_classname.classnameid = class.classnameid
+  left join cp_signature on cp_signature.signatureid = class.signatureid
+  left join cp_classname s on s.classnameid = class.superclassid
+;
+
+create view interface_view as
+  select
+    interface.classid,
+    cp_classname.classname as interface
+  from interface
+  left join cp_classname on cp_classname.classnameid = interface.interfaceid
+;
+
 create view method_view as
-    select class.*, method.* from method left join class on class.classid = method.classid;
+    select class.*, method.*, cp_methoddesc.*
+    from method
+    left join class on class.classid = method.classid
+    left join cp_methoddesc on cp_methoddesc.methoddescid = method.methoddescid
+;
 
 create view code_view as
     select class.classname, method.methodname, method.methoddesc, code.*, opcode.*
     from code
     left join opcode on opcode.id = code.opcode
-    left join method on method.methodid = code.methodid
-    left join class on class.classid = method.classid;
+    left join method_view on method.methodid = code.methodid
+    left join class_view on class.classid = method.classid;
 
