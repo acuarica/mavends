@@ -1,7 +1,284 @@
 
+create table class_flags (
+  id   int not null,
+  name varchar(256) not null
+);
+
+insert into class_flags (name, id) values ('public', 0x0001);
+insert into class_flags (name, id) values ('final', 0x0010);
+insert into class_flags (name, id) values ('super', 0x0020);
+insert into class_flags (name, id) values ('interface', 0x0200);
+insert into class_flags (name, id) values ('abstract', 0x0400);
+insert into class_flags (name, id) values ('synthetic', 0x1000);
+insert into class_flags (name, id) values ('annotation', 0x2000);
+insert into class_flags (name, id) values ('enum', 0x4000);
+
+create table opcode (
+  id   int primary key,
+  name varchar(256) not null,
+  kind int not null
+);
+
+insert into opcode (id, name, kind) values (0, 'nop', 0);
+insert into opcode (id, name, kind) values (1, 'aconst_null', 0);
+insert into opcode (id, name, kind) values (2, 'iconst_m1', 0);
+insert into opcode (id, name, kind) values (3, 'iconst_0', 0);
+insert into opcode (id, name, kind) values (4, 'iconst_1', 0);
+insert into opcode (id, name, kind) values (5, 'iconst_2', 0);
+insert into opcode (id, name, kind) values (6, 'iconst_3', 0);
+insert into opcode (id, name, kind) values (7, 'iconst_4', 0);
+insert into opcode (id, name, kind) values (8, 'iconst_5', 0);
+insert into opcode (id, name, kind) values (9, 'lconst_0', 0);
+insert into opcode (id, name, kind) values (10, 'lconst_1', 0);
+insert into opcode (id, name, kind) values (11, 'fconst_0', 0);
+insert into opcode (id, name, kind) values (12, 'fconst_1', 0);
+insert into opcode (id, name, kind) values (13, 'fconst_2', 0);
+insert into opcode (id, name, kind) values (14, 'dconst_0', 0);
+insert into opcode (id, name, kind) values (15, 'dconst_1', 0);
+insert into opcode (id, name, kind) values (16, 'bipush', 1);
+insert into opcode (id, name, kind) values (17, 'sipush', 2);
+insert into opcode (id, name, kind) values (18, 'ldc', 3);
+insert into opcode (id, name, kind) values (19, 'ldc_w', 3);
+insert into opcode (id, name, kind) values (20, 'ldc2_w', 3);
+insert into opcode (id, name, kind) values (21, 'iload', 4);
+insert into opcode (id, name, kind) values (22, 'lload', 4);
+insert into opcode (id, name, kind) values (23, 'fload', 4);
+insert into opcode (id, name, kind) values (24, 'dload', 4);
+insert into opcode (id, name, kind) values (25, 'aload', 4);
+insert into opcode (id, name, kind) values (26, 'iload_0', 0);
+insert into opcode (id, name, kind) values (27, 'iload_1', 0);
+insert into opcode (id, name, kind) values (28, 'iload_2', 0);
+insert into opcode (id, name, kind) values (29, 'iload_3', 0);
+insert into opcode (id, name, kind) values (30, 'lload_0', 0);
+insert into opcode (id, name, kind) values (31, 'lload_1', 0);
+insert into opcode (id, name, kind) values (32, 'lload_2', 0);
+insert into opcode (id, name, kind) values (33, 'lload_3', 0);
+insert into opcode (id, name, kind) values (34, 'fload_0', 0);
+insert into opcode (id, name, kind) values (35, 'fload_1', 0);
+insert into opcode (id, name, kind) values (36, 'fload_2', 0);
+insert into opcode (id, name, kind) values (37, 'fload_3', 0);
+insert into opcode (id, name, kind) values (38, 'dload_0', 0);
+insert into opcode (id, name, kind) values (39, 'dload_1', 0);
+insert into opcode (id, name, kind) values (40, 'dload_2', 0);
+insert into opcode (id, name, kind) values (41, 'dload_3', 0);
+insert into opcode (id, name, kind) values (42, 'aload_0', 0);
+insert into opcode (id, name, kind) values (43, 'aload_1', 0);
+insert into opcode (id, name, kind) values (44, 'aload_2', 0);
+insert into opcode (id, name, kind) values (45, 'aload_3', 0);
+insert into opcode (id, name, kind) values (46, 'iaload', 0);
+insert into opcode (id, name, kind) values (47, 'laload', 0);
+insert into opcode (id, name, kind) values (48, 'faload', 0);
+insert into opcode (id, name, kind) values (49, 'daload', 0);
+insert into opcode (id, name, kind) values (50, 'aaload', 0);
+insert into opcode (id, name, kind) values (51, 'baload', 0);
+insert into opcode (id, name, kind) values (52, 'caload', 0);
+insert into opcode (id, name, kind) values (53, 'saload', 0);
+insert into opcode (id, name, kind) values (54, 'istore', 4);
+insert into opcode (id, name, kind) values (55, 'lstore', 4);
+insert into opcode (id, name, kind) values (56, 'fstore', 4);
+insert into opcode (id, name, kind) values (57, 'dstore', 4);
+insert into opcode (id, name, kind) values (58, 'astore', 4);
+insert into opcode (id, name, kind) values (59, 'istore_0', 0);
+insert into opcode (id, name, kind) values (60, 'istore_1', 0);
+insert into opcode (id, name, kind) values (61, 'istore_2', 0);
+insert into opcode (id, name, kind) values (62, 'istore_3', 0);
+insert into opcode (id, name, kind) values (63, 'lstore_0', 0);
+insert into opcode (id, name, kind) values (64, 'lstore_1', 0);
+insert into opcode (id, name, kind) values (65, 'lstore_2', 0);
+insert into opcode (id, name, kind) values (66, 'lstore_3', 0);
+insert into opcode (id, name, kind) values (67, 'fstore_0', 0);
+insert into opcode (id, name, kind) values (68, 'fstore_1', 0);
+insert into opcode (id, name, kind) values (69, 'fstore_2', 0);
+insert into opcode (id, name, kind) values (70, 'fstore_3', 0);
+insert into opcode (id, name, kind) values (71, 'dstore_0', 0);
+insert into opcode (id, name, kind) values (72, 'dstore_1', 0);
+insert into opcode (id, name, kind) values (73, 'dstore_2', 0);
+insert into opcode (id, name, kind) values (74, 'dstore_3', 0);
+insert into opcode (id, name, kind) values (75, 'astore_0', 0);
+insert into opcode (id, name, kind) values (76, 'astore_1', 0);
+insert into opcode (id, name, kind) values (77, 'astore_2', 0);
+insert into opcode (id, name, kind) values (78, 'astore_3', 0);
+insert into opcode (id, name, kind) values (79, 'iastore', 0);
+insert into opcode (id, name, kind) values (80, 'lastore', 0);
+insert into opcode (id, name, kind) values (81, 'fastore', 0);
+insert into opcode (id, name, kind) values (82, 'dastore', 0);
+insert into opcode (id, name, kind) values (83, 'aastore', 0);
+insert into opcode (id, name, kind) values (84, 'bastore', 0);
+insert into opcode (id, name, kind) values (85, 'castore', 0);
+insert into opcode (id, name, kind) values (86, 'sastore', 0);
+insert into opcode (id, name, kind) values (87, 'pop', 0);
+insert into opcode (id, name, kind) values (88, 'pop2', 0);
+insert into opcode (id, name, kind) values (89, 'dup', 0);
+insert into opcode (id, name, kind) values (90, 'dup_x1', 0);
+insert into opcode (id, name, kind) values (91, 'dup_x2', 0);
+insert into opcode (id, name, kind) values (92, 'dup2', 0);
+insert into opcode (id, name, kind) values (93, 'dup2_x1', 0);
+insert into opcode (id, name, kind) values (94, 'dup2_x2', 0);
+insert into opcode (id, name, kind) values (95, 'swap', 0);
+insert into opcode (id, name, kind) values (96, 'iadd', 0);
+insert into opcode (id, name, kind) values (97, 'ladd', 0);
+insert into opcode (id, name, kind) values (98, 'fadd', 0);
+insert into opcode (id, name, kind) values (99, 'dadd', 0);
+insert into opcode (id, name, kind) values (100, 'isub', 0);
+insert into opcode (id, name, kind) values (101, 'lsub', 0);
+insert into opcode (id, name, kind) values (102, 'fsub', 0);
+insert into opcode (id, name, kind) values (103, 'dsub', 0);
+insert into opcode (id, name, kind) values (104, 'imul', 0);
+insert into opcode (id, name, kind) values (105, 'lmul', 0);
+insert into opcode (id, name, kind) values (106, 'fmul', 0);
+insert into opcode (id, name, kind) values (107, 'dmul', 0);
+insert into opcode (id, name, kind) values (108, 'idiv', 0);
+insert into opcode (id, name, kind) values (109, 'ldiv', 0);
+insert into opcode (id, name, kind) values (110, 'fdiv', 0);
+insert into opcode (id, name, kind) values (111, 'ddiv', 0);
+insert into opcode (id, name, kind) values (112, 'irem', 0);
+insert into opcode (id, name, kind) values (113, 'lrem', 0);
+insert into opcode (id, name, kind) values (114, 'frem', 0);
+insert into opcode (id, name, kind) values (115, 'drem', 0);
+insert into opcode (id, name, kind) values (116, 'ineg', 0);
+insert into opcode (id, name, kind) values (117, 'lneg', 0);
+insert into opcode (id, name, kind) values (118, 'fneg', 0);
+insert into opcode (id, name, kind) values (119, 'dneg', 0);
+insert into opcode (id, name, kind) values (120, 'ishl', 0);
+insert into opcode (id, name, kind) values (121, 'lshl', 0);
+insert into opcode (id, name, kind) values (122, 'ishr', 0);
+insert into opcode (id, name, kind) values (123, 'lshr', 0);
+insert into opcode (id, name, kind) values (124, 'iushr', 0);
+insert into opcode (id, name, kind) values (125, 'lushr', 0);
+insert into opcode (id, name, kind) values (126, 'iand', 0);
+insert into opcode (id, name, kind) values (127, 'land', 0);
+insert into opcode (id, name, kind) values (128, 'ior', 0);
+insert into opcode (id, name, kind) values (129, 'lor', 0);
+insert into opcode (id, name, kind) values (130, 'ixor', 0);
+insert into opcode (id, name, kind) values (131, 'lxor', 0);
+insert into opcode (id, name, kind) values (132, 'iinc', 5);
+insert into opcode (id, name, kind) values (133, 'i2l', 0);
+insert into opcode (id, name, kind) values (134, 'i2f', 0);
+insert into opcode (id, name, kind) values (135, 'i2d', 0);
+insert into opcode (id, name, kind) values (136, 'l2i', 0);
+insert into opcode (id, name, kind) values (137, 'l2f', 0);
+insert into opcode (id, name, kind) values (138, 'l2d', 0);
+insert into opcode (id, name, kind) values (139, 'f2i', 0);
+insert into opcode (id, name, kind) values (140, 'f2l', 0);
+insert into opcode (id, name, kind) values (141, 'f2d', 0);
+insert into opcode (id, name, kind) values (142, 'd2i', 0);
+insert into opcode (id, name, kind) values (143, 'd2l', 0);
+insert into opcode (id, name, kind) values (144, 'd2f', 0);
+insert into opcode (id, name, kind) values (145, 'i2b', 0);
+insert into opcode (id, name, kind) values (146, 'i2c', 0);
+insert into opcode (id, name, kind) values (147, 'i2s', 0);
+insert into opcode (id, name, kind) values (148, 'lcmp', 0);
+insert into opcode (id, name, kind) values (149, 'fcmpl', 0);
+insert into opcode (id, name, kind) values (150, 'fcmpg', 0);
+insert into opcode (id, name, kind) values (151, 'dcmpl', 0);
+insert into opcode (id, name, kind) values (152, 'dcmpg', 0);
+insert into opcode (id, name, kind) values (153, 'ifeq', 6);
+insert into opcode (id, name, kind) values (154, 'ifne', 6);
+insert into opcode (id, name, kind) values (155, 'iflt', 6);
+insert into opcode (id, name, kind) values (156, 'ifge', 6);
+insert into opcode (id, name, kind) values (157, 'ifgt', 6);
+insert into opcode (id, name, kind) values (158, 'ifle', 6);
+insert into opcode (id, name, kind) values (159, 'if_icmpeq', 6);
+insert into opcode (id, name, kind) values (160, 'if_icmpne', 6);
+insert into opcode (id, name, kind) values (161, 'if_icmplt', 6);
+insert into opcode (id, name, kind) values (162, 'if_icmpge', 6);
+insert into opcode (id, name, kind) values (163, 'if_icmpgt', 6);
+insert into opcode (id, name, kind) values (164, 'if_icmple', 6);
+insert into opcode (id, name, kind) values (165, 'if_acmpeq', 6);
+insert into opcode (id, name, kind) values (166, 'if_acmpne', 6);
+insert into opcode (id, name, kind) values (167, 'goto', 6);
+insert into opcode (id, name, kind) values (168, 'jsr', 6);
+insert into opcode (id, name, kind) values (169, 'ret', 4);
+insert into opcode (id, name, kind) values (170, 'tableswitch', 7);
+insert into opcode (id, name, kind) values (171, 'lookupswitch', 8);
+insert into opcode (id, name, kind) values (172, 'ireturn', 0);
+insert into opcode (id, name, kind) values (173, 'lreturn', 0);
+insert into opcode (id, name, kind) values (174, 'freturn', 0);
+insert into opcode (id, name, kind) values (175, 'dreturn', 0);
+insert into opcode (id, name, kind) values (176, 'areturn', 0);
+insert into opcode (id, name, kind) values (177, 'return', 0);
+insert into opcode (id, name, kind) values (178, 'getstatic', 9);
+insert into opcode (id, name, kind) values (179, 'putstatic', 9);
+insert into opcode (id, name, kind) values (180, 'getfield', 9);
+insert into opcode (id, name, kind) values (181, 'putfield', 9);
+insert into opcode (id, name, kind) values (182, 'invokevirtual', 10);
+insert into opcode (id, name, kind) values (183, 'invokespecial', 10);
+insert into opcode (id, name, kind) values (184, 'invokestatic', 10);
+insert into opcode (id, name, kind) values (185, 'invokeinterface', 11);
+insert into opcode (id, name, kind) values (186, 'invokedynamic', 12);
+insert into opcode (id, name, kind) values (187, 'new', 13);
+insert into opcode (id, name, kind) values (188, 'newarray', 14);
+insert into opcode (id, name, kind) values (189, 'anewarray', 13);
+insert into opcode (id, name, kind) values (190, 'arraylength', 0);
+insert into opcode (id, name, kind) values (191, 'athrow', 0);
+insert into opcode (id, name, kind) values (192, 'checkcast', 13);
+insert into opcode (id, name, kind) values (193, 'instanceof', 13);
+insert into opcode (id, name, kind) values (194, 'monitorenter', 0);
+insert into opcode (id, name, kind) values (195, 'monitorexit', 0);
+insert into opcode (id, name, kind) values (196, 'wide', 0);
+insert into opcode (id, name, kind) values (197, 'multianewarray', 15);
+insert into opcode (id, name, kind) values (198, 'ifnull', 6);
+insert into opcode (id, name, kind) values (199, 'ifnonnull', 6);
+insert into opcode (id, name, kind) values (200, 'goto_w', 16);
+insert into opcode (id, name, kind) values (201, 'jsr_w', 16);
+insert into opcode (id, name, kind) values (202, 'breakpoint', 17);
+insert into opcode (id, name, kind) values (203, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (204, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (205, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (206, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (207, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (208, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (209, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (210, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (211, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (212, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (213, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (214, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (215, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (216, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (217, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (218, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (219, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (220, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (221, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (222, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (223, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (224, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (225, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (226, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (227, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (228, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (229, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (230, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (231, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (232, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (233, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (234, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (235, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (236, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (237, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (238, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (239, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (240, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (241, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (242, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (243, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (244, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (245, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (246, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (247, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (248, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (249, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (250, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (251, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (252, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (253, 'RESERVED', 17);
+insert into opcode (id, name, kind) values (254, 'impdep1', 17);
+insert into opcode (id, name, kind) values (255, 'impdep2', 17);
+
 create table cp_classname (
        classnameid     integer primary key,
-       classname       varchar(256) not null unique on conflict ignore
+       classname       varchar(256) not null unique
 );
 
 create table cp_methoddesc (
@@ -14,13 +291,18 @@ create table cp_signature (
   signature       varchar(256) not null unique on conflict ignore
 );
 
--- create table cp_methodref (
--- );
+create table cp_methodref (
+  methodrefid integer primary key,
+  classnameid integer not null references cp_classname(classnameid),
+  methodname varchar(256) not null,
+  methoddescid integer not null references cp_methoddesc(methoddescid),
+  unique (classnameid, methodname, methoddescid)
+);
 
 create table jar (
     jarid    integer primary key,
-    coord    varchar(256) not null,
-    path     varchar(256) not null
+    coord    varchar(256) unique not null,
+    path     varchar(256) unique not null
 );
 
 create table class (
@@ -35,8 +317,8 @@ create table class (
 );
 
 create table interface (
-       classid int references class(classid),
-       interfaceid int references cp_classname(classnameid),
+       classid int not null references class(classid),
+       interfaceid int not null references cp_classname(classnameid),
        primary key (classid, interfaceid)
 );
 
@@ -45,7 +327,7 @@ create table method (
     classid     integer not null references class(classid),
     access      int not null,
     methodname  varchar(256) not null,
-    methoddescid int not null references methoddesc(methoddescid),
+    methoddescid int not null references cp_methoddesc(methoddescid),
     signature   varchar(256),
     exceptions  varchar(256)
 );
@@ -57,278 +339,4 @@ create table code (
     args        text
 );
 
---create table type (
---    methodid    integer,
---    opcode      int,
---    type        varchar(265)
---);
-
-create table opcode (
-    id   int,
-    name varchar(256)
-);
-
-create table class_flags (
-  id   int,
-  name varchar(256)
-);
-
-insert into class_flags (name, id) values ('public', 0x0001);
-insert into class_flags (name, id) values ('final', 0x0010);
-insert into class_flags (name, id) values ('super', 0x0020);
-insert into class_flags (name, id) values ('interface', 0x0200);
-insert into class_flags (name, id) values ('abstract', 0x0400);
-insert into class_flags (name, id) values ('synthetic', 0x1000);
-insert into class_flags (name, id) values ('annotation', 0x2000);
-insert into class_flags (name, id) values ('enum', 0x4000);
-
-insert into opcode (name, id) values ('nop', 0x00);
-insert into opcode (name, id) values ('aconst_null', 0x01);
-insert into opcode (name, id) values ('iconst_m1', 0x02);
-insert into opcode (name, id) values ('iconst_0', 0x03);
-insert into opcode (name, id) values ('iconst_1', 0x04);
-insert into opcode (name, id) values ('iconst_2', 0x05);
-insert into opcode (name, id) values ('iconst_3', 0x06);
-insert into opcode (name, id) values ('iconst_4', 0x07);
-insert into opcode (name, id) values ('iconst_5', 0x08);
-insert into opcode (name, id) values ('lconst_0', 0x09);
-insert into opcode (name, id) values ('lconst_1', 0x0a);
-insert into opcode (name, id) values ('fconst_0', 0x0b);
-insert into opcode (name, id) values ('fconst_1', 0x0c);
-insert into opcode (name, id) values ('fconst_2', 0x0d);
-insert into opcode (name, id) values ('dconst_0', 0x0e);
-insert into opcode (name, id) values ('dconst_1', 0x0f);
-insert into opcode (name, id) values ('bipush', 0x10);
-insert into opcode (name, id) values ('sipush', 0x11);
-insert into opcode (name, id) values ('ldc', 0x12);
-insert into opcode (name, id) values ('ldc_w', 0x13);
-insert into opcode (name, id) values ('ldc2_w', 0x14);
-insert into opcode (name, id) values ('iload', 0x15);
-insert into opcode (name, id) values ('lload', 0x16);
-insert into opcode (name, id) values ('fload', 0x17);
-insert into opcode (name, id) values ('dload', 0x18);
-insert into opcode (name, id) values ('aload', 0x19);
-insert into opcode (name, id) values ('iload_0', 0x1a);
-insert into opcode (name, id) values ('iload_1', 0x1b);
-insert into opcode (name, id) values ('iload_2', 0x1c);
-insert into opcode (name, id) values ('iload_3', 0x1d);
-insert into opcode (name, id) values ('lload_0', 0x1e);
-insert into opcode (name, id) values ('lload_1', 0x1f);
-insert into opcode (name, id) values ('lload_2', 0x20);
-insert into opcode (name, id) values ('lload_3', 0x21);
-insert into opcode (name, id) values ('fload_0', 0x22);
-insert into opcode (name, id) values ('fload_1', 0x23);
-insert into opcode (name, id) values ('fload_2', 0x24);
-insert into opcode (name, id) values ('fload_3', 0x25);
-insert into opcode (name, id) values ('dload_0', 0x26);
-insert into opcode (name, id) values ('dload_1', 0x27);
-insert into opcode (name, id) values ('dload_2', 0x28);
-insert into opcode (name, id) values ('dload_3', 0x29);
-insert into opcode (name, id) values ('aload_0', 0x2a);
-insert into opcode (name, id) values ('aload_1', 0x2b);
-insert into opcode (name, id) values ('aload_2', 0x2c);
-insert into opcode (name, id) values ('aload_3', 0x2d);
-insert into opcode (name, id) values ('iaload', 0x2e);
-insert into opcode (name, id) values ('laload', 0x2f);
-insert into opcode (name, id) values ('faload', 0x30);
-insert into opcode (name, id) values ('daload', 0x31);
-insert into opcode (name, id) values ('aaload', 0x32);
-insert into opcode (name, id) values ('baload', 0x33);
-insert into opcode (name, id) values ('caload', 0x34);
-insert into opcode (name, id) values ('saload', 0x35);
-insert into opcode (name, id) values ('istore', 0x36);
-insert into opcode (name, id) values ('lstore', 0x37);
-insert into opcode (name, id) values ('fstore', 0x38);
-insert into opcode (name, id) values ('dstore', 0x39);
-insert into opcode (name, id) values ('astore', 0x3a);
-insert into opcode (name, id) values ('istore_0', 0x3b);
-insert into opcode (name, id) values ('istore_1', 0x3c);
-insert into opcode (name, id) values ('istore_2', 0x3d);
-insert into opcode (name, id) values ('istore_3', 0x3e);
-insert into opcode (name, id) values ('lstore_0', 0x3f);
-insert into opcode (name, id) values ('lstore_1', 0x40);
-insert into opcode (name, id) values ('lstore_2', 0x41);
-insert into opcode (name, id) values ('lstore_3', 0x42);
-insert into opcode (name, id) values ('fstore_0', 0x43);
-insert into opcode (name, id) values ('fstore_1', 0x44);
-insert into opcode (name, id) values ('fstore_2', 0x45);
-insert into opcode (name, id) values ('fstore_3', 0x46);
-insert into opcode (name, id) values ('dstore_0', 0x47);
-insert into opcode (name, id) values ('dstore_1', 0x48);
-insert into opcode (name, id) values ('dstore_2', 0x49);
-insert into opcode (name, id) values ('dstore_3', 0x4a);
-insert into opcode (name, id) values ('astore_0', 0x4b);
-insert into opcode (name, id) values ('astore_1', 0x4c);
-insert into opcode (name, id) values ('astore_2', 0x4d);
-insert into opcode (name, id) values ('astore_3', 0x4e);
-insert into opcode (name, id) values ('iastore', 0x4f);
-insert into opcode (name, id) values ('lastore', 0x50);
-insert into opcode (name, id) values ('fastore', 0x51);
-insert into opcode (name, id) values ('dastore', 0x52);
-insert into opcode (name, id) values ('aastore', 0x53);
-insert into opcode (name, id) values ('bastore', 0x54);
-insert into opcode (name, id) values ('castore', 0x55);
-insert into opcode (name, id) values ('sastore', 0x56);
-insert into opcode (name, id) values ('pop', 0x57);
-insert into opcode (name, id) values ('pop2', 0x58);
-insert into opcode (name, id) values ('dup', 0x59);
-insert into opcode (name, id) values ('dup_x1', 0x5a);
-insert into opcode (name, id) values ('dup_x2', 0x5b);
-insert into opcode (name, id) values ('dup2', 0x5c);
-insert into opcode (name, id) values ('dup2_x1', 0x5d);
-insert into opcode (name, id) values ('dup2_x2', 0x5e);
-insert into opcode (name, id) values ('swap', 0x5f);
-insert into opcode (name, id) values ('iadd', 0x60);
-insert into opcode (name, id) values ('ladd', 0x61);
-insert into opcode (name, id) values ('fadd', 0x62);
-insert into opcode (name, id) values ('dadd', 0x63);
-insert into opcode (name, id) values ('isub', 0x64);
-insert into opcode (name, id) values ('lsub', 0x65);
-insert into opcode (name, id) values ('fsub', 0x66);
-insert into opcode (name, id) values ('dsub', 0x67);
-insert into opcode (name, id) values ('imul', 0x68);
-insert into opcode (name, id) values ('lmul', 0x69);
-insert into opcode (name, id) values ('fmul', 0x6a);
-insert into opcode (name, id) values ('dmul', 0x6b);
-insert into opcode (name, id) values ('idiv', 0x6c);
-insert into opcode (name, id) values ('ldiv', 0x6d);
-insert into opcode (name, id) values ('fdiv', 0x6e);
-insert into opcode (name, id) values ('ddiv', 0x6f);
-insert into opcode (name, id) values ('irem', 0x70);
-insert into opcode (name, id) values ('lrem', 0x71);
-insert into opcode (name, id) values ('frem', 0x72);
-insert into opcode (name, id) values ('drem', 0x73);
-insert into opcode (name, id) values ('ineg', 0x74);
-insert into opcode (name, id) values ('lneg', 0x75);
-insert into opcode (name, id) values ('fneg', 0x76);
-insert into opcode (name, id) values ('dneg', 0x77);
-insert into opcode (name, id) values ('ishl', 0x78);
-insert into opcode (name, id) values ('lshl', 0x79);
-insert into opcode (name, id) values ('ishr', 0x7a);
-insert into opcode (name, id) values ('lshr', 0x7b);
-insert into opcode (name, id) values ('iushr', 0x7c);
-insert into opcode (name, id) values ('lushr', 0x7d);
-insert into opcode (name, id) values ('iand', 0x7e);
-insert into opcode (name, id) values ('land', 0x7f);
-insert into opcode (name, id) values ('ior', 0x80);
-insert into opcode (name, id) values ('lor', 0x81);
-insert into opcode (name, id) values ('ixor', 0x82);
-insert into opcode (name, id) values ('lxor', 0x83);
-insert into opcode (name, id) values ('iinc', 0x84);
-insert into opcode (name, id) values ('i2l', 0x85);
-insert into opcode (name, id) values ('i2f', 0x86);
-insert into opcode (name, id) values ('i2d', 0x87);
-insert into opcode (name, id) values ('l2i', 0x88);
-insert into opcode (name, id) values ('l2f', 0x89);
-insert into opcode (name, id) values ('l2d', 0x8a);
-insert into opcode (name, id) values ('f2i', 0x8b);
-insert into opcode (name, id) values ('f2l', 0x8c);
-insert into opcode (name, id) values ('f2d', 0x8d);
-insert into opcode (name, id) values ('d2i', 0x8e);
-insert into opcode (name, id) values ('d2l', 0x8f);
-insert into opcode (name, id) values ('d2f', 0x90);
-insert into opcode (name, id) values ('i2b', 0x91);
-insert into opcode (name, id) values ('i2c', 0x92);
-insert into opcode (name, id) values ('i2s', 0x93);
-insert into opcode (name, id) values ('lcmp', 0x94);
-insert into opcode (name, id) values ('fcmpl', 0x95);
-insert into opcode (name, id) values ('fcmpg', 0x96);
-insert into opcode (name, id) values ('dcmpl', 0x97);
-insert into opcode (name, id) values ('dcmpg', 0x98);
-insert into opcode (name, id) values ('ifeq', 0x99);
-insert into opcode (name, id) values ('ifne', 0x9a);
-insert into opcode (name, id) values ('iflt', 0x9b);
-insert into opcode (name, id) values ('ifge', 0x9c);
-insert into opcode (name, id) values ('ifgt', 0x9d);
-insert into opcode (name, id) values ('ifle', 0x9e);
-insert into opcode (name, id) values ('if_icmpeq', 0x9f);
-insert into opcode (name, id) values ('if_icmpne', 0xa0);
-insert into opcode (name, id) values ('if_icmplt', 0xa1);
-insert into opcode (name, id) values ('if_icmpge', 0xa2);
-insert into opcode (name, id) values ('if_icmpgt', 0xa3);
-insert into opcode (name, id) values ('if_icmple', 0xa4);
-insert into opcode (name, id) values ('if_acmpeq', 0xa5);
-insert into opcode (name, id) values ('if_acmpne', 0xa6);
-insert into opcode (name, id) values ('goto', 0xa7);
-insert into opcode (name, id) values ('jsr', 0xa8);
-insert into opcode (name, id) values ('ret', 0xa9);
-insert into opcode (name, id) values ('tableswitch', 0xaa);
-insert into opcode (name, id) values ('lookupswitch', 0xab);
-insert into opcode (name, id) values ('ireturn', 0xac);
-insert into opcode (name, id) values ('lreturn', 0xad);
-insert into opcode (name, id) values ('freturn', 0xae);
-insert into opcode (name, id) values ('dreturn', 0xaf);
-insert into opcode (name, id) values ('areturn', 0xb0);
-insert into opcode (name, id) values ('return', 0xb1);
-insert into opcode (name, id) values ('getstatic', 0xb2);
-insert into opcode (name, id) values ('putstatic', 0xb3);
-insert into opcode (name, id) values ('getfield', 0xb4);
-insert into opcode (name, id) values ('putfield', 0xb5);
-insert into opcode (name, id) values ('invokevirtual', 0xb6);
-insert into opcode (name, id) values ('invokespecial', 0xb7);
-insert into opcode (name, id) values ('invokestatic', 0xb8);
-insert into opcode (name, id) values ('invokeinterface', 0xb9);
-insert into opcode (name, id) values ('invokedynamic', 0xba);
-insert into opcode (name, id) values ('new', 0xbb);
-insert into opcode (name, id) values ('newarray', 0xbc);
-insert into opcode (name, id) values ('anewarray', 0xbd);
-insert into opcode (name, id) values ('arraylength', 0xbe);
-insert into opcode (name, id) values ('athrow', 0xbf);
-insert into opcode (name, id) values ('checkcast', 0xc0);
-insert into opcode (name, id) values ('instanceof', 0xc1);
-insert into opcode (name, id) values ('monitorenter', 0xc2);
-insert into opcode (name, id) values ('monitorexit', 0xc3);
-insert into opcode (name, id) values ('wide', 0xc4);
-insert into opcode (name, id) values ('multianewarray', 0xc5);
-insert into opcode (name, id) values ('ifnull', 0xc6);
-insert into opcode (name, id) values ('ifnonnull', 0xc7);
-insert into opcode (name, id) values ('goto_w', 0xc8);
-insert into opcode (name, id) values ('jsr_w', 0xc9);
-insert into opcode (name, id) values ('breakpoint', 0xca);
-insert into opcode (name, id) values ('impdep1', 0xfe);
-insert into opcode (name, id) values ('impdep2', 0xff);
-
-create view class_view as
-  select jar.jarid, jar.coord,
-  class.classid, class.minor_version, class.major_version,
-  case when class.access & 1 then 'public ' else '' end ||
-  case when class.access & 16 then 'final ' else '' end ||
-  case when class.access & 32 then 'super ' else '' end ||
-  case when class.access & 512 then 'interface ' else '' end ||
-  case when class.access & 1024 then 'abstract ' else '' end ||
-  case when class.access & 4096 then 'synthetic ' else '' end ||
-  case when class.access & 8192 then 'annotation ' else '' end ||
-  case when class.access & 16384 then 'enum ' else '' end,
-  cp_classname.classname,
-  cp_signature.signature,
-  s.classname as superclass,
-  (select group_concat(interface) from interface_view where classid=class.classid) as interfaces
-  from class
-  left join jar on jar.jarid = class.jarid
-  left join cp_classname on cp_classname.classnameid = class.classnameid
-  left join cp_signature on cp_signature.signatureid = class.signatureid
-  left join cp_classname s on s.classnameid = class.superclassid
-;
-
-create view interface_view as
-  select
-    interface.classid,
-    cp_classname.classname as interface
-  from interface
-  left join cp_classname on cp_classname.classnameid = interface.interfaceid
-;
-
-create view method_view as
-    select class.*, method.*, cp_methoddesc.*
-    from method
-    left join class on class.classid = method.classid
-    left join cp_methoddesc on cp_methoddesc.methoddescid = method.methoddescid
-;
-
-create view code_view as
-    select class.classname, method.methodname, method.methoddesc, code.*, opcode.*
-    from code
-    left join opcode on opcode.id = code.opcode
-    left join method_view on method.methodid = code.methodid
-    left join class_view on class.classid = method.classid;
-
+create index code_opcode on code(opcode);

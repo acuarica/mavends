@@ -43,6 +43,17 @@
 			</exec>
 		</sequential>
 	</macrodef>
+	<macrodef name="db-views">
+		<attribute name="file" />
+		<attribute name="sql" />
+		<sequential>
+			<echo message="Executing @{sql} on @{file}" />
+			<exec executable="sqlite3" input="@{sql}">
+				<arg value="-bail" />
+				<arg value="@{file}" />
+			</exec>
+		</sequential>
+	</macrodef>
 	<macrodef name="analysis">
 		<attribute name="mavenvisitor" />
 		<sequential>
@@ -136,6 +147,10 @@
 	<target name="mavenclass" depends="-compile" description="Creates the Maven Class DB.">
 		<mkdir dir="${out}" />
 		<db file="${mavenclass.path}" sql="${sql}/mavenclass.sql" />
+	</target>
+	<target name="mavenclass-views" depends="-compile" description="Creates the Maven Class DB.">
+		<mkdir dir="${out}" />
+		<db-views file="${mavenclass.path}" sql="${sql}/mavenclass-views.sql" />
 	</target>
 	<target name="analysis-mavenclass" depends="-compile" description="Runs Maven Class Stats analysis. Requires configuration." if="select.query">
 		<analysis mavenvisitor="ch.usi.inf.mavends.analysis.visitors.MavenClassVisitor" />
