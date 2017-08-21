@@ -2,11 +2,17 @@
 drop view if exists cp_methodref_view;
 
 create view cp_methodref_view as
-  select mr.methodrefid, mr.classnameid, cn.classname, mr.methodname,
-  mr.methoddescid, md.methoddesc
+  select
+    mr.methodrefid,
+    mr.classnameid,
+    cn.classname,
+    mr.methodname,
+    mr.methoddescid,
+    md.methoddesc,
+    cn.classname||'.'||mr.methodname||md.methoddesc fullmethodname
   from cp_methodref mr
   left join cp_classname cn on cn.classnameid = mr.classnameid
-  left join cp_methoddesc md on md.methoddescid = mr.classnameid;
+  left join cp_methoddesc md on md.methoddescid = mr.methoddescid;
 
 drop view if exists class_view;
 
