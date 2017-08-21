@@ -11,6 +11,20 @@
 
 -- select * from method where signature not null
 
+-- select count(*)
+-- from (
+--   select distinct methodid from code
+--   where opcode=(select id from opcode where name='checkcast')
+--   )
+-- ;
+
+-- select count(*)
+-- from (
+-- select distinct methodid from code
+-- where opcode=(select id from opcode where name='instanceof')
+-- )
+-- ;
+
 -- select count(*) from method_view where methodname='equals' and methoddesc ='(Ljava/lang/Object;)Z'
 
 -- select count(*)
@@ -40,8 +54,7 @@ from (
   from (
     select c.opcode, c.args
     from (
-      select opcodeindex-1 as opcodeindex
-      from code
+      select opcodeindex-1 as opcodeindex from code
       where opcode=(select id from opcode where name='checkcast') -- limit 1000
     ) t
     left join code c on c.opcodeindex=t.opcodeindex
