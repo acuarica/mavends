@@ -17,16 +17,18 @@ create view cp_methodref_view as
 drop view if exists class_view;
 
 create view class_view as
-  select jar.jarid, jar.coord,
-  class.classid, class.minor_version, class.major_version,
-  case when class.access & 1 then 'public ' else '' end ||
-  case when class.access & 16 then 'final ' else '' end ||
-  case when class.access & 32 then 'super ' else '' end ||
-  case when class.access & 512 then 'interface ' else '' end ||
-  case when class.access & 1024 then 'abstract ' else '' end ||
-  case when class.access & 4096 then 'synthetic ' else '' end ||
-  case when class.access & 8192 then 'annotation ' else '' end ||
-  case when class.access & 16384 then 'enum ' else '' end,
+  select
+    jar.jarid, jar.coord,
+    class.classid, class.minor_version, class.major_version,
+    class.access,
+    case when class.access & 1 then 'public ' else '' end ||
+    case when class.access & 16 then 'final ' else '' end ||
+    case when class.access & 32 then 'super ' else '' end ||
+    case when class.access & 512 then 'interface ' else '' end ||
+    case when class.access & 1024 then 'abstract ' else '' end ||
+    case when class.access & 4096 then 'synthetic ' else '' end ||
+    case when class.access & 8192 then 'annotation ' else '' end ||
+    case when class.access & 16384 then 'enum ' else '' end access_text,
   cp_classname.classname,
   cp_signature.signature,
   s.classname as superclass,
@@ -49,10 +51,10 @@ create view interface_view as
 drop view if exists method_view;
 
 create view method_view as
-    select class.*, method.*, cp_methoddesc.*
-    from method
-    left join class on class.classid = method.classid
-    left join cp_methoddesc on cp_methoddesc.methoddescid = method.methoddescid;
+  select cv.*, m.*, cp.*
+  from method m
+  left join class_view cv on cv.classid = m.classid
+  left join cp_methoddesc cp on cp.methoddescid = m.methoddescid;
 
 drop view if exists code_view;
 
