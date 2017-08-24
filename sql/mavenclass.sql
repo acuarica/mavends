@@ -339,4 +339,6 @@ create table code (
     args        text
 );
 
+create index code_methodid on code(methodid);
+
 create index code_opcode on code(opcode);
