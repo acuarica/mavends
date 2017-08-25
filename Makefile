@@ -30,7 +30,7 @@ run: $(MAVENCLASS) $(MAVEN_CLASS_DB)
 db: $(MAVEN_CLASS_DB)
 
 clean:
-	-rm -r $(BUILD)
+	rm -rf $(BUILD)
 	make -C jnif/ clean
 
 $(MAVEN_CLASS_DB): sql/mavenclass.sql
