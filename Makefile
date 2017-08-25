@@ -31,6 +31,7 @@ db: $(MAVEN_CLASS_DB)
 
 clean:
 	-rm -r $(BUILD)
+	make -C jnif/ clean
 
 $(MAVEN_CLASS_DB): sql/mavenclass.sql
 	rm -f $@
@@ -43,7 +44,7 @@ $(MAVENCLASS): $(MAVENCLASS_OBJS) $(JNIF)
 $(MAVENCLASS_BUILD)/%.cpp.o: $(MAVENCLASS_SRC)/%.cpp | $(MAVENCLASS_BUILD)
 	$(CXX) $(CXXFLAGS) -Ijnif/src -c -o $@ $<
 
-# -include $(LIBJNIF_BUILD)/*.cpp.d
+-include $(MAVENCLASS_BUILD)/*.cpp.d
 
 $(MAVENCLASS_BUILD):
 	mkdir -p $@
