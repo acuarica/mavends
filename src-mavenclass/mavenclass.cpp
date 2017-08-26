@@ -323,10 +323,10 @@ int main(int argc, const char* argv[]) {
   const char* selectArts = argv[3];
   const char* mavenClassPath = argv[4];
 
-  printf("* Maven Index DB: %s\n", mavenIndexPath);
-  printf("* Maven Repo: %s\n", repo);
-  printf("* Select Artifacts: %s\n", selectArts);
-  printf("* Maven Class DB: %s\n", mavenClassPath);
+  fprintf(stderr, "* Maven Index DB: %s\n", mavenIndexPath);
+  fprintf(stderr, "* Maven Repo: %s\n", repo);
+  fprintf(stderr, "* Select Artifacts: %s\n", selectArts);
+  fprintf(stderr, "* Maven Class DB: %s\n", mavenClassPath);
 
   try {
     Db db(mavenIndexPath);
@@ -339,11 +339,11 @@ int main(int argc, const char* argv[]) {
       }, &mc);
     fprintf(stderr, "* Inserting into constant pool tables ... ");
     mc.insertConstPool();
-    fprintf(stderr, "[DONE]");
+    fprintf(stderr, "[DONE]\n");
     mc.db.commit();
 
-    printf(": %d\n", mc.jarnotfound);
-    printf("Total artifacts processed: %d\n", mc.jarc);
+    printf("Artifact not found: %d\n", mc.jarnotfound);
+    printf("Artifacts processed: %d\n", mc.jarc);
   } catch (const DbException& e) {
     cerr << e << endl;
   }

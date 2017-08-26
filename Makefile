@@ -17,25 +17,30 @@ JNIF=jnif/build/libjnif.a
 
 MAVEN_INDEX_DB=out/mavenindex.sqlite3
 MAVEN_REPO=cache/repo
-SELECT_ARTS="select max(idate), * from artifact_jar group by groupid, artifactid"
-MAVEN_CLASS_DB=out/mavenclass.sqlite3
+# SELECT_ARTS="select max(idate), * from artifact_jar group by groupid, artifactid"
+# MAVEN_CLASS_DB=out/mavenclass.sqlite3
 
-.PHONY: all run db clean $(MAVEN_CLASS_DB)
+.PHONY: all run-ch-last _run clean
 
 all: $(MAVENCLASS)
 
-run: $(MAVENCLASS) $(MAVEN_CLASS_DB)
-	$(MAVENCLASS) $(MAVEN_INDEX_DB) $(MAVEN_REPO) $(SELECT_ARTS) $(MAVEN_CLASS_DB)
+run-all-last: WHERE_ARTS=1=1
+run-all-last: MAVEN_CLASS_DB=out/mavenclass-all-last.sqlite3
+run-all-last: _run
 
-db: $(MAVEN_CLASS_DB)
+run-ch-last: WHERE_ARTS=rootgroup='ch'
+run-ch-last: MAVEN_CLASS_DB=out/mavenclass-ch-last.sqlite3
+run-ch-last: _run
+
+_run: SELECT_ARTS="select max(idate), * from artifact_jar where $(WHERE_ARTS) group by groupid, artifactid"
+_run: $(MAVENCLASS) sql/mavenclass.sql
+	rm -f $(MAVEN_CLASS_DB)
+	cat sql/mavenclass.sql | sqlite3 -bail $(MAVEN_CLASS_DB)
+	$(MAVENCLASS) $(MAVEN_INDEX_DB) $(MAVEN_REPO) $(SELECT_ARTS) $(MAVEN_CLASS_DB)
 
 clean:
 	rm -rf $(BUILD)
 	make -C jnif/ clean
-
-$(MAVEN_CLASS_DB): sql/mavenclass.sql
-	rm -f $@
-	cat $^ | sqlite3 -bail $@
 
 $(MAVENCLASS): LDFLAGS+=-lz -lsqlite3 -O3
 $(MAVENCLASS): $(MAVENCLASS_OBJS) $(JNIF)
