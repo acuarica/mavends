@@ -1,14 +1,14 @@
 
 BUILD=build
 
-UNAME=$(shell uname)
+# UNAME=$(shell uname)
 
 CXXFLAGS+=-std=c++11
 CXXFLAGS+=-stdlib=libc++
 CXXFLAGS+=-MMD -fPIC -W -g -Wall -Wextra
 CXXFLAGS+=-O3
 
-MAVENCLASS=$(BUILD)/mavenclass.mach-o
+MAVENCLASS=$(BUILD)/mavenclass.bin
 MAVENCLASS_BUILD=$(BUILD)/mavenclass
 MAVENCLASS_SRC=src-mavenclass
 MAVENCLASS_SRCS=$(wildcard $(MAVENCLASS_SRC)/*.cpp)
@@ -17,16 +17,16 @@ JNIF=jnif/build/libjnif.a
 
 MAVEN_INDEX_DB=out/mavenindex.sqlite3
 MAVEN_REPO=cache/repo
-# SELECT_ARTS="select max(idate), * from artifact_jar group by groupid, artifactid"
-# MAVEN_CLASS_DB=out/mavenclass.sqlite3
-
-.PHONY: all run-ch-last _run clean
 
 all: $(MAVENCLASS)
 
 run-all-last: WHERE_ARTS=1=1
 run-all-last: MAVEN_CLASS_DB=out/mavenclass-all-last.sqlite3
 run-all-last: _run
+
+run-ar-last: WHERE_ARTS=rootgroup='ar'
+run-ar-last: MAVEN_CLASS_DB=out/mavenclass-ar-last.sqlite3
+run-ar-last: _run
 
 run-ch-last: WHERE_ARTS=rootgroup='ch'
 run-ch-last: MAVEN_CLASS_DB=out/mavenclass-ch-last.sqlite3
@@ -36,6 +36,7 @@ _run: SELECT_ARTS="select max(idate), * from artifact_jar where $(WHERE_ARTS) gr
 _run: $(MAVENCLASS) sql/mavenclass.sql
 	rm -f $(MAVEN_CLASS_DB)
 	cat sql/mavenclass.sql | sqlite3 -bail $(MAVEN_CLASS_DB)
+	cat sql/mavenclass-views.sql | sqlite3 -bail $(MAVEN_CLASS_DB)
 	$(MAVENCLASS) $(MAVEN_INDEX_DB) $(MAVEN_REPO) $(SELECT_ARTS) $(MAVEN_CLASS_DB)
 
 clean:

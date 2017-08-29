@@ -120,6 +120,10 @@ public:
     sqlite3_bind_int64(_stmt, column, value);
   }
 
+    void bindDouble(int column, double value) {
+        sqlite3_bind_double(_stmt, column, value);
+    }
+
   int step() {
     int rc = sqlite3_step(_stmt);
     return rc;

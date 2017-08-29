@@ -281,6 +281,11 @@ create table cp_classname (
        classname       varchar(256) not null unique
 );
 
+create table cp_fielddesc (
+  fielddescid     integer primary key,
+  fielddesc       varchar(256) not null unique on conflict ignore
+);
+
 create table cp_methoddesc (
   methoddescid     integer primary key,
   methoddesc       varchar(256) not null unique on conflict ignore
@@ -289,6 +294,14 @@ create table cp_methoddesc (
 create table cp_signature (
   signatureid     integer primary key,
   signature       varchar(256) not null unique on conflict ignore
+);
+
+create table cp_fieldref (
+  fieldrefid integer primary key,
+  classnameid integer not null references cp_classname(classnameid),
+  fieldname varchar(256) not null,
+  fielddescid integer not null references cp_fielddesc(fielddescid),
+  unique (classnameid, fieldname, fielddescid)
 );
 
 create table cp_methodref (
@@ -320,6 +333,14 @@ create table interface (
        classid int not null references class(classid),
        interfaceid int not null references cp_classname(classnameid),
        primary key (classid, interfaceid)
+);
+
+create table field (
+  fieldid    integer primary key,
+  classid     integer not null references class(classid),
+  access      int not null,
+  fieldname  varchar(256) not null,
+  fielddescid int not null references cp_fielddesc(fielddescid)
 );
 
 create table method (

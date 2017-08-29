@@ -1,16 +1,5 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
-#include <fcntl.h>
-
-#include <unistd.h>
-#include <utime.h>
-
 #include <iostream>
-#include <fstream>
 #include <tuple>
 
 #include "Db.hpp"
@@ -26,21 +15,17 @@ public:
   MavenClass(const char* repo, const char* mavenClassPath) :
     repo(repo),
     db(mavenClassPath),
-    // getclassname(db, "select classnameid from cp_classname where classname=?1"),
-    // getmethoddesc(db,"select methoddescid from cp_methoddesc where methoddesc=?1"),
-    // getmethodref(db,"select methodrefid from cp_methodref where classnameid=?1 and methodname=?2 and methoddescid=?3"),
     insclassname(db, "insert into cp_classname (classnameid, classname) values (?1, ?2)"),
+    insfielddesc(db, "insert into cp_fielddesc (fielddescid, fielddesc) values (?1, ?2)"),
     insmethoddesc(db, "insert into cp_methoddesc (methoddescid, methoddesc) values (?1, ?2)"),
+    insfieldref(db, "insert into cp_fieldref (fieldrefid, classnameid, fieldname, fielddescid) values (?1, ?2, ?3, ?4)"),
     insmethodref(db, "insert into cp_methodref (methodrefid, classnameid, methodname, methoddescid) values (?1, ?2, ?3, ?4)"),
     inssignature(db, "insert into cp_signature (signature) values (?1)"),
     insjar(db, "insert into jar (coord, path) values (?1, ?2)"),
-    insclass(db, "insert into class (jarid, minor_version, major_version, access, \
-classnameid, signatureid, superclassid) \
-values (?1, ?2, ?3, ?4, ?5, \
-(select signatureid from cp_signature where signature=?6), ?7)"),
+    insclass(db, "insert into class (jarid, minor_version, major_version, access, classnameid, signatureid, superclassid) values (?1, ?2, ?3, ?4, ?5, (select signatureid from cp_signature where signature=?6), ?7)"),
     insinterface(db, "insert into interface (classid,interfaceid)values (?1, ?2)"),
-    insmethod(db, "insert into method (classid, access, methodname, methoddescid, \
-signature, exceptions) values (?1, ?2, ?3, ?4, ?5, ?6)"),
+    insfield(db, "insert into field (classid, access, fieldname, fielddescid) values (?1, ?2, ?3, ?4)"),
+    insmethod(db, "insert into method (classid, access, methodname, methoddescid, signature, exceptions) values (?1, ?2, ?3, ?4, ?5, ?6)"),
     inscode(db, "insert into code (methodid, opcode, args) values (?1, ?2, ?3)"),
     jarc(0)
   {
@@ -60,7 +45,7 @@ signature, exceptions) values (?1, ?2, ?3, ?4, ?5, ?6)"),
     fprintf(stderr, "[#%d %s ... ", jarc, id);
     try {
       JarFile uf(jarpath.c_str());
-      int csc = uf.forEach(this, jarid, [] (void* mc, int jid, void* buf, int s) {
+      int csc = uf.forEach(this, jarid, [] (void* mc, int jid, void* buf, int s, const char*) {
           ((MavenClass*)mc)->processClassFile(jid, buf, s);
         });
       fprintf(stderr, "%d classes]\n", csc);
@@ -104,6 +89,15 @@ signature, exceptions) values (?1, ?2, ?3, ?4, ?5, ?6)"),
         insinterface.bindLong(1, classid);
         insinterface.bindLong(2, interid);
         insinterface.exec();
+      }
+
+      for (Field* f : cf.fields) {
+          long fdid = getFieldDesc(f->getDesc());
+          insfield.bindLong(1, classid);
+          insfield.bindInt(2, f->accessFlags);
+          insfield.bindText(3, f->getName());
+          insfield.bindLong(4, fdid);
+          insfield.exec();
       }
 
       for (Method* m : cf.methods) {
@@ -150,18 +144,42 @@ void doInst(Inst& inst)  {
     case KIND_SIPUSH:
       inscode.bindInt(ARG, int(inst.push()->value));
 			break;
-		// case KIND_LDC:
-			// os << "#" << int(inst.ldc()->valueIndex);
-			// break;
-		// case KIND_VAR:
-			// os << int(inst.var()->lvindex);
-			// break;
-		// case KIND_IINC:
-			// os << int(inst.iinc()->index) << " " << int(inst.iinc()->value);
-			// break;
-		// case KIND_JUMP:
-			// os << "label: " << inst.jump()->label2->label()->id;
-			// break;
+  case KIND_LDC: {
+      ConstIndex i = int(inst.ldc()->valueIndex);
+      ConstTag t = cf.getTag(i);
+      switch (t) {
+      case CONST_STRING:
+          inscode.bindText(ARG, cf.getString(i));
+          break;
+      case CONST_INTEGER:
+          inscode.bindInt(ARG, cf.getInteger(i));
+          break;
+      case CONST_FLOAT:
+          inscode.bindDouble(ARG, cf.getFloat(i));
+          break;
+      case CONST_CLASS:
+          inscode.bindText(ARG, cf.getClassName(i));
+          break;
+      case CONST_LONG:
+          inscode.bindLong(ARG, cf.getLong(i));
+          break;
+      case CONST_DOUBLE:
+          inscode.bindDouble(ARG, cf.getDouble(i));
+          break;
+      default:
+          JnifError::raise("Invalid LDC argument: ", t);
+      }
+			break;
+  }
+		case KIND_VAR:
+      inscode.bindInt(ARG, int(inst.var()->lvindex));
+			break;
+		case KIND_IINC:
+        inscode.bindInt(ARG, inst.iinc()->index << 16 | inst.iinc()->value);
+			break;
+		case KIND_JUMP:
+      inscode.bindInt(ARG, inst.jump()->label2->label()->id);
+			break;
 		// case KIND_TABLESWITCH:
 			// os << "default: " << inst.ts()->def->label()->id << ", from: "
 			// 		<< inst.ts()->low << " " << inst.ts()->high << ":";
@@ -181,12 +199,13 @@ void doInst(Inst& inst)  {
 			// 	os << " " << k << " -> " << l->label()->id;
 			// }
 			// break;
-		// case KIND_FIELD: {
-			// string className, name, desc;
-			// cf.getFieldRef(inst.field()->fieldRefIndex, &className, &name, &desc);
-			// os << className << name << desc;
-			// break;
-		// }
+		case KIND_FIELD: {
+			string className, name, desc;
+			cf.getFieldRef(inst.field()->fieldRefIndex, &className, &name, &desc);
+      long frid = getFieldRef(className.c_str(), name.c_str(), desc.c_str());
+      inscode.bindLong(ARG, frid);
+			break;
+		}
 		case KIND_INVOKE: {
 			ConstIndex mid = inst.invoke()->methodRefIndex;
 			String className, name, desc;
@@ -197,19 +216,17 @@ void doInst(Inst& inst)  {
 			}
 
       long mrid = getMethodRef(className.c_str(), name.c_str(), desc.c_str());
-      // stringstream ss;
-			// ss << className << "." << name << ": " << desc << endl;
       inscode.bindLong(ARG, mrid);
 			break;
 		}
-		// case KIND_INVOKEINTERFACE: {
-			// String className, name, desc;
-			// cf.getInterMethodRef(inst.invokeinterface()->interMethodRefIndex, &className, &name, &desc);
+		case KIND_INVOKEINTERFACE: {
+			String className, name, desc;
+			cf.getInterMethodRef(inst.invokeinterface()->interMethodRefIndex, &className, &name, &desc);
 
-			// os << className << "." << name << ": " << desc << "("
-			// 		<< int(inst.invokeinterface()->count) << ")";
-			// break;
-		// }
+      long mrid = getMethodRef(className.c_str(), name.c_str(), desc.c_str());
+      inscode.bindLong(ARG, mrid);
+			break;
+		}
 		// case KIND_INVOKEDYNAMIC: {
 			// os << int(inst.indy()->callSite()) << "";
 			// break;
@@ -247,8 +264,18 @@ void doInst(Inst& inst)  {
         return getByValue(classNameConstPool, className);
     }
 
+    long getFieldDesc(const string& fieldDesc) {
+        return getByValue(fieldDescConstPool, fieldDesc);
+    }
+
     long getMethodDesc(const string& methodDesc) {
         return getByValue(methodDescConstPool, methodDesc);
+    }
+
+    long getFieldRef(const string& className, const string& fieldName, const string& fieldDesc) {
+        long cnid = getClassName(className);
+        long fdid = getFieldDesc(fieldDesc);
+        return getByValue(fieldRefConstPool, make_tuple(cnid, fieldName, fdid));
     }
 
     long getMethodRef(const string& className, const string& methodName, const string& methodDesc) {
@@ -264,10 +291,24 @@ void doInst(Inst& inst)  {
             insclassname.exec();
         }
 
+        for (auto& e : fieldDescConstPool) {
+            insfielddesc.bindLong(1, e.second);
+            insfielddesc.bindText(2, e.first.c_str());
+            insfielddesc.exec();
+        }
+
         for (auto& e : methodDescConstPool) {
             insmethoddesc.bindLong(1, e.second);
             insmethoddesc.bindText(2, e.first.c_str());
             insmethoddesc.exec();
+        }
+
+        for (auto& e : fieldRefConstPool) {
+            insfieldref.bindLong(1, e.second);
+            insfieldref.bindLong(2, get<0>(e.first));
+            insfieldref.bindText(3, get<1>(e.first).c_str());
+            insfieldref.bindLong(4, get<2>(e.first));
+            insfieldref.exec();
         }
 
         for (auto& e : methodRefConstPool) {
@@ -295,56 +336,67 @@ void doInst(Inst& inst)  {
     Db db;
 
     Stmt insclassname;
+    Stmt insfielddesc;
     Stmt insmethoddesc;
+    Stmt insfieldref;
     Stmt insmethodref;
     Stmt inssignature;
     Stmt insjar;
     Stmt insclass;
     Stmt insinterface;
+    Stmt insfield;
     Stmt insmethod;
     Stmt inscode;
 
     int jarc;
 
     map<string, long> classNameConstPool;
+    map<string, long> fieldDescConstPool;
     map<string, long> methodDescConstPool;
+    map<tuple<long, string, long>, long> fieldRefConstPool;
     map<tuple<long, string, long>, long> methodRefConstPool;
 
 };
 
 int main(int argc, const char* argv[]) {
-  if (argc < 5) {
-    fprintf(stderr, "Not enough arguments: %d\n", argc);
-    return 1;
-  }
+    if (argc < 5) {
+        cerr << "Usage: " << endl;
+        cerr << "  " << argv[0];
+        cerr << " <Maven Index DB>";
+        cerr << " <Maven Repo>";
+        cerr << " <Select Artifact>";
+        cerr << " <Maven Class DB>";
+        cerr << endl;
+        return 1;
+    }
 
-  const char* mavenIndexPath = argv[1];
-  const char* repo = argv[2];
-  const char* selectArts = argv[3];
-  const char* mavenClassPath = argv[4];
+    const char* mavenIndexPath = argv[1];
+    const char* repo = argv[2];
+    const char* selectArts = argv[3];
+    const char* mavenClassPath = argv[4];
 
-  fprintf(stderr, "* Maven Index DB: %s\n", mavenIndexPath);
-  fprintf(stderr, "* Maven Repo: %s\n", repo);
-  fprintf(stderr, "* Select Artifacts: %s\n", selectArts);
-  fprintf(stderr, "* Maven Class DB: %s\n", mavenClassPath);
+    cout << "* Maven Index DB: " << mavenIndexPath << endl;
+    cout << "* Maven Repo: " << repo << endl;
+    cout << "* Select Artifacts: " << selectArts << endl;
+    cout << "* Maven Class DB: " << mavenClassPath << endl;
 
-  try {
-    Db db(mavenIndexPath);
-    MavenClass mc(repo, mavenClassPath);
+    try {
+        Db db(mavenIndexPath);
+        MavenClass mc(repo, mavenClassPath);
 
-    mc.db.start();
-    db.exec(selectArts, [] (void* mc, int, char** argv, char**) {
-        ((MavenClass*)mc)->process(argv[3], argv[2]);
-        return 0;
-      }, &mc);
-    fprintf(stderr, "* Inserting into constant pool tables ... ");
-    mc.insertConstPool();
-    fprintf(stderr, "[DONE]\n");
-    mc.db.commit();
+        mc.db.start();
+        db.exec(selectArts, [] (void* mc, int, char** argv, char**) {
+            ((MavenClass*)mc)->process(argv[3], argv[2]);
+            return 0;
+            }, &mc);
+        cout << "* Inserting into constant pool tables ... " << flush;
+        mc.insertConstPool();
+        cout << "[DONE]" << endl;
+        mc.db.commit();
 
-    printf("Artifact not found: %d\n", mc.jarnotfound);
-    printf("Artifacts processed: %d\n", mc.jarc);
-  } catch (const DbException& e) {
-    cerr << e << endl;
-  }
+        cout << "Artifact not found: " << mc.jarnotfound << endl;
+        cout << "Artifacts processed: " << mc.jarc << endl;
+    } catch (const DbException& e) {
+        cerr << e << endl;
+    }
 }

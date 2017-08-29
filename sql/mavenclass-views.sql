@@ -1,4 +1,20 @@
 
+
+drop view if exists cp_fieldref_view;
+
+create view cp_fieldref_view as
+  select
+  fr.fieldrefid,
+  fr.classnameid,
+  cn.classname,
+  fr.fieldname,
+  fr.fielddescid,
+  fd.fielddesc,
+  cn.classname||'.'||fr.fieldname||fd.fielddesc fullfieldname
+  from cp_fieldref fr
+  left join cp_classname cn on cn.classnameid = fr.classnameid
+  left join cp_fielddesc fd on fd.fielddescid = fr.fielddescid;
+
 drop view if exists cp_methodref_view;
 
 create view cp_methodref_view as
@@ -59,12 +75,16 @@ create view method_view as
 drop view if exists code_view;
 
 create view code_view as
-  select cv.classname, mv.methodname, mv.methoddesc,
+  select cv.classid, cv.classname, mv.methodid, mv.methodname, mv.methoddesc,
   c.opcodeindex, c.opcode, op.name, args,
   case
   when op.kind=0 then ''
   when op.kind=1 or op.kind=2 then args
-  when op.kind=10 then (select classname||'.'||methodname||methoddesc from cp_methodref_view where methodrefid=args)
+  when op.kind=3 then args
+  when op.kind=4 then args
+  when op.kind=6 then args
+  when op.kind=9 then (select classname||'.'||fieldname||fielddesc from cp_fieldref_view where fieldrefid=args)
+  when op.kind=10 or op.kind=11 then (select classname||'.'||methodname||methoddesc from cp_methodref_view where methodrefid=args)
   when op.kind=13 then (select classname from cp_classname where classnameid=args)
   else '?'
   end as argstext
