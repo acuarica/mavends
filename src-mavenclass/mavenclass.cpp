@@ -119,6 +119,13 @@ public:
         if (m->hasCode()) {
           CodeAttr* code = m->codeAttr();
           for (Inst* inst : code->instList) {
+              if (inst->kind == KIND_LABEL) {
+                  LabelInst* label = inst->label();
+                  if (!label->isTarget()) {
+                      continue;
+                  }
+              }
+
             inscode.bindLong(1, methodid);
             inscode.bindInt(2, inst->opcode);
             doInst(*inst);
