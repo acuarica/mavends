@@ -13,7 +13,7 @@ MAVENCLASS_BUILD=$(BUILD)/mavenclass
 MAVENCLASS_SRC=src-mavenclass
 MAVENCLASS_SRCS=$(wildcard $(MAVENCLASS_SRC)/*.cpp)
 MAVENCLASS_OBJS=$(MAVENCLASS_SRCS:$(MAVENCLASS_SRC)/%=$(MAVENCLASS_BUILD)/%.o)
-JNIF=jnif/build/libjnif.a
+JNIF=jnif/libjnif.a
 
 MAVEN_INDEX_DB=out/mavenindex.sqlite3
 MAVEN_REPO=cache/repo
@@ -56,7 +56,7 @@ $(MAVENCLASS): $(MAVENCLASS_OBJS) $(JNIF)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 $(MAVENCLASS_BUILD)/%.cpp.o: $(MAVENCLASS_SRC)/%.cpp | $(MAVENCLASS_BUILD)
-	$(CXX) $(CXXFLAGS) -Ijnif/src -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -Ijnif/src-libjnif -c -o $@ $<
 
 -include $(MAVENCLASS_BUILD)/*.cpp.d
 

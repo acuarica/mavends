@@ -7,9 +7,10 @@
 
 #include <jnif.hpp>
 
-class DbException {
+class DbException : public jnif::Exception {
 public:
 
+    using Exception::Exception;
   DbException(const std::string& message, const std::string&) :
     message(message)
   {
@@ -140,7 +141,8 @@ public:
   void exec() {
     int rc = sqlite3_step(_stmt);
     if (rc != SQLITE_DONE) {
-      DbError::raise("Error exec: ", rc, _db.errMsg(), _sql);
+      // DbError::raise("Error exec: ", rc, _db.errMsg(), _sql);
+      throw DbException("Error exec: ", rc, _db.errMsg(), _sql);
     }
 
     sqlite3_reset(_stmt);

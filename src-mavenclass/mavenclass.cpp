@@ -44,12 +44,12 @@ public:
 
     fprintf(stderr, "[#%d %s ... ", jarc, id);
     try {
-      JarFile uf(jarpath.c_str());
+        jar::JarFile uf(jarpath.c_str());
       int csc = uf.forEach(this, jarid, [] (void* mc, int jid, void* buf, int s, const char*) {
           ((MavenClass*)mc)->processClassFile(jid, buf, s);
         });
       fprintf(stderr, "%d classes]\n", csc);
-    } catch (const JarException& ex) {
+    } catch (const jar::JarException& ex) {
         jarnotfound++;
       fprintf(stderr, "CANTOPEN]\n");
     }
@@ -57,7 +57,7 @@ public:
 
   void processClassFile(long jarid, void* buffer, int size) {
     try {
-      ClassFile cf((u1*)buffer, size);
+        parser::ClassFileParser cf((u1*)buffer, size);
 
       long cnid = getClassName(cf.getThisClassName());
       long scnid = getClassName(cf.getSuperClassName());
@@ -91,24 +91,24 @@ public:
         insinterface.exec();
       }
 
-      for (Field* f : cf.fields) {
-          long fdid = getFieldDesc(f->getDesc());
+      for (const Field& f : cf.fields) {
+          long fdid = getFieldDesc(f.getDesc());
           insfield.bindLong(1, classid);
-          insfield.bindInt(2, f->accessFlags);
-          insfield.bindText(3, f->getName());
+          insfield.bindInt(2, f.accessFlags);
+          insfield.bindText(3, f.getName());
           insfield.bindLong(4, fdid);
           insfield.exec();
       }
 
-      for (Method* m : cf.methods) {
-        long methoddescid = getMethodDesc(m->getDesc());
+      for (const Method& m : cf.methods) {
+        long methoddescid = getMethodDesc(m.getDesc());
 
         insmethod.bindLong(1, classid);
-        insmethod.bindInt(2, m->accessFlags);
-        insmethod.bindText(3, m->getName());
+        insmethod.bindInt(2, m.accessFlags);
+        insmethod.bindText(3, m.getName());
         insmethod.bindLong(4, methoddescid);
-        if (m->sig.hasSignature()) {
-          insmethod.bindText(5, m->sig.signature());
+        if (m.sig.hasSignature()) {
+          insmethod.bindText(5, m.sig.signature());
         } else {
           insmethod.bindNull(5);
         }
@@ -116,8 +116,8 @@ public:
         insmethod.exec();
         long methodid = db.lastInsertRowid();
 
-        if (m->hasCode()) {
-          CodeAttr* code = m->codeAttr();
+        if (m.hasCode()) {
+          CodeAttr* code = m.codeAttr();
           for (Inst* inst : code->instList) {
               if (inst->kind == KIND_LABEL) {
                   LabelInst* label = inst->label();
@@ -127,14 +127,14 @@ public:
               }
 
             inscode.bindLong(1, methodid);
-            inscode.bindInt(2, inst->opcode);
+            inscode.bindInt(2, (int)inst->opcode);
             doInst(*inst);
 
             inscode.exec();
           }
         }
       }
-    } catch (const JnifException& e) {
+    } catch (const jnif::Exception& e) {
       cerr << e << endl;
     }
   }
@@ -152,29 +152,29 @@ void doInst(Inst& inst)  {
       inscode.bindInt(ARG, int(inst.push()->value));
 			break;
   case KIND_LDC: {
-      ConstIndex i = int(inst.ldc()->valueIndex);
-      ConstTag t = cf.getTag(i);
+      ConstPool::Index i = int(inst.ldc()->valueIndex);
+      ConstPool::Tag t = cf.getTag(i);
       switch (t) {
-      case CONST_STRING:
+      case ConstPool::STRING:
           inscode.bindText(ARG, cf.getString(i));
           break;
-      case CONST_INTEGER:
+      case ConstPool::INTEGER:
           inscode.bindInt(ARG, cf.getInteger(i));
           break;
-      case CONST_FLOAT:
+      case ConstPool::FLOAT:
           inscode.bindDouble(ARG, cf.getFloat(i));
           break;
-      case CONST_CLASS:
+      case ConstPool::CLASS:
           inscode.bindText(ARG, cf.getClassName(i));
           break;
-      case CONST_LONG:
+      case ConstPool::LONG:
           inscode.bindLong(ARG, cf.getLong(i));
           break;
-      case CONST_DOUBLE:
+      case ConstPool::DOUBLE:
           inscode.bindDouble(ARG, cf.getDouble(i));
           break;
       default:
-          JnifError::raise("Invalid LDC argument: ", t);
+          throw jnif::Exception("Invalid LDC argument: ", t);
       }
 			break;
   }
@@ -214,9 +214,9 @@ void doInst(Inst& inst)  {
 			break;
 		}
 		case KIND_INVOKE: {
-			ConstIndex mid = inst.invoke()->methodRefIndex;
-			String className, name, desc;
-			if (cf.getTag(mid) == CONST_INTERMETHODREF) {
+        ConstPool::Index mid = inst.invoke()->methodRefIndex;
+			string className, name, desc;
+			if (cf.getTag(mid) == ConstPool::INTERMETHODREF) {
 				cf.getInterMethodRef(inst.invoke()->methodRefIndex, &className, &name, &desc);
 			} else {
 				cf.getMethodRef(inst.invoke()->methodRefIndex, &className, &name, &desc);
@@ -227,7 +227,7 @@ void doInst(Inst& inst)  {
 			break;
 		}
 		case KIND_INVOKEINTERFACE: {
-			String className, name, desc;
+			string className, name, desc;
 			cf.getInterMethodRef(inst.invokeinterface()->interMethodRefIndex, &className, &name, &desc);
 
       long mrid = getMethodRef(className.c_str(), name.c_str(), desc.c_str());
