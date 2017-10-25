@@ -13,7 +13,7 @@ MAVENCLASS_BUILD=$(BUILD)/mavenclass
 MAVENCLASS_SRC=src-mavenclass
 MAVENCLASS_SRCS=$(wildcard $(MAVENCLASS_SRC)/*.cpp)
 MAVENCLASS_OBJS=$(MAVENCLASS_SRCS:$(MAVENCLASS_SRC)/%=$(MAVENCLASS_BUILD)/%.o)
-JNIF=jnif/libjnif.a
+JNIF=jnif/cmake-build-debug/libjnif.a
 
 MAVEN_INDEX_DB=out/mavenindex.sqlite3
 MAVEN_REPO=cache/repo
