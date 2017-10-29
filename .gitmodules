@@ -1,3 +1,3 @@
 [submodule "jnif"]
 	path = jnif
-	url = git@bitbucket.org:acuarica/jnif.git
+	url = git@gitlab.com:acuarica/jnif.git
