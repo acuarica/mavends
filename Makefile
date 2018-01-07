@@ -20,6 +20,10 @@ MAVEN_REPO=cache/repo
 
 all: $(MAVENCLASS)
 
+run-loopj-last: WHERE_ARTS=groupid='com.loopj.android'
+run-loopj-last: MAVEN_CLASS_DB=out/mavenclass-loopj-last.sqlite3
+run-loopj-last: _run
+
 run-ar-last: WHERE_ARTS=rootgroup='ar'
 run-ar-last: MAVEN_CLASS_DB=out/mavenclass-ar-last.sqlite3
 run-ar-last: _run

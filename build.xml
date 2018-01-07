@@ -66,6 +66,12 @@
 			</java>
 		</sequential>
 	</macrodef>
+	<target name="conf-loopj-last" description="Configuration with artifacts from the 'loopj' root group (~500MB).">
+		<setup conf="loopj-last" query="select max(idate), * from artifact_jar where groupid = 'com.loopj.android' group by groupid, artifactid" />
+	</target>
+	<target name="conf-loopj-last-sources" description="Configuration with artifacts from the 'loopj' root group (~500MB).">
+		<setup conf="loopj-last-sources" query="select max(idate), * from artifact_view where classifier = 'sources' and packaging = 'jar' and extension = 'jar' and groupid='com.loopj.android' group by groupid, artifactid" />
+	</target>
 	<target name="conf-ch" description="Configuration with artifacts from the 'ch' root group (~500MB).">
 		<setup conf="ch" query="select * from artifact_jar where rootgroup = 'ch'" />
 	</target>
@@ -78,8 +84,11 @@
 	<target name="conf-com" description="Configuration with artifacts from the 'com' root group (~58GB).">
 		<setup conf="com" query="select * from artifact_jar where rootgroup = 'com'" />
 	</target>
-	<target name="conf-last" description="Configuration with the last version of --all-- artifacts. (~254GB).">
-		<setup conf="last" query="select max(idate), * from artifact_jar group by groupid, artifactid" />
+	<target name="conf-all-last" description="Configuration with the last version of --all-- artifacts. (~254GB).">
+		<setup conf="all-last" query="select max(idate), * from artifact_jar group by groupid, artifactid" />
+	</target>
+	<target name="conf-all-last-sources" description="Configuration with artifacts from the 'loopj' root group (~500MB).">
+		<setup conf="all-last-sources" query="select max(idate), * from artifact_view where classifier = 'sources' and packaging = 'jar' and extension = 'jar' group by groupid, artifactid" />
 	</target>
 	<target name="conf-all" description="Configuration with --all-- artifacts. (~254GB).">
 		<setup conf="all" query="select * from artifact_jar" />
