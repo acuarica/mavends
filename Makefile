@@ -1,4 +1,8 @@
 
+CACHE=cache
+
+ARIA2=aria2c
+
 BUILD=build
 
 # UNAME=$(shell uname)
@@ -19,6 +23,13 @@ MAVEN_INDEX_DB=out/mavenindex.sqlite3
 MAVEN_REPO=cache/repo
 
 all: $(MAVENCLASS)
+
+fetchindex: | $(CACHE)
+	$(ARIA2)
+
+$(CACHE):
+	mkdir -p -v $@
+
 
 run-loopj-last: WHERE_ARTS=groupid='com.loopj.android'
 run-loopj-last: MAVEN_CLASS_DB=out/mavenclass-loopj-last.sqlite3
